@@ -1,0 +1,8 @@
+{
+  "dependencies": {
+    "node-haxball": "^1.1.0"
+  },
+   "scripts" :
+   { "build": "node main.js"
+  }
+}
