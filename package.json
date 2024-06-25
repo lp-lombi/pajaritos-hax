@@ -2,7 +2,11 @@
   "dependencies": {
     "node-haxball": "^1.1.0"
   },
-   "scripts" :
-   { "build": "node main.js"
+  "scripts": {
+    "build": "node main.js"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.6",
+    "typescript": "^5.4.5"
   }
 }
