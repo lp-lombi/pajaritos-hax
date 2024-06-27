@@ -6,7 +6,7 @@ const matchHistory = require("./plugins/matchHistory");
 const lmbCommands = require("./plugins/commands");
 
 // AJUSTES
-const DEV = true;
+const DEV = false;
 const createParams = {
     name: DEV ? "*** godin" : "*-*-*- FUTSAL CON COMBA *-*-*-",
     geo: {
@@ -17,7 +17,7 @@ const createParams = {
     },
     showInRoomList: true,
     maxPlayerCount: 30,
-    token: "thr1.AAAAAGZ6EunXgs_j3W2qsg.OvdLkj373WM",
+    token: "thr1.AAAAAGZ8vErVU2CG5XAPPw.xGnlXtnsUNM",
 };
 DEV ? (createParams["password"] = "121") : null;
 
@@ -29,7 +29,6 @@ API.Room.create(createParams, {
         avatar: "👽",
     },
     onSuccess: (room) => {
-        room.getDisc();
         room.plugins.forEach((p) => {
             console.log(" - " + p.name);
         });

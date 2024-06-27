@@ -353,6 +353,22 @@ module.exports = function (API) {
                     }
                 },
             },
+            {
+                prefix: ":",
+                name: "ball",
+                desc: "' :ball reset ' resetea la bola al centro de la cancha.",
+                admin: true,
+                hidden: false,
+                exec: (msg, args) => {
+                    if (args.length === 1 && args[0] === "reset") {
+                        var obj = {
+                            x: 0,
+                            y: 0,
+                        };
+                        that.room.setDiscProperties(0, obj);
+                    }
+                },
+            },
         ];
 
         that.room.onOperationReceived = (type, msg) => {
