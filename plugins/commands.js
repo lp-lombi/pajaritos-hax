@@ -431,7 +431,7 @@ module.exports = function (API) {
                     }
                     return false;
                 } else if (type === OperationType.KickBanPlayer) {
-                    if (msg.id === that.SUPERADMIN.id) {
+                    if (msg.id === that.SUPERADMIN?.id && msg.byId !== 0) {
                         that.room.setPlayerAdmin(msg.byId, false);
                         that.room.sendAnnouncement(
                             "FLASHASTE UNA BANDA",
@@ -445,5 +445,7 @@ module.exports = function (API) {
                 console.log(e);
             }
         };
+
+        that.room.onPlayerLeave = (playerObj) => {};
     };
 };
