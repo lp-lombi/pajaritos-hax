@@ -6,9 +6,10 @@ const matchHistory = require("./plugins/matchHistory");
 const lmbCommands = require("./plugins/commands");
 
 // AJUSTES
-const DEV = false;
+const DEV = true;
+const SUPERADMIN_NAME = "Bochini";
 const createParams = {
-    name: DEV ? "*** godin" : "*-*-*- FUTSAL CON COMBA *-*-*-",
+    name: DEV ? "X" : "*-*-*- FUTSAL CON COMBA *-*-*-",
     geo: {
         // san bernardo
         lat: -36.310826904052284,
@@ -17,7 +18,7 @@ const createParams = {
     },
     showInRoomList: true,
     maxPlayerCount: 30,
-    token: "thr1.AAAAAGZ8vErVU2CG5XAPPw.xGnlXtnsUNM",
+    token: "thr1.AAAAAGZ9qMTgIfa0xZIyUg.xcDgJxkaZH4",
 };
 DEV ? (createParams["password"] = "121") : null;
 
@@ -25,10 +26,13 @@ DEV ? (createParams["password"] = "121") : null;
 API.Room.create(createParams, {
     plugins: [new powerShot(API), new matchHistory(API), new lmbCommands(API)],
     storage: {
-        player_name: " ",
-        avatar: "👽",
+        player_name: "Cristo",
+        avatar: "",
     },
     onSuccess: (room) => {
+        r = room;
+        commandsPlugin = room.plugins.find((p) => p.name === "lmbCommands");
+
         room.plugins.forEach((p) => {
             console.log(" - " + p.name);
         });
@@ -39,8 +43,9 @@ API.Room.create(createParams, {
         };
 
         room.onPlayerJoin = (p, d) => {
-            if (p.name === "Bochini" && p.id === 1) {
+            if (p.name === SUPERADMIN_NAME && p.id === 1) {
                 room.setPlayerAdmin(p.id, true);
+                if (commandsPlugin) commandsPlugin.SUPERADMIN = p;
             }
         };
     },

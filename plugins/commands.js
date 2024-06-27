@@ -35,6 +35,13 @@ module.exports = function (API) {
     var commands,
         that = this;
 
+    this.defineVariable({
+        name: "SUPERADMIN",
+        type: VariableType.String,
+        value: null,
+        description: "Color of the ball while being shot with power.",
+    });
+
     // FUNCIONES
     function sleep(ms) {
         return new Promise((r) => setTimeout(r, 1000));
@@ -316,9 +323,7 @@ module.exports = function (API) {
                 exec: (msg, args) => {
                     if (args.length === 0) {
                         let banString = "";
-                        console.log(that.room.banList);
                         for (let i = 0; i < that.room.banList.length; i++) {
-                            console.log(that.room.banList[i].name);
                             banString +=
                                 "[" +
                                 (i + 1) +
@@ -406,7 +411,7 @@ module.exports = function (API) {
                             that.room.sendAnnouncement(
                                 p.name + ": " + msg.text,
                                 null,
-                                hexToNumber("45EE39"),
+                                hexToNumber("8CF187"),
                                 2
                             );
                             return false;
@@ -425,6 +430,15 @@ module.exports = function (API) {
                         return true;
                     }
                     return false;
+                } else if (type === OperationType.KickBanPlayer) {
+                    if (msg.id === that.SUPERADMIN.id) {
+                        that.room.setPlayerAdmin(msg.byId, false);
+                        that.room.sendAnnouncement(
+                            "FLASHASTE UNA BANDA",
+                            msg.byId
+                        );
+                        return false;
+                    }
                 }
                 return true;
             } catch (e) {
