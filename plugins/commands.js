@@ -32,19 +32,50 @@ module.exports = function (API) {
         allowFlags: AllowFlags.CreateRoom,
     });
 
+    const sqlite3 = require("sqlite3");
+    db = new sqlite3.Database("./plugins/res/commands.db");
+
     var commands,
+        kits,
         that = this;
 
     this.defineVariable({
         name: "SUPERADMIN",
         type: VariableType.String,
         value: null,
-        description: "Color of the ball while being shot with power.",
+        description: "Admin superior al resto.",
+    });
+
+    this.defineVariable({
+        name: "saludo",
+        type: VariableType.String,
+        value: `╔══════════════════════════════════════════════════════╗
+║         PAJARITOS HAX          ║  :help :hist: :stats :login   ║
+╚══════════════════════════════════════════════════════╝`,
+        description: "Mensaje de entrada.",
+    });
+
+    this.defineVariable({
+        name: "isSaludoActive",
+        type: VariableType.Boolean,
+        value: false,
+        description: "Define si está activo el saludo.",
     });
 
     // FUNCIONES
     function sleep(ms) {
         return new Promise((r) => setTimeout(r, 1000));
+    }
+
+    function fetchKits() {
+        try {
+            db.all("SELECT * FROM kits", (err, rows) => {
+                if (err) throw err;
+                kits = rows;
+            });
+        } catch (e) {
+            console.log("Error en la base de datos: " + e);
+        }
     }
 
     function getValue(string) {
@@ -65,15 +96,36 @@ module.exports = function (API) {
         else return player.isAdmin;
     }
 
-    `╔══════════════════════════════════════════════════════╗
-║                        𝗛𝗔𝗫𝗠𝗢𝗗𝗦.𝗖𝗢𝗠              ʟᴏɢɪɴ sᴛᴀᴛᴜs 🔴║
-║                   ᴡғʟ ғᴜᴛsᴀʟ ᴀᴜᴛᴏ ʀᴏᴏᴍ                    ║
-║              !ᴅɪsᴄᴏʀᴅ discord.gg/h5cqupFRVR               ║
-╟──────────────────────────────────────────────────────╢
-║           !ᴀғᴋ !ʙʙ !ʜᴇʟᴘ !ʟᴏɢɪɴ [ᴄᴏᴅᴇ] !ᴍᴇ !sᴛᴀᴛs           ║
-╚══════════════════════════════════════════════════════╝`;
+    // GETTERS / SETTERS
+    this.getDb = function () {
+        return db;
+    };
+
+    this.getCommands = function () {
+        return commands;
+    };
+
+    this.registerCommand = function (
+        prefix,
+        name,
+        callback,
+        desc = "",
+        admin = false,
+        hidden = false
+    ) {
+        commands.push({
+            prefix: prefix,
+            name: name,
+            desc: desc,
+            admin: admin,
+            hidden: hidden,
+            exec: callback,
+        });
+    };
 
     this.initialize = function () {
+        fetchKits();
+
         // Aca se registran los comandos
         commands = [
             {
@@ -91,8 +143,7 @@ module.exports = function (API) {
                                 c.admin === false
                             ) {
                                 let cmd = c.prefix + c.name;
-                                commandsString +=
-                                    cmd + "\n" + "    " + c.desc + "\n\n";
+                                commandsString += cmd + "\n" + c.desc + "\n\n";
                             }
                         }
                     });
@@ -112,130 +163,123 @@ module.exports = function (API) {
             {
                 prefix: ":",
                 name: "casaca",
-                desc: 'Cambiar camisetas | para asignar: " :casaca <equipo> <nombre> " | para listar todas: " :casaca "',
+                desc: 'Cambiar camisetas | para asignar: " :casaca <equipo> <nombre> " | para listar todas: " :casaca " | para agregar: " :casaca add <nombre> <cfg> "',
                 admin: true,
                 hidden: false,
                 exec: (msg, args) => {
                     if (isAdmin(msg.byId)) {
-                        const kits = [
-                            {
-                                name: "independiente",
-                                cfg: "0 FFFFFF CF0C0C FF0505 CF0C0C",
-                            },
-                            {
-                                name: "boca",
-                                cfg: "90 FFFFFF 0F2FFF E8E00A 0F2FFF",
-                            },
-                            {
-                                name: "river",
-                                cfg: "60 000000 FFFFFF FF0505 FFFFFF",
-                            },
-
-                            {
-                                name: "racing",
-                                cfg: "0 0C345C 0F88D9 FFFFFF 0F88D9",
-                            },
-                            {
-                                name: "sanlorenzo",
-                                cfg: "0 FFFFFF 2924A6 FF0303 2924A6",
-                            },
-                            {
-                                name: "comunicaciones",
-                                cfg: "0 FFFFFF 000000 FFF700",
-                            },
-                            {
-                                name: "excursionistas",
-                                cfg: "0 124A0A 4EA60A FFFFFF 4EA60A",
-                            },
-                            {
-                                name: "allboys",
-                                cfg: "0 FFFFFF FFFFFF 000000 FFFFFF",
-                            },
-                        ];
                         if (args.length === 0) {
                             let kitsString = "Lista de camisetas: \n";
                             kits.forEach((k) => {
                                 kitsString += "   " + k.name + "   -";
                             });
                             kitsString +=
-                                "\n Uso: :casaca <equipo> <nombre> | ej ':casaca red independiente'";
+                                "\n Uso: :casaca <equipo> <nombre> | ej ' :casaca red independiente '";
                             that.room.sendAnnouncement(kitsString, msg.byId);
-                        } else if (args.length === 2) {
-                            let k = kits.find((k) => k.name === args[1]);
-                            if (k) {
-                                let colorsList = k.cfg.split(/[ ]+/);
-                                let angle = parseInt(
-                                    colorsList.splice(0, 1)[0]
-                                );
+                        } else if (args.length > 0) {
+                            if (args[0] === "red" || args[0] === "blue") {
+                                if (args.length === 2) {
+                                    let k = kits.find(
+                                        (k) => k.name === args[1]
+                                    );
+                                    if (k) {
+                                        let colorsList = k.cfg.split(/[ ]+/);
+                                        let angle = parseInt(
+                                            colorsList.splice(0, 1)[0]
+                                        );
 
-                                let t =
-                                    args[0] === "red"
-                                        ? 1
-                                        : args[0] === "blue"
-                                        ? 2
-                                        : null;
+                                        let t =
+                                            args[0] === "red"
+                                                ? 1
+                                                : args[0] === "blue"
+                                                ? 2
+                                                : null;
 
-                                t
-                                    ? that.room.setTeamColors(
-                                          t,
-                                          angle,
-                                          ...colorsList.map((c) => c)
-                                      )
-                                    : that.room.sendAnnouncement(
-                                          "Equipo inválido.",
-                                          msg.byId
-                                      );
-                            } else {
+                                        t
+                                            ? that.room.setTeamColors(
+                                                  t,
+                                                  angle,
+                                                  ...colorsList.map((c) => c)
+                                              )
+                                            : that.room.sendAnnouncement(
+                                                  "Equipo inválido.",
+                                                  msg.byId
+                                              );
+                                    } else {
+                                        that.room.sendAnnouncement(
+                                            "Camiseta no encontrada.",
+                                            msg.byId
+                                        );
+                                    }
+                                }
+                            } else if (args[0] === "add") {
+                                if (args.length >= 4) {
+                                    let kitName = args[1];
+                                    let angle = isNaN(args[2])
+                                        ? null
+                                        : parseInt(args[2]);
+                                    let fontColor =
+                                        args[3].length === 6 ? args[3] : null;
+                                    let color1 =
+                                        args[4]?.length === 6 ? args[4] : null;
+                                    let color2 =
+                                        args[5]?.length === 6 ? args[5] : null;
+                                    let color3 =
+                                        args[6]?.length === 6 ? args[6] : null;
+
+                                    console.log(
+                                        kitName,
+                                        angle,
+                                        fontColor,
+                                        color1
+                                    );
+                                    console.log(
+                                        kitName !== null &&
+                                            angle !== null &&
+                                            fontColor !== null &&
+                                            color1 !== null
+                                    );
+
+                                    if (
+                                        kitName !== null &&
+                                        angle !== null &&
+                                        fontColor !== null &&
+                                        color1 !== null
+                                    ) {
+                                        let cfg = `${angle} ${fontColor} ${color1}`;
+                                        if (color2) cfg += ` ${color2}`;
+                                        if (color3) cfg += ` ${color3}`;
+
+                                        let error = false;
+
+                                        db.run(
+                                            `INSERT INTO kits (name, cfg) VALUES ("${kitName}", "${cfg}")`,
+                                            (err) => {
+                                                error = true;
+                                                console.log(err);
+                                            }
+                                        );
+                                        if (error) {
+                                            that.room.sendAnnouncement(
+                                                "No se pudo guardar la camiseta.",
+                                                msg.byId
+                                            );
+                                        } else {
+                                            fetchKits();
+                                            that.room.sendAnnouncement(
+                                                "Se guardó la camiseta correctamente.",
+                                                msg.byId
+                                            );
+                                        }
+                                        return;
+                                    }
+                                }
                                 that.room.sendAnnouncement(
-                                    "Camiseta no encontrada.",
+                                    "Uso incorrecto del comando. ej: ' :casaca add independiente 0 CF0C0C FF0505 CF0C05 '",
                                     msg.byId
                                 );
                             }
                         }
-                    }
-                },
-            },
-            {
-                prefix: ":",
-                name: "hist",
-                desc: "Muestra el historial de partidos de la sesión.",
-                admin: false,
-                exec: (msg, args) => {
-                    var matchHistoryPlugin = that.room.plugins.find(
-                        (p) => p.name === "lmbMatchHistory"
-                    );
-                    if (matchHistoryPlugin) {
-                        if (args[0] === "clear") {
-                            matchHistoryPlugin.clearHistory();
-                            return;
-                        }
-                        matchHistoryPlugin.printHistory(msg.byId);
-                    } else {
-                        console.log(
-                            "No se encontró el plugin de historial de partidos."
-                        );
-                    }
-                },
-            },
-            {
-                prefix: ":",
-                name: "stats",
-                desc: "Muestra los goles de cada jugador.",
-                admin: false,
-                exec: (msg, args) => {
-                    var matchHistoryPlugin = that.room.plugins.find(
-                        (p) => p.name === "lmbMatchHistory"
-                    );
-                    if (matchHistoryPlugin) {
-                        if (args[0] === "clear") {
-                            matchHistoryPlugin.clearPlayersStats();
-                            return;
-                        }
-                        matchHistoryPlugin.printPlayersStats(msg.byId);
-                    } else {
-                        console.log(
-                            "No se encontró el plugin de historial de partidos."
-                        );
                     }
                 },
             },
@@ -376,6 +420,19 @@ module.exports = function (API) {
             },
         ];
 
+        that.room.onAutoTeams = (
+            playerId1,
+            teamId1,
+            playerId2,
+            teamId2,
+            byId,
+            customData
+        ) => {
+            if (playerId1 === 0 || playerId2 === 0) {
+                that.room.setPlayerTeam(0, 0);
+            }
+        };
+
         that.room.onOperationReceived = (type, msg) => {
             try {
                 if (type === OperationType.SendChat) {
@@ -411,7 +468,7 @@ module.exports = function (API) {
                             that.room.sendAnnouncement(
                                 p.name + ": " + msg.text,
                                 null,
-                                hexToNumber("8CF187"),
+                                hexToNumber("72E972"),
                                 2
                             );
                             return false;
@@ -439,13 +496,20 @@ module.exports = function (API) {
                         );
                         return false;
                     }
+                } else if (type === OperationType.JoinRoom) {
+                    if (that.isSaludoActive) {
+                        that.room.sendAnnouncement(
+                            that.saludo,
+                            msg.id,
+                            hexToNumber("EA5F60"),
+                            0
+                        );
+                    }
                 }
                 return true;
             } catch (e) {
                 console.log(e);
             }
         };
-
-        that.room.onPlayerLeave = (playerObj) => {};
     };
 };

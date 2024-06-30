@@ -4,12 +4,14 @@ const API = require("node-haxball")();
 const powerShot = require("./plugins/powerShot");
 const matchHistory = require("./plugins/matchHistory");
 const lmbCommands = require("./plugins/commands");
+const auth = require("./plugins/auth");
 
 // AJUSTES
-const DEV = true;
+const DEV = false;
 const SUPERADMIN_NAME = "Bochini";
+const SALUDO = true;
 const createParams = {
-    name: DEV ? "X" : "*-*-*- FUTSAL CON COMBA *-*-*-",
+    name: DEV ? "X" : " 🕊️ FUTSAL CON COMBA 💫 ",
     geo: {
         // san bernardo
         lat: -36.310826904052284,
@@ -18,21 +20,29 @@ const createParams = {
     },
     showInRoomList: true,
     maxPlayerCount: 30,
-    token: "thr1.AAAAAGZ9qMTgIfa0xZIyUg.xcDgJxkaZH4",
+    token: "thr1.AAAAAGaAmVfsueLtbPB4UA.--0Jw5qtOP4",
 };
 DEV ? (createParams["password"] = "121") : null;
 
 // ROOM
 API.Room.create(createParams, {
-    plugins: [new powerShot(API), new matchHistory(API), new lmbCommands(API)],
+    plugins: [
+        new powerShot(API),
+        new lmbCommands(API),
+        new matchHistory(API),
+        new auth(API),
+    ],
     storage: {
         player_name: "Cristo",
         avatar: "",
     },
     onSuccess: (room) => {
         r = room;
-        commandsPlugin = room.plugins.find((p) => p.name === "lmbCommands");
 
+        commandsPlugin = room.plugins.find((p) => p.name === "lmbCommands");
+        commandsPlugin ? (commandsPlugin.isSaludoActive = SALUDO) : null;
+
+        console.log("\nPlugins activos: ");
         room.plugins.forEach((p) => {
             console.log(" - " + p.name);
         });

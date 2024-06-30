@@ -32,112 +32,16 @@ module.exports = function (API) {
         allowFlags: AllowFlags.CreateRoom,
     });
 
-    var matchHistory = [],
-        playersStats = [],
+    var commands,
+        auth,
+        matchHistory = [],
+        playersSessionStats = [],
         lastPlayerInteractedBall = null,
         lastPlayerTouchedBall = null,
         lastPlayerKickedBall = null,
         that = this;
 
-    this.initialize = function () {
-        that.room.onGameEnd = (winningTeamId) => {
-            matchHistory.push({
-                winner: winningTeamId,
-                redScore: that.room.redScore,
-                blueScore: that.room.blueScore,
-                time: new Date().getTime(),
-            });
-        };
-        that.room.onPlayerBallKick = (playerId) => {
-            lastPlayerKickedBall = lastPlayerInteractedBall =
-                that.room.players.find((p) => p.id === playerId);
-        };
-        that.room.onCollisionDiscVsDisc = (
-            discId1,
-            discPlayerId1,
-            discId2,
-            discPlayerId2
-        ) => {
-            let ball = that.room.gameState.physicsState.discs[0];
-            let ballCollided = false;
-            let player = null;
-            let playerCollided = false;
-
-            if (that.room.getBall(discId1) === ball) {
-                ballCollided = true;
-            } else if (that.room.getBall(discId2) === ball) {
-                ballCollided = true;
-            }
-
-            if (ballCollided) {
-                if (discPlayerId1 || discPlayerId2) {
-                    playerCollided = true;
-                    player = that.room.players.find(
-                        (p) => p.id === discPlayerId1 || p.id === discPlayerId2
-                    );
-                    lastPlayerTouchedBall = lastPlayerInteractedBall = player;
-                }
-            }
-        };
-        that.room.onTeamGoal = (teamId) => {
-            try {
-                if (
-                    lastPlayerKickedBall.team.id === teamId ||
-                    lastPlayerTouchedBall.team.id === teamId
-                ) {
-                    // Para que el gol sea computado positivo, tiene que haber sido el último jugador en interactuar
-                    // con la pelota, ya sea pateando o tocandola.
-                    let playerInStats = playersStats.find(
-                        (p) => p.player.id === lastPlayerInteractedBall.id
-                    );
-                    if (!playerInStats) {
-                        playersStats.push({
-                            player: lastPlayerInteractedBall,
-                            score: 0,
-                            assists: 0,
-                        });
-                        playerInStats = playersStats.find(
-                            (p) => p.player.id === lastPlayerInteractedBall.id
-                        );
-                    }
-                    playerInStats.score += 1;
-                } else if (lastPlayerKickedBall) {
-                    if (lastPlayerKickedBall.teamId !== teamId) {
-                        // Para que el gol sea computado negativo, sólo cuenta si fue el último en patearla.
-                        let playerInStats = playersStats.find(
-                            (p) => p.player.id === lastPlayerKickedBall.id
-                        );
-                        if (!playerInStats) {
-                            playersStats.push({
-                                player: lastPlayerKickedBall,
-                                score: 0,
-                                assists: 0,
-                            });
-                            playerInStats = playersStats.find(
-                                (p) => p.player.id === lastPlayerKickedBall.id
-                            );
-                        }
-                        playerInStats.score -= 1;
-                    }
-                }
-
-                lastPlayerInteractedBall =
-                    lastPlayerTouchedBall =
-                    lastPlayerKickedBall =
-                        null;
-            } catch (e) {
-                console.log(e);
-            }
-        };
-        that.room.onPlayerLeave = (playerObj, customData) => {
-            let ps = playersStats.find((p) => p.player.id === playerObj.id);
-            if (ps) {
-                playersStats.splice(playersStats.indexOf(ps), 1);
-            }
-        };
-    };
-
-    this.printHistory = function (playerId) {
+    printHistory = (playerId) => {
         var str = "";
         matchHistory.forEach((m) => {
             if (matchHistory.length === 0) {
@@ -172,24 +76,34 @@ module.exports = function (API) {
         that.room.sendAnnouncement("Historial:\n" + str, playerId);
     };
 
-    this.clearHistory = function () {
+    handleSumDBScore = (player, sumScore) => {
+        if (auth) {
+            if (auth.getLoggedPlayers().includes(player)) {
+                auth.getUserScore(player.name).then((score) => {
+                    auth.setUserScore(player.name, score + sumScore);
+                });
+            }
+        }
+    };
+
+    clearHistory = () => {
         matchHistory = [];
     };
 
-    this.clearPlayersStats = function () {
-        playersStats = [];
+    clearPlayersSessionStats = () => {
+        playersSessionStats = [];
     };
 
-    this.printPlayersStats = function (playerId) {
+    printPlayersSessionStats = (playerId) => {
         var str = "";
-        if (playersStats.length === 0) {
+        if (playersSessionStats.length === 0) {
             str = "No hay registros.";
         } else {
-            playersStats.sort((a, b) => (a.score > b.score ? -1 : 1));
-            playersStats.forEach((p) => {
+            playersSessionStats.sort((a, b) => (a.score > b.score ? -1 : 1));
+            playersSessionStats.forEach((p) => {
                 str +=
                     "[" +
-                    (playersStats.indexOf(p) + 1) +
+                    (playersSessionStats.indexOf(p) + 1) +
                     "] " +
                     p.player.name +
                     " | " +
@@ -198,5 +112,186 @@ module.exports = function (API) {
             });
         }
         that.room.sendAnnouncement("Stats de los jugadores:\n" + str, playerId);
+    };
+
+    printPlayersDbStats = (playerId) => {
+        if (auth) {
+            var str = "";
+            auth.getAllUsersStats().then((stats) => {
+                stats.sort((a, b) => (a.score > b.score ? -1 : 1));
+                if (stats.length === 0) {
+                    str = "No hay registros.";
+                }
+                stats.forEach((s) => {
+                    str +=
+                        "[" +
+                        s.id +
+                        "] " +
+                        s.username +
+                        " | " +
+                        s.score +
+                        " goles\n";
+                });
+                that.room.sendAnnouncement(
+                    "Stats de los jugadores:\n" + str,
+                    playerId
+                );
+            });
+        }
+    };
+
+    this.initialize = function () {
+        commands = that.room.plugins.find((p) => p.name === "lmbCommands");
+        auth = that.room.plugins.find((p) => p.name === "lmbAuth");
+        if (!commands) {
+            console.log(
+                "El plugin de historial requiere del plugin de comandos."
+            );
+        } else {
+            commands.registerCommand(
+                ":",
+                "hist",
+                (msg, args) => {
+                    if (args.length === 0) {
+                        printHistory(msg.byId);
+                    } else if (args.length === 1) {
+                        if (args[0] === "clear") {
+                            clearHistory();
+                        }
+                    }
+                },
+                "Muestra el historial de partidos.",
+                false,
+                false
+            );
+            commands.registerCommand(
+                ":",
+                "stats",
+                (msg, args) => {
+                    if (args.length === 0) {
+                        that.room.sendAnnouncement(
+                            "' :stats s ' - Stats de sesión de hoy\n' :stats db ' - Stats históricos (se guardan los de aquellos usuarios logueados) ",
+                            msg.byId
+                        );
+                    } else if (args[0] === "db") {
+                        printPlayersDbStats();
+                    } else if (args[0] === "s") {
+                        printPlayersSessionStats(msg.byId);
+                    } else if (args[0] === "clear") {
+                        clearPlayersSessionStats();
+                    }
+                },
+                "Muestra los goles de cada jugador.",
+                false,
+                false
+            );
+
+            that.room.onGameEnd = (winningTeamId) => {
+                matchHistory.push({
+                    winner: winningTeamId,
+                    redScore: that.room.redScore,
+                    blueScore: that.room.blueScore,
+                    time: new Date().getTime(),
+                });
+            };
+            that.room.onPlayerBallKick = (playerId) => {
+                lastPlayerKickedBall = lastPlayerInteractedBall =
+                    that.room.players.find((p) => p.id === playerId);
+            };
+            that.room.onCollisionDiscVsDisc = (
+                discId1,
+                discPlayerId1,
+                discId2,
+                discPlayerId2
+            ) => {
+                let ball = that.room.gameState.physicsState.discs[0];
+                let ballCollided = false;
+                let player = null;
+                let playerCollided = false;
+
+                if (that.room.getBall(discId1) === ball) {
+                    ballCollided = true;
+                } else if (that.room.getBall(discId2) === ball) {
+                    ballCollided = true;
+                }
+
+                if (ballCollided) {
+                    if (discPlayerId1 || discPlayerId2) {
+                        playerCollided = true;
+                        player = that.room.players.find(
+                            (p) =>
+                                p.id === discPlayerId1 || p.id === discPlayerId2
+                        );
+                        lastPlayerTouchedBall = lastPlayerInteractedBall =
+                            player;
+                    }
+                }
+            };
+            that.room.onTeamGoal = (teamId) => {
+                try {
+                    if (
+                        lastPlayerKickedBall.team.id === teamId ||
+                        lastPlayerTouchedBall.team.id === teamId
+                    ) {
+                        // Para que el gol sea computado positivo, tiene que haber sido el último jugador en interactuar
+                        // con la pelota, ya sea pateando o tocandola.
+                        let playerInStats = playersSessionStats.find(
+                            (p) => p.player.id === lastPlayerInteractedBall.id
+                        );
+                        if (!playerInStats) {
+                            playersSessionStats.push({
+                                player: lastPlayerInteractedBall,
+                                score: 0,
+                                assists: 0,
+                            });
+                            playerInStats = playersSessionStats.find(
+                                (p) =>
+                                    p.player.id === lastPlayerInteractedBall.id
+                            );
+                        }
+                        playerInStats.score += 1;
+                        handleSumDBScore(playerInStats.player, 1);
+                    } else if (lastPlayerKickedBall) {
+                        if (lastPlayerKickedBall.teamId !== teamId) {
+                            // Para que el gol sea computado negativo, sólo cuenta si fue el último en patearla.
+                            let playerInStats = playersSessionStats.find(
+                                (p) => p.player.id === lastPlayerKickedBall.id
+                            );
+                            if (!playerInStats) {
+                                playersSessionStats.push({
+                                    player: lastPlayerKickedBall,
+                                    score: 0,
+                                    assists: 0,
+                                });
+                                playerInStats = playersSessionStats.find(
+                                    (p) =>
+                                        p.player.id === lastPlayerKickedBall.id
+                                );
+                            }
+                            handleSumDBScore(playerInStats.player, -1);
+                            playerInStats.score -= 1;
+                        }
+                    }
+
+                    lastPlayerInteractedBall =
+                        lastPlayerTouchedBall =
+                        lastPlayerKickedBall =
+                            null;
+                } catch (e) {
+                    console.log(e);
+                }
+            };
+            that.room.onPlayerLeave = (playerObj, customData) => {
+                let ps = playersSessionStats.find(
+                    (p) => p.player.id === playerObj.id
+                );
+                if (ps) {
+                    playersSessionStats.splice(
+                        playersSessionStats.indexOf(ps),
+                        1
+                    );
+                }
+            };
+        }
     };
 };
