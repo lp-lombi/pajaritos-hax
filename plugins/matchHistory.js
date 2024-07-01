@@ -73,7 +73,7 @@ module.exports = function (API) {
             (redVict > blueVict ? redVict - blueVict : blueVict - redVict) +
             ")";
 
-        that.room.sendAnnouncement("Historial:\n" + str, playerId);
+        commands.printchat("Historial:\n" + str, playerId);
     };
 
     handleSumDBScore = (player, sumScore) => {
@@ -111,7 +111,7 @@ module.exports = function (API) {
                     " goles\n";
             });
         }
-        that.room.sendAnnouncement("Stats de los jugadores:\n" + str, playerId);
+        commands.printchat("Stats de los jugadores:\n" + str, playerId);
     };
 
     printPlayersDbStats = (playerId) => {
@@ -125,17 +125,14 @@ module.exports = function (API) {
                 stats.forEach((s) => {
                     str +=
                         "[" +
-                        s.id +
+                        (stats.indexOf(s) + 1) +
                         "] " +
                         s.username +
                         " | " +
                         s.score +
                         " goles\n";
                 });
-                that.room.sendAnnouncement(
-                    "Stats de los jugadores:\n" + str,
-                    playerId
-                );
+                commands.printchat("Stats de los jugadores:\n" + str, playerId);
             });
         }
     };
@@ -149,7 +146,7 @@ module.exports = function (API) {
             );
         } else {
             commands.registerCommand(
-                ":",
+                "!",
                 "hist",
                 (msg, args) => {
                     if (args.length === 0) {
@@ -165,16 +162,16 @@ module.exports = function (API) {
                 false
             );
             commands.registerCommand(
-                ":",
+                "!",
                 "stats",
                 (msg, args) => {
                     if (args.length === 0) {
-                        that.room.sendAnnouncement(
-                            "' :stats s ' - Stats de sesión de hoy\n' :stats db ' - Stats históricos (se guardan los de aquellos usuarios logueados) ",
+                        commands.printchat(
+                            "' !stats s ' - Stats de sesión de hoy\n' !stats db ' - Stats históricos (se guardan los de aquellos usuarios logueados) ",
                             msg.byId
                         );
                     } else if (args[0] === "db") {
-                        printPlayersDbStats();
+                        printPlayersDbStats(msg.byId);
                     } else if (args[0] === "s") {
                         printPlayersSessionStats(msg.byId);
                     } else if (args[0] === "clear") {

@@ -119,13 +119,14 @@ module.exports = function (API) {
         } else {
             try {
                 commands.registerCommand(
-                    ":",
+                    "!",
                     "register",
                     (msg, args) => {
                         if (args.length !== 2) {
-                            that.room.sendAnnouncement(
+                            commands.printchat(
                                 "Uso: ' :register <contraseña> <repetir contraseña> '",
-                                msg.byId
+                                msg.byId,
+                                "error"
                             );
                         } else {
                             if (args[0] === args[1]) {
@@ -167,15 +168,16 @@ module.exports = function (API) {
                                                                         p.id ===
                                                                         msg.byId
                                                                 );
-                                                            that.room.sendAnnouncement(
+                                                            commands.printchat(
                                                                 "Registrado con éxito. Iniciá la sesión con ' :login '",
                                                                 msg.byId
                                                             );
                                                         }
                                                     } else {
-                                                        that.room.sendAnnouncement(
+                                                        commands.printchat(
                                                             "El usuario ya está registrado.",
-                                                            msg.byId
+                                                            msg.byId,
+                                                            "error"
                                                         );
                                                     }
                                                 }
@@ -185,23 +187,25 @@ module.exports = function (API) {
                                         console.log(err);
                                     });
                             } else {
-                                that.room.sendAnnouncement(
+                                commands.printchat(
                                     "Las contraseñas no coinciden.",
-                                    msg.byId
+                                    msg.byId,
+                                    "error"
                                 );
                             }
                         }
                     },
-                    "Registrarse. ' :register <contraseña> <repetir contraseña> '"
+                    "Registrarse. ' !register <contraseña> <repetir contraseña> '"
                 );
                 commands.registerCommand(
-                    ":",
+                    "!",
                     "login",
                     (msg, args) => {
                         if (args.length !== 1) {
-                            that.room.sendAnnouncement(
+                            commands.printchat(
                                 "Uso: ' :login <contraseña> ' | Para registrarse: ' :register <contraseña> <repetir contraseña> '",
-                                msg.byId
+                                msg.byId,
+                                "error"
                             );
                         } else {
                             let username = that.room.players.find(
@@ -231,28 +235,30 @@ module.exports = function (API) {
                                                         player,
                                                         user.role
                                                     );
-                                                    that.room.sendAnnouncement(
+                                                    commands.printchat(
                                                         `Sesión iniciada. | ${user.score} goles registrados.`,
                                                         msg.byId
                                                     );
                                                 } else {
-                                                    that.room.sendAnnouncement(
+                                                    commands.printchat(
                                                         "Contraseña incorrecta.",
-                                                        msg.byId
+                                                        msg.byId,
+                                                        "error"
                                                     );
                                                 }
                                             });
                                         } else {
-                                            that.room.sendAnnouncement(
+                                            commands.printchat(
                                                 "No estás registrado. Usa ' :register <contraseña> <repetir contraseña> '.",
-                                                msg.byId
+                                                msg.byId,
+                                                "error"
                                             );
                                         }
                                     }
                                 );
                         }
                     },
-                    "Inicia sesión. ' :login <contraseña> '"
+                    "Inicia sesión. ' !login <contraseña> '"
                 );
             } catch (err) {
                 console.log(err);

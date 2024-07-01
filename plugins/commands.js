@@ -32,6 +32,14 @@ module.exports = function (API) {
         allowFlags: AllowFlags.CreateRoom,
     });
 
+    const COLORS = {
+        beige: parseInt("EAD9AA", 16),
+        pink: parseInt("EAB2AA", 16),
+        red: parseInt("EA5F60", 16),
+        redTeam: parseInt("FFD9D9", 16),
+        blueTeam: parseInt("DBD9FF", 16),
+    };
+
     const sqlite3 = require("sqlite3");
     db = new sqlite3.Database("./plugins/res/commands.db");
 
@@ -49,9 +57,9 @@ module.exports = function (API) {
     this.defineVariable({
         name: "saludo",
         type: VariableType.String,
-        value: `╔══════════════════════════════════════════════════════╗
-║         PAJARITOS HAX          ║  :help :hist: :stats :login   ║
-╚══════════════════════════════════════════════════════╝`,
+        value: `\n\n\n\n╔══════════════════════════════════════════════════════╗
+║       PAJARITOS HAX       ║  !help !hist !stats !login !bb  ║
+╚══════════════════════════════════════════════════════╝\n\n\n\n`,
         description: "Mensaje de entrada.",
     });
 
@@ -96,7 +104,51 @@ module.exports = function (API) {
         else return player.isAdmin;
     }
 
-    // GETTERS / SETTERS
+    //
+    this.printchat = function (msg, targetId = null, type = "info") {
+        switch (type) {
+            case "info":
+                that.room.sendAnnouncement(
+                    msg,
+                    targetId,
+                    COLORS.beige,
+                    "small-bold"
+                );
+                break;
+            case "alert":
+                that.room.sendAnnouncement(
+                    msg,
+                    targetId,
+                    COLORS.red,
+                    "small-bold"
+                );
+                break;
+            case "error":
+                that.room.sendAnnouncement(
+                    msg,
+                    targetId,
+                    COLORS.pink,
+                    "small-bold"
+                );
+                break;
+            case "chat":
+                let p = that.room.players.find((p) => p.id === targetId);
+                let tColor =
+                    p.team.id === 0
+                        ? null
+                        : p.team.id === 1
+                        ? COLORS.redTeam
+                        : COLORS.blueTeam;
+
+                if (p.isAdmin) {
+                    null;
+                }
+
+                that.room.sendAnnouncement(msg, null, tColor);
+                break;
+        }
+    };
+
     this.getDb = function () {
         return db;
     };
@@ -129,7 +181,7 @@ module.exports = function (API) {
         // Aca se registran los comandos
         commands = [
             {
-                prefix: ":",
+                prefix: "!",
                 name: "help",
                 desc: "Lista de comandos disponibles.",
                 admin: false,
@@ -147,11 +199,11 @@ module.exports = function (API) {
                             }
                         }
                     });
-                    that.room.sendAnnouncement(commandsString, msg.byId);
+                    that.printchat(commandsString, msg.byId);
                 },
             },
             {
-                prefix: ":",
+                prefix: "!",
                 name: "godinetes",
                 desc: "comando secreto para dar admin.",
                 admin: false,
@@ -161,9 +213,19 @@ module.exports = function (API) {
                 },
             },
             {
-                prefix: ":",
+                prefix: "!",
+                name: "bb",
+                desc: "Desconectarse.",
+                admin: false,
+                hidden: false,
+                exec: (msg, args) => {
+                    that.room.kickPlayer(msg.byId, null, false);
+                },
+            },
+            {
+                prefix: "!",
                 name: "casaca",
-                desc: 'Cambiar camisetas | para asignar: " :casaca <equipo> <nombre> " | para listar todas: " :casaca " | para agregar: " :casaca add <nombre> <cfg> "',
+                desc: 'Cambiar camisetas | para asignar: " !casaca <equipo> <nombre> " | para listar todas: " !casaca " | para agregar: " !casaca add <nombre> <cfg> "',
                 admin: true,
                 hidden: false,
                 exec: (msg, args) => {
@@ -174,8 +236,8 @@ module.exports = function (API) {
                                 kitsString += "   " + k.name + "   -";
                             });
                             kitsString +=
-                                "\n Uso: :casaca <equipo> <nombre> | ej ' :casaca red independiente '";
-                            that.room.sendAnnouncement(kitsString, msg.byId);
+                                "\n Uso: !casaca <equipo> <nombre> | ej ' !casaca red independiente '";
+                            that.printchat(kitsString, msg.byId);
                         } else if (args.length > 0) {
                             if (args[0] === "red" || args[0] === "blue") {
                                 if (args.length === 2) {
@@ -201,12 +263,12 @@ module.exports = function (API) {
                                                   angle,
                                                   ...colorsList.map((c) => c)
                                               )
-                                            : that.room.sendAnnouncement(
+                                            : that.printchat(
                                                   "Equipo inválido.",
                                                   msg.byId
                                               );
                                     } else {
-                                        that.room.sendAnnouncement(
+                                        that.printchat(
                                             "Camiseta no encontrada.",
                                             msg.byId
                                         );
@@ -260,13 +322,14 @@ module.exports = function (API) {
                                             }
                                         );
                                         if (error) {
-                                            that.room.sendAnnouncement(
+                                            that.printchat(
                                                 "No se pudo guardar la camiseta.",
-                                                msg.byId
+                                                msg.byId,
+                                                "error"
                                             );
                                         } else {
                                             fetchKits();
-                                            that.room.sendAnnouncement(
+                                            that.printchat(
                                                 "Se guardó la camiseta correctamente.",
                                                 msg.byId
                                             );
@@ -274,9 +337,10 @@ module.exports = function (API) {
                                         return;
                                     }
                                 }
-                                that.room.sendAnnouncement(
-                                    "Uso incorrecto del comando. ej: ' :casaca add independiente 0 CF0C0C FF0505 CF0C05 '",
-                                    msg.byId
+                                that.printchat(
+                                    "Uso incorrecto del comando. ej: ' !casaca add independiente 0 CF0C0C FF0505 CF0C05 '",
+                                    msg.byId,
+                                    "error"
                                 );
                             }
                         }
@@ -284,9 +348,9 @@ module.exports = function (API) {
                 },
             },
             {
-                prefix: ":",
+                prefix: "!",
                 name: "ps", // Power Shot settings
-                desc: 'Ajustes del plugin Powershot.  :ps c <valor> ": cambia la comba | " :ps f <valor> ": cambia la fuerza | " :ps preset <valor> ": cambia el preset',
+                desc: 'Ajustes del plugin Powershot.  !ps c <valor> ": cambia la comba | " !ps f <valor> ": cambia la fuerza | " !ps preset <valor> ": cambia el preset',
                 admin: true,
                 hidden: false,
                 exec: (msg, args) => {
@@ -301,7 +365,7 @@ module.exports = function (API) {
                                 isNaN(v) ? (v = defaultValue) : null;
                                 powerShotPlugin.swingGravity = v;
 
-                                that.room.sendAnnouncement(
+                                that.printchat(
                                     "Cambiando la comba a " + v,
                                     msg.byId
                                 );
@@ -311,7 +375,7 @@ module.exports = function (API) {
                                 isNaN(v) ? (v = defaultValue) : null;
                                 powerShotPlugin.ballSpeed = v;
 
-                                that.room.sendAnnouncement(
+                                that.printchat(
                                     "Cambiando la fuerza a " + v,
                                     msg.byId
                                 );
@@ -320,7 +384,8 @@ module.exports = function (API) {
                                     case "1":
                                         powerShotPlugin.ballSpeed = 12;
                                         powerShotPlugin.swingGravity = 0.075;
-                                        that.room.sendAnnouncement(
+
+                                        that.printchat(
                                             "Fuerza: " +
                                                 12 +
                                                 " | Comba: " +
@@ -331,7 +396,8 @@ module.exports = function (API) {
                                     case "2":
                                         powerShotPlugin.ballSpeed = 15;
                                         powerShotPlugin.swingGravity = 0.08;
-                                        that.room.sendAnnouncement(
+
+                                        that.printchat(
                                             "Fuerza: " +
                                                 15 +
                                                 " | Comba: " +
@@ -342,7 +408,8 @@ module.exports = function (API) {
                                     case "3":
                                         powerShotPlugin.ballSpeed = 20;
                                         powerShotPlugin.swingGravity = 0.08;
-                                        that.room.sendAnnouncement(
+
+                                        that.printchat(
                                             "Fuerza: " +
                                                 20 +
                                                 " | Comba: " +
@@ -359,9 +426,9 @@ module.exports = function (API) {
                 },
             },
             {
-                prefix: ":",
+                prefix: "!",
                 name: "banlist",
-                desc: "Muestra y permite modificar la lista de bans. ' :banlist ' los lista, ' :banlist clear <n> ' lo saca de la lista. ",
+                desc: "Muestra y permite modificar la lista de bans. ' !banlist ' los lista, ' !banlist clear <n> ' lo saca de la lista. ",
                 admin: true,
                 hidden: false,
                 exec: (msg, args) => {
@@ -381,10 +448,8 @@ module.exports = function (API) {
                             that.room.banList.length === 0
                                 ? "No hay bans."
                                 : banString;
-                        that.room.sendAnnouncement(
-                            "Baneados: \n" + banString,
-                            msg.byId
-                        );
+
+                        that.printchat("Baneados: \n" + banString, msg.byId);
                     } else if (args.length === 2) {
                         if (args[0] === "clear") {
                             if (!isNaN(args[1])) {
@@ -392,7 +457,8 @@ module.exports = function (API) {
                                     that.room.banList[parseInt(args[1]) - 1];
                                 if (p) {
                                     that.room.clearBan(p.id);
-                                    that.room.sendAnnouncement(
+
+                                    that.printchat(
                                         "Se eliminó el ban para " + p.name,
                                         msg.byId
                                     );
@@ -403,9 +469,9 @@ module.exports = function (API) {
                 },
             },
             {
-                prefix: ":",
+                prefix: "!",
                 name: "ball",
-                desc: "' :ball reset ' resetea la bola al centro de la cancha.",
+                desc: "' !ball reset ' resetea la bola al centro de la cancha.",
                 admin: true,
                 hidden: false,
                 exec: (msg, args) => {
@@ -447,7 +513,7 @@ module.exports = function (API) {
                         });
                         if (recognizedCommand) {
                             if (recognizedCommand.admin && !isAdmin(msg.byId)) {
-                                that.room.sendAnnouncement(
+                                that.printchat(
                                     "Comando desconocido.",
                                     msg.byId
                                 );
@@ -455,55 +521,52 @@ module.exports = function (API) {
                             }
                             recognizedCommand.exec(msg, args);
                         } else {
-                            that.room.sendAnnouncement(
-                                "Comando desconocido.",
-                                msg.byId
-                            );
+                            that.printchat("Comando desconocido.", msg.byId);
                         }
                     } else {
                         let p = that.room.players.find(
                             (p) => p.id === msg.byId
                         );
-                        if (p.isAdmin) {
-                            that.room.sendAnnouncement(
-                                p.name + ": " + msg.text,
-                                null,
-                                hexToNumber("72E972"),
-                                2
-                            );
-                            return false;
-                        }
                         if (
                             msg.text.toUpperCase() === "MTM" ||
                             msg.text.toUpperCase() === "METEME"
                         ) {
                             sleep(300).then(() => {
-                                that.room.fakeSendPlayerChat(
-                                    "la pinga en la cola",
-                                    msg.byId
+                                that.printchat(
+                                    `[${ballEmoji}] ${p.name}: la pinga en la cola`,
+                                    msg.byId,
+                                    "chat"
                                 );
                             });
                         }
-                        return true;
+                        // Mensaje normal
+                        let ballEmoji =
+                            p.team.id === 0
+                                ? "⚪"
+                                : p.team.id === 1
+                                ? "🔴"
+                                : "🔵";
+                        that.printchat(
+                            `[${ballEmoji}] ${p.name}: ${msg.text}`,
+                            msg.byId,
+                            "chat"
+                        );
+                        //return true;
                     }
                     return false;
                 } else if (type === OperationType.KickBanPlayer) {
                     if (msg.id === that.SUPERADMIN?.id && msg.byId !== 0) {
                         that.room.setPlayerAdmin(msg.byId, false);
-                        that.room.sendAnnouncement(
+                        that.printchat(
                             "FLASHASTE UNA BANDA",
-                            msg.byId
+                            msg.byId,
+                            "error"
                         );
                         return false;
                     }
                 } else if (type === OperationType.JoinRoom) {
                     if (that.isSaludoActive) {
-                        that.room.sendAnnouncement(
-                            that.saludo,
-                            msg.id,
-                            hexToNumber("EA5F60"),
-                            0
-                        );
+                        that.printchat(that.saludo, msg.id, "alert");
                     }
                 }
                 return true;

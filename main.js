@@ -7,7 +7,7 @@ const lmbCommands = require("./plugins/commands");
 const auth = require("./plugins/auth");
 
 // AJUSTES
-const DEV = false;
+const DEV = true;
 const SUPERADMIN_NAME = "Bochini";
 const SALUDO = true;
 const createParams = {
@@ -20,7 +20,7 @@ const createParams = {
     },
     showInRoomList: true,
     maxPlayerCount: 30,
-    token: "thr1.AAAAAGaAmVfsueLtbPB4UA.--0Jw5qtOP4",
+    token: "thr1.AAAAAGaCMHfEQgT36V9QGw.gRsGEMcO4bU",
 };
 DEV ? (createParams["password"] = "121") : null;
 
