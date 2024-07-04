@@ -39,6 +39,7 @@ module.exports = function (API) {
         lastPlayerInteractedBall = null,
         lastPlayerTouchedBall = null,
         lastPlayerKickedBall = null,
+        playerBallInteractHistory = [],
         that = this;
 
     printHistory = (playerId) => {
@@ -76,7 +77,17 @@ module.exports = function (API) {
         commands.printchat("Historial:\n" + str, playerId);
     };
 
-    handleSumDBScore = (player, sumScore) => {
+    function handleSumDBAssists(player, sumAssists) {
+        if (auth) {
+            if (auth.getLoggedPlayers().includes(player)) {
+                auth.getUserAssists(player.name).then((assists) => {
+                    auth.setUserAssists(player.name, assists + sumAssists);
+                });
+            }
+        }
+    }
+
+    function handleSumDBScore(player, sumScore) {
         if (auth) {
             if (auth.getLoggedPlayers().includes(player)) {
                 auth.getUserScore(player.name).then((score) => {
@@ -84,7 +95,32 @@ module.exports = function (API) {
                 });
             }
         }
-    };
+    }
+
+    function addPlayerBallInteraction(player, reason) {
+        let obj = {
+            reason: reason,
+            player: player,
+        };
+        if (playerBallInteractHistory.length === 0) {
+            playerBallInteractHistory.push(obj);
+        } else if (playerBallInteractHistory.length > 0) {
+            let last =
+                playerBallInteractHistory[playerBallInteractHistory.length - 1];
+            if (reason === "touch") {
+                if (last.player.id === player.id && last.reason === "touch") {
+                    return;
+                } else {
+                    playerBallInteractHistory.push(obj);
+                }
+            } else {
+                playerBallInteractHistory.push(obj);
+            }
+        }
+        if (playerBallInteractHistory.length > 5) {
+            playerBallInteractHistory.splice(0, 1);
+        }
+    }
 
     clearHistory = () => {
         matchHistory = [];
@@ -94,7 +130,7 @@ module.exports = function (API) {
         playersSessionStats = [];
     };
 
-    printPlayersSessionStats = (playerId) => {
+    function printPlayersSessionStats(playerId) {
         var str = "";
         if (playersSessionStats.length === 0) {
             str = "No hay registros.";
@@ -108,11 +144,13 @@ module.exports = function (API) {
                     p.player.name +
                     " | " +
                     p.score +
-                    " goles\n";
+                    " goles | " +
+                    p.assists +
+                    " asistencias\n";
             });
         }
         commands.printchat("Stats de los jugadores:\n" + str, playerId);
-    };
+    }
 
     printPlayersDbStats = (playerId) => {
         if (auth) {
@@ -123,6 +161,7 @@ module.exports = function (API) {
                     str = "No hay registros.";
                 }
                 stats.forEach((s) => {
+                    if (s.score === 0 && s.assists === 0) return;
                     str +=
                         "[" +
                         (stats.indexOf(s) + 1) +
@@ -130,7 +169,9 @@ module.exports = function (API) {
                         s.username +
                         " | " +
                         s.score +
-                        " goles\n";
+                        " goles | " +
+                        s.assists +
+                        " asistencias\n";
                 });
                 commands.printchat("Stats de los jugadores:\n" + str, playerId);
             });
@@ -194,6 +235,10 @@ module.exports = function (API) {
             that.room.onPlayerBallKick = (playerId) => {
                 lastPlayerKickedBall = lastPlayerInteractedBall =
                     that.room.players.find((p) => p.id === playerId);
+                addPlayerBallInteraction(
+                    that.room.players.find((p) => p.id === playerId),
+                    "kick"
+                );
             };
             that.room.onCollisionDiscVsDisc = (
                 discId1,
@@ -221,6 +266,7 @@ module.exports = function (API) {
                         );
                         lastPlayerTouchedBall = lastPlayerInteractedBall =
                             player;
+                        addPlayerBallInteraction(player, "touch");
                     }
                 }
             };
@@ -248,6 +294,39 @@ module.exports = function (API) {
                         }
                         playerInStats.score += 1;
                         handleSumDBScore(playerInStats.player, 1);
+                        // Para la asistencia, la anterior interacción tuvo que haber sido un pateo de un jugador del mismo equipo
+                        if (playerBallInteractHistory.length > 1) {
+                            let penultimate =
+                                playerBallInteractHistory[
+                                    playerBallInteractHistory.length - 2
+                                ];
+                            let last =
+                                playerBallInteractHistory[
+                                    playerBallInteractHistory.length - 1
+                                ];
+                            if (
+                                penultimate.player.team.id === teamId &&
+                                penultimate.player.id !== last.player.id &&
+                                penultimate.reason === "kick"
+                            ) {
+                                playerInStats = playersSessionStats.find(
+                                    (p) => p.player.id === penultimate.player.id
+                                );
+                                if (!playerInStats) {
+                                    playersSessionStats.push({
+                                        player: penultimate.player,
+                                        score: 0,
+                                        assists: 0,
+                                    });
+                                    playerInStats =
+                                        playersSessionStats[
+                                            playersSessionStats.length - 1
+                                        ];
+                                }
+                                playerInStats.assists += 1;
+                                handleSumDBAssists(playerInStats.player, 1);
+                            }
+                        }
                     } else if (lastPlayerKickedBall) {
                         if (lastPlayerKickedBall.teamId !== teamId) {
                             // Para que el gol sea computado negativo, sólo cuenta si fue el último en patearla.
@@ -274,6 +353,7 @@ module.exports = function (API) {
                         lastPlayerTouchedBall =
                         lastPlayerKickedBall =
                             null;
+                    playerBallInteractHistory = [];
                 } catch (e) {
                     console.log(e);
                 }

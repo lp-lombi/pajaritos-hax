@@ -5,10 +5,10 @@ const powerShot = require("./plugins/powerShot");
 const matchHistory = require("./plugins/matchHistory");
 const lmbCommands = require("./plugins/commands");
 const auth = require("./plugins/auth");
+const aiChat = require("./plugins/aiChat");
 
 // AJUSTES
-const DEV = true;
-const SUPERADMIN_NAME = "Bochini";
+const DEV = false;
 const SALUDO = true;
 const createParams = {
     name: DEV ? "X" : " 🕊️ FUTSAL CON COMBA 💫 ",
@@ -20,7 +20,7 @@ const createParams = {
     },
     showInRoomList: true,
     maxPlayerCount: 30,
-    token: "thr1.AAAAAGaCMHfEQgT36V9QGw.gRsGEMcO4bU",
+    token: "thr1.AAAAAGaGKvlJgep4TUhsyA.euiO6I1oGUw",
 };
 DEV ? (createParams["password"] = "121") : null;
 
@@ -53,9 +53,8 @@ API.Room.create(createParams, {
         };
 
         room.onPlayerJoin = (p, d) => {
-            if (p.name === SUPERADMIN_NAME && p.id === 1) {
+            if (p.name === "Bochini" && p.id === 1) {
                 room.setPlayerAdmin(p.id, true);
-                if (commandsPlugin) commandsPlugin.SUPERADMIN = p;
             }
         };
     },

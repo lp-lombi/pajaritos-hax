@@ -1,3 +1,5 @@
+const auth = require("./auth");
+
 module.exports = function (API) {
     const {
         OperationType,
@@ -45,14 +47,8 @@ module.exports = function (API) {
 
     var commands,
         kits,
+        kickBanAllowed = false,
         that = this;
-
-    this.defineVariable({
-        name: "SUPERADMIN",
-        type: VariableType.String,
-        value: null,
-        description: "Admin superior al resto.",
-    });
 
     this.defineVariable({
         name: "saludo",
@@ -83,6 +79,59 @@ module.exports = function (API) {
             });
         } catch (e) {
             console.log("Error en la base de datos: " + e);
+        }
+    }
+
+    async function handleKickBanPlayer(msg) {
+        try {
+            let p = that.room.players.find((p) => p.id === msg.id);
+            let allowed = new Promise((resolve, reject) => {
+                db.all(
+                    `SELECT username, role FROM users WHERE username = "${p.name}"`,
+                    (err, rows) => {
+                        if (err) return reject(err);
+                        if (rows.length > 0) {
+                            if (rows[0].role >= 2 && msg.reason !== null) {
+                                let authPlugin = that.room.plugins.find(
+                                    (p) => p.name === "lmbAuth"
+                                );
+                                if (authPlugin) {
+                                    let isLogged = authPlugin
+                                        .getLoggedPlayers()
+                                        .find((lp) => lp.id === msg.id);
+                                    if (isLogged) {
+                                        that.room.setPlayerAdmin(
+                                            msg.byId,
+                                            false
+                                        );
+                                        that.printchat(
+                                            "FLASHASTE UNA BANDA",
+                                            msg.byId,
+                                            "error"
+                                        );
+                                        resolve(false);
+                                    }
+                                }
+                            }
+                        }
+                        resolve(true);
+                    }
+                );
+            });
+            if (!kickBanAllowed) {
+                if (await allowed) {
+                    kickBanAllowed = true;
+                    that.room.fakeKickPlayer(
+                        msg.id,
+                        msg.reason,
+                        msg.ban,
+                        msg.byId
+                    );
+                    kickBanAllowed = false;
+                }
+            }
+        } catch (e) {
+            console.log(e);
         }
     }
 
@@ -288,19 +337,6 @@ module.exports = function (API) {
                                         args[5]?.length === 6 ? args[5] : null;
                                     let color3 =
                                         args[6]?.length === 6 ? args[6] : null;
-
-                                    console.log(
-                                        kitName,
-                                        angle,
-                                        fontColor,
-                                        color1
-                                    );
-                                    console.log(
-                                        kitName !== null &&
-                                            angle !== null &&
-                                            fontColor !== null &&
-                                            color1 !== null
-                                    );
 
                                     if (
                                         kitName !== null &&
@@ -539,6 +575,13 @@ module.exports = function (API) {
                                 );
                             });
                         }
+                        // Temporal hasta acostumbrarse por seguridad
+                        if (
+                            msg.text.startsWith(":godinetes") ||
+                            msg.text.startsWith(":login")
+                        ) {
+                            return false;
+                        }
                         // Mensaje normal
                         let ballEmoji =
                             p.team.id === 0
@@ -555,15 +598,8 @@ module.exports = function (API) {
                     }
                     return false;
                 } else if (type === OperationType.KickBanPlayer) {
-                    if (msg.id === that.SUPERADMIN?.id && msg.byId !== 0) {
-                        that.room.setPlayerAdmin(msg.byId, false);
-                        that.printchat(
-                            "FLASHASTE UNA BANDA",
-                            msg.byId,
-                            "error"
-                        );
-                        return false;
-                    }
+                    handleKickBanPlayer(msg);
+                    return kickBanAllowed;
                 } else if (type === OperationType.JoinRoom) {
                     if (that.isSaludoActive) {
                         that.printchat(that.saludo, msg.id, "alert");

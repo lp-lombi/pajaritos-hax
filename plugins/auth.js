@@ -94,6 +94,22 @@ module.exports = function (API) {
         });
     };
 
+    this.getUserAssists = async (username) => {
+        return new Promise((resolve, reject) => {
+            commands
+                .getDb()
+                .all(
+                    `SELECT assists FROM users WHERE username="${username}"`,
+                    (err, rows) => {
+                        if (err) {
+                            return reject(err);
+                        }
+                        resolve(rows[0].assists);
+                    }
+                );
+        });
+    };
+
     this.setUserScore = async (username, score) => {
         commands
             .getDb()
@@ -104,6 +120,18 @@ module.exports = function (API) {
                 }
             );
         return score;
+    };
+
+    this.setUserAssists = async (username, assists) => {
+        commands
+            .getDb()
+            .run(
+                `UPDATE users SET assists = ${assists} WHERE username="${username}"`,
+                (err) => {
+                    console.log(err);
+                }
+            );
+        return assists;
     };
 
     this.getLoggedPlayers = function () {
@@ -124,7 +152,7 @@ module.exports = function (API) {
                     (msg, args) => {
                         if (args.length !== 2) {
                             commands.printchat(
-                                "Uso: ' :register <contraseña> <repetir contraseña> '",
+                                "Uso: ' !register <contraseña> <repetir contraseña> '",
                                 msg.byId,
                                 "error"
                             );
@@ -169,7 +197,7 @@ module.exports = function (API) {
                                                                         msg.byId
                                                                 );
                                                             commands.printchat(
-                                                                "Registrado con éxito. Iniciá la sesión con ' :login '",
+                                                                "Registrado con éxito. Iniciá la sesión con ' !login '",
                                                                 msg.byId
                                                             );
                                                         }
@@ -203,7 +231,7 @@ module.exports = function (API) {
                     (msg, args) => {
                         if (args.length !== 1) {
                             commands.printchat(
-                                "Uso: ' :login <contraseña> ' | Para registrarse: ' :register <contraseña> <repetir contraseña> '",
+                                "Uso: ' !login <contraseña> ' | Para registrarse: ' !register <contraseña> <repetir contraseña> '",
                                 msg.byId,
                                 "error"
                             );
@@ -249,7 +277,7 @@ module.exports = function (API) {
                                             });
                                         } else {
                                             commands.printchat(
-                                                "No estás registrado. Usa ' :register <contraseña> <repetir contraseña> '.",
+                                                "No estás registrado. Usa ' !register <contraseña> <repetir contraseña> '.",
                                                 msg.byId,
                                                 "error"
                                             );
