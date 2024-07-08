@@ -20,7 +20,7 @@ const createParams = {
     },
     showInRoomList: true,
     maxPlayerCount: 30,
-    token: "thr1.AAAAAGaGKvlJgep4TUhsyA.euiO6I1oGUw",
+    token: "thr1.AAAAAGaLKoSqRm5-s2a7Ng.lxHYLmIFInE",
 };
 DEV ? (createParams["password"] = "121") : null;
 

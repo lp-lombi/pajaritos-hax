@@ -1,5 +1,3 @@
-const auth = require("./auth");
-
 module.exports = function (API) {
     const {
         OperationType,
@@ -50,21 +48,13 @@ module.exports = function (API) {
         kickBanAllowed = false,
         that = this;
 
-    this.defineVariable({
-        name: "saludo",
-        type: VariableType.String,
-        value: `\n\n\n\n╔══════════════════════════════════════════════════════╗
-║       PAJARITOS HAX       ║  !help !hist !stats !login !bb  ║
-╚══════════════════════════════════════════════════════╝\n\n\n\n`,
-        description: "Mensaje de entrada.",
-    });
+    this.onPlayerLeaveQueue = [];
 
-    this.defineVariable({
-        name: "isSaludoActive",
-        type: VariableType.Boolean,
-        value: false,
-        description: "Define si está activo el saludo.",
-    });
+    this.saludo = `╔══════════════════════════════════════════════════════╗
+║       PAJARITOS HAX       ║  !help !hist !stats !login !bb  ║
+╚══════════════════════════════════════════════════════╝\n\n\n\n\n\n`;
+
+    this.isSaludoActive = false;
 
     // FUNCIONES
     function sleep(ms) {
@@ -82,51 +72,60 @@ module.exports = function (API) {
         }
     }
 
-    async function handleKickBanPlayer(msg) {
+    async function handleKickBanPlayer(msg, force = false) {
         try {
             let p = that.room.players.find((p) => p.id === msg.id);
             let allowed = new Promise((resolve, reject) => {
-                db.all(
-                    `SELECT username, role FROM users WHERE username = "${p.name}"`,
-                    (err, rows) => {
-                        if (err) return reject(err);
-                        if (rows.length > 0) {
-                            if (rows[0].role >= 2 && msg.reason !== null) {
-                                let authPlugin = that.room.plugins.find(
-                                    (p) => p.name === "lmbAuth"
-                                );
-                                if (authPlugin) {
-                                    let isLogged = authPlugin
-                                        .getLoggedPlayers()
-                                        .find((lp) => lp.id === msg.id);
-                                    if (isLogged) {
-                                        that.room.setPlayerAdmin(
-                                            msg.byId,
-                                            false
-                                        );
-                                        that.printchat(
-                                            "FLASHASTE UNA BANDA",
-                                            msg.byId,
-                                            "error"
-                                        );
-                                        resolve(false);
+                if (force) resolve(true);
+                if (p) {
+                    db.all(
+                        `SELECT username, role FROM users WHERE username = "${p.name}"`,
+                        (err, rows) => {
+                            if (err) return resolve(true); // si falla, se usa el comportamiento normal de Haxball
+                            if (rows.length > 0) {
+                                if (rows[0].role >= 2 && msg.reason !== null) {
+                                    let authPlugin = that.room.plugins.find(
+                                        (p) => p.name === "lmbAuth"
+                                    );
+                                    if (authPlugin) {
+                                        let isLogged = authPlugin
+                                            .getLoggedPlayers()
+                                            .find((lp) => lp.id === msg.id);
+                                        if (isLogged) {
+                                            that.room.setPlayerAdmin(
+                                                msg.byId,
+                                                false
+                                            );
+                                            that.printchat(
+                                                "FLASHASTE UNA BANDA",
+                                                msg.byId,
+                                                "error"
+                                            );
+                                            resolve(false);
+                                        }
                                     }
                                 }
                             }
+                            resolve(true);
                         }
-                        resolve(true);
-                    }
-                );
+                    );
+                }
             });
+
             if (!kickBanAllowed) {
+                // Este código es ejecutado solo una vez, a diferencia del de OperationType el cual
+                // se ejecuta al menos dos veces ya que se lo llama recursivamente
                 if (await allowed) {
                     kickBanAllowed = true;
+
+                    that.onPlayerLeaveQueue.forEach((action) => action(msg.id));
                     that.room.fakeKickPlayer(
                         msg.id,
                         msg.reason,
                         msg.ban,
                         msg.byId
                     );
+
                     kickBanAllowed = false;
                 }
             }
@@ -182,18 +181,40 @@ module.exports = function (API) {
                 break;
             case "chat":
                 let p = that.room.players.find((p) => p.id === targetId);
-                let tColor =
-                    p.team.id === 0
-                        ? null
-                        : p.team.id === 1
-                        ? COLORS.redTeam
-                        : COLORS.blueTeam;
+                if (p) {
+                    // a veces se crashea si muchos idiotas spamean
+                    let ballEmoji,
+                        loggedEmoji = "",
+                        tColor;
 
-                if (p.isAdmin) {
-                    null;
+                    switch (p.team.id) {
+                        case 0:
+                            ballEmoji = "⚪";
+                            tColor = null;
+                            break;
+                        case 1:
+                            ballEmoji = "🔴";
+                            tColor = COLORS.redTeam;
+                            break;
+                        case 2:
+                            ballEmoji = "🔵";
+                            tColor = COLORS.blueTeam;
+                            break;
+                    }
+
+                    let authPlugin = that.room.plugins.find(
+                        (p) => p.name === "lmbAuth"
+                    );
+                    authPlugin
+                        ? authPlugin.isPlayerLogged(p.id)
+                            ? (loggedEmoji = "⚡")
+                            : null
+                        : null;
+
+                    let str = `${loggedEmoji} [${ballEmoji}] ${p.name}: ${msg}`;
+
+                    that.room.sendAnnouncement(str, null, tColor);
                 }
-
-                that.room.sendAnnouncement(msg, null, tColor);
                 break;
         }
     };
@@ -268,7 +289,11 @@ module.exports = function (API) {
                 admin: false,
                 hidden: false,
                 exec: (msg, args) => {
-                    that.room.kickPlayer(msg.byId, null, false);
+                    if (!kickBanAllowed) {
+                        kickBanAllowed = true;
+                        that.room.fakeKickPlayer(msg.byId, "nv");
+                        kickBanAllowed = false;
+                    }
                 },
             },
             {
@@ -569,7 +594,7 @@ module.exports = function (API) {
                         ) {
                             sleep(300).then(() => {
                                 that.printchat(
-                                    `[${ballEmoji}] ${p.name}: la pinga en la cola`,
+                                    "la pinga en la cola",
                                     msg.byId,
                                     "chat"
                                 );
@@ -583,17 +608,7 @@ module.exports = function (API) {
                             return false;
                         }
                         // Mensaje normal
-                        let ballEmoji =
-                            p.team.id === 0
-                                ? "⚪"
-                                : p.team.id === 1
-                                ? "🔴"
-                                : "🔵";
-                        that.printchat(
-                            `[${ballEmoji}] ${p.name}: ${msg.text}`,
-                            msg.byId,
-                            "chat"
-                        );
+                        that.printchat(msg.text, msg.byId, "chat");
                         //return true;
                     }
                     return false;

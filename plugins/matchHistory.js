@@ -358,17 +358,15 @@ module.exports = function (API) {
                     console.log(e);
                 }
             };
-            that.room.onPlayerLeave = (playerObj, customData) => {
-                let ps = playersSessionStats.find(
-                    (p) => p.player.id === playerObj.id
-                );
+            commands.onPlayerLeaveQueue.push((id) => {
+                let ps = playersSessionStats.find((p) => p.player.id === id);
                 if (ps) {
                     playersSessionStats.splice(
                         playersSessionStats.indexOf(ps),
                         1
                     );
                 }
-            };
+            });
         }
     };
 };

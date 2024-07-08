@@ -116,7 +116,7 @@ module.exports = function (API) {
             .run(
                 `UPDATE users SET score = ${score} WHERE username="${username}"`,
                 (err) => {
-                    console.log(err);
+                    if (err) console.log(err);
                 }
             );
         return score;
@@ -128,7 +128,7 @@ module.exports = function (API) {
             .run(
                 `UPDATE users SET assists = ${assists} WHERE username="${username}"`,
                 (err) => {
-                    console.log(err);
+                    if (err) console.log(err);
                 }
             );
         return assists;
@@ -136,6 +136,14 @@ module.exports = function (API) {
 
     this.getLoggedPlayers = function () {
         return loggedPlayers;
+    };
+
+    this.isPlayerLogged = function (playerId) {
+        let logged = false;
+        loggedPlayers.forEach((p) => {
+            p.id === playerId ? (logged = true) : null;
+        });
+        return logged;
     };
 
     this.initialize = function () {
@@ -164,52 +172,63 @@ module.exports = function (API) {
                                         let username = that.room.players.find(
                                             (p) => p.id === msg.byId
                                         ).name;
-                                        let userInDb;
 
-                                        commands
-                                            .getDb()
-                                            .all(
-                                                `SELECT * FROM users WHERE username = "${username}"`,
-                                                (err, rows) => {
-                                                    if (err) throw err;
-                                                    let user =
-                                                        rows.length > 0
-                                                            ? rows[0]
-                                                            : null;
-                                                    if (!user) {
-                                                        let error = false;
-                                                        commands
-                                                            .getDb()
-                                                            .run(
-                                                                `INSERT INTO users (username, password) VALUES ("${username}", "${hash}")`,
-                                                                (err) => {
-                                                                    error = true;
-                                                                    console.log(
-                                                                        err
+                                        try {
+                                            commands
+                                                .getDb()
+                                                .all(
+                                                    `SELECT * FROM users WHERE username = "${username}"`,
+                                                    (err, rows) => {
+                                                        if (err) return err;
+                                                        let user =
+                                                            rows.length > 0
+                                                                ? rows[0]
+                                                                : null;
+                                                        if (!user) {
+                                                            let error = false;
+                                                            try {
+                                                                commands
+                                                                    .getDb()
+                                                                    .run(
+                                                                        `INSERT INTO users (username, password) VALUES ("${username}", "${hash}")`,
+                                                                        (
+                                                                            err
+                                                                        ) => {
+                                                                            error = true;
+                                                                            console.log(
+                                                                                err
+                                                                            );
+                                                                        }
+                                                                    );
+                                                                if (!error) {
+                                                                    let player =
+                                                                        that.room.players.find(
+                                                                            (
+                                                                                p
+                                                                            ) =>
+                                                                                p.id ===
+                                                                                msg.byId
+                                                                        );
+                                                                    commands.printchat(
+                                                                        "Registrado con éxito. Iniciá la sesión con ' !login '",
+                                                                        msg.byId
                                                                     );
                                                                 }
-                                                            );
-                                                        if (!error) {
-                                                            let player =
-                                                                that.room.players.find(
-                                                                    (p) =>
-                                                                        p.id ===
-                                                                        msg.byId
-                                                                );
+                                                            } catch (e) {
+                                                                console.log(e);
+                                                            }
+                                                        } else {
                                                             commands.printchat(
-                                                                "Registrado con éxito. Iniciá la sesión con ' !login '",
-                                                                msg.byId
+                                                                "El usuario ya está registrado.",
+                                                                msg.byId,
+                                                                "error"
                                                             );
                                                         }
-                                                    } else {
-                                                        commands.printchat(
-                                                            "El usuario ya está registrado.",
-                                                            msg.byId,
-                                                            "error"
-                                                        );
                                                     }
-                                                }
-                                            );
+                                                );
+                                        } catch (e) {
+                                            console.log(e);
+                                        }
                                     })
                                     .catch((err) => {
                                         console.log(err);
@@ -239,51 +258,57 @@ module.exports = function (API) {
                             let username = that.room.players.find(
                                 (p) => p.id === msg.byId
                             ).name;
-                            commands
-                                .getDb()
-                                .all(
-                                    `SELECT * FROM users WHERE username = "${username}"`,
-                                    (err, rows) => {
-                                        if (err) throw err;
-                                        let user =
-                                            rows.length > 0 ? rows[0] : null;
-                                        if (user) {
-                                            validateLogin(
-                                                args[0],
-                                                user.password
-                                            ).then((validated) => {
-                                                if (validated) {
-                                                    let player =
-                                                        that.room.players.find(
-                                                            (p) =>
-                                                                p.id ===
-                                                                msg.byId
+                            try {
+                                commands
+                                    .getDb()
+                                    .all(
+                                        `SELECT * FROM users WHERE username = "${username}"`,
+                                        (err, rows) => {
+                                            if (err) return err;
+                                            let user =
+                                                rows.length > 0
+                                                    ? rows[0]
+                                                    : null;
+                                            if (user) {
+                                                validateLogin(
+                                                    args[0],
+                                                    user.password
+                                                ).then((validated) => {
+                                                    if (validated) {
+                                                        let player =
+                                                            that.room.players.find(
+                                                                (p) =>
+                                                                    p.id ===
+                                                                    msg.byId
+                                                            );
+                                                        loginPlayer(
+                                                            player,
+                                                            user.role
                                                         );
-                                                    loginPlayer(
-                                                        player,
-                                                        user.role
-                                                    );
-                                                    commands.printchat(
-                                                        `Sesión iniciada. | ${user.score} goles registrados.`,
-                                                        msg.byId
-                                                    );
-                                                } else {
-                                                    commands.printchat(
-                                                        "Contraseña incorrecta.",
-                                                        msg.byId,
-                                                        "error"
-                                                    );
-                                                }
-                                            });
-                                        } else {
-                                            commands.printchat(
-                                                "No estás registrado. Usa ' !register <contraseña> <repetir contraseña> '.",
-                                                msg.byId,
-                                                "error"
-                                            );
+                                                        commands.printchat(
+                                                            `Sesión iniciada. | ${user.score} goles registrados.`,
+                                                            msg.byId
+                                                        );
+                                                    } else {
+                                                        commands.printchat(
+                                                            "Contraseña incorrecta.",
+                                                            msg.byId,
+                                                            "error"
+                                                        );
+                                                    }
+                                                });
+                                            } else {
+                                                commands.printchat(
+                                                    "No estás registrado. Usa ' !register <contraseña> <repetir contraseña> '.",
+                                                    msg.byId,
+                                                    "error"
+                                                );
+                                            }
                                         }
-                                    }
-                                );
+                                    );
+                            } catch (e) {
+                                console.log(e);
+                            }
                         }
                     },
                     "Inicia sesión. ' !login <contraseña> '"
@@ -291,17 +316,15 @@ module.exports = function (API) {
             } catch (err) {
                 console.log(err);
             }
-            that.room.onPlayerLeave = (playerObj) => {
-                let loggedPlayer = loggedPlayers.find(
-                    (p) => p.id === playerObj.id
-                );
+            commands.onPlayerLeaveQueue.push((id) => {
+                let loggedPlayer = loggedPlayers.find((p) => p.id === id);
                 loggedPlayer
                     ? loggedPlayers.splice(
                           loggedPlayers.indexOf(loggedPlayer),
                           1
                       )
                     : null;
-            };
+            });
         }
     };
 };
