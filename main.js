@@ -3,8 +3,9 @@ const API = require("node-haxball")();
 // PLUGINS
 const powerShot = require("./plugins/powerShot");
 const matchHistory = require("./plugins/matchHistory");
-const lmbCommands = require("./plugins/commands");
+const commands = require("./plugins/commands");
 const auth = require("./plugins/auth");
+const autobot = require("./plugins/autobot");
 const aiChat = require("./plugins/aiChat");
 
 // AJUSTES
@@ -20,7 +21,7 @@ const createParams = {
     },
     showInRoomList: true,
     maxPlayerCount: 30,
-    token: "thr1.AAAAAGaLKoSqRm5-s2a7Ng.lxHYLmIFInE",
+    token: "thr1.AAAAAGaMhsuHFSfLWUH5Iw.wViuDytK75I",
 };
 DEV ? (createParams["password"] = "121") : null;
 
@@ -28,9 +29,10 @@ DEV ? (createParams["password"] = "121") : null;
 API.Room.create(createParams, {
     plugins: [
         new powerShot(API),
-        new lmbCommands(API),
+        new commands(API),
         new matchHistory(API),
         new auth(API),
+        new autobot(API),
     ],
     storage: {
         player_name: "Cristo",

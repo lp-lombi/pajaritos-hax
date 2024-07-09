@@ -49,6 +49,8 @@ module.exports = function (API) {
         that = this;
 
     this.onPlayerLeaveQueue = [];
+    this.onGameEndQueue = [];
+    this.sendInputQueue = [];
 
     this.saludo = `╔══════════════════════════════════════════════════════╗
 ║       PAJARITOS HAX       ║  !help !hist !stats !login !bb  ║
@@ -537,10 +539,7 @@ module.exports = function (API) {
                 hidden: false,
                 exec: (msg, args) => {
                     if (args.length === 1 && args[0] === "reset") {
-                        var obj = {
-                            x: 0,
-                            y: 0,
-                        };
+                        var obj = { x: 0, y: 0, xspeed: 0, yspeed: 0 };
                         that.room.setDiscProperties(0, obj);
                     }
                 },
@@ -558,6 +557,12 @@ module.exports = function (API) {
             if (playerId1 === 0 || playerId2 === 0) {
                 that.room.setPlayerTeam(0, 0);
             }
+        };
+
+        that.room.onAfterGameEnd = (winningTeamId, customData) => {
+            that.onGameEndQueue.forEach((action) =>
+                action(winningTeamId, customData)
+            );
         };
 
         that.room.onOperationReceived = (type, msg) => {
@@ -619,6 +624,8 @@ module.exports = function (API) {
                     if (that.isSaludoActive) {
                         that.printchat(that.saludo, msg.id, "alert");
                     }
+                } else if (type === OperationType.SendInput) {
+                    that.sendInputQueue.forEach((action) => action(msg));
                 }
                 return true;
             } catch (e) {
