@@ -36,6 +36,9 @@ module.exports = function (API) {
         beige: parseInt("EAD9AA", 16),
         pink: parseInt("EAB2AA", 16),
         red: parseInt("EA5F60", 16),
+        green: parseInt("90F06A", 16),
+        gray: parseInt("CCCBCB", 16),
+        lime: parseInt("CCE9C1", 16),
         redTeam: parseInt("FFD9D9", 16),
         blueTeam: parseInt("DBD9FF", 16),
     };
@@ -48,19 +51,20 @@ module.exports = function (API) {
         kickBanAllowed = false,
         that = this;
 
+    this.initQueue = [];
+    this.onPlayerJoinQueue = [];
     this.onPlayerLeaveQueue = [];
     this.onGameEndQueue = [];
     this.sendInputQueue = [];
 
-    this.saludo = `╔══════════════════════════════════════════════════════╗
-║       PAJARITOS HAX       ║  !help !hist !stats !login !bb  ║
-╚══════════════════════════════════════════════════════╝\n\n\n\n\n\n`;
-
     this.isSaludoActive = false;
+    this.saludo = `╔═══════════════════════════════════════════════════════╗
+║   PAJARITOS HAX   ║ !pm !hist !stats !login !discord !help !bb ║
+╚═══════════════════════════════════════════════════════╝\n\n\n\n\n\nhttps://discord.gg/qJj6YFxQ`;
 
     // FUNCIONES
     function sleep(ms) {
-        return new Promise((r) => setTimeout(r, 1000));
+        return new Promise((r) => setTimeout(r, ms));
     }
 
     function fetchKits() {
@@ -154,8 +158,13 @@ module.exports = function (API) {
         else return player.isAdmin;
     }
 
-    //
-    this.printchat = function (msg, targetId = null, type = "info") {
+    // METODOS
+    this.printchat = function (
+        msg,
+        targetId = null,
+        type = "info",
+        byId = null
+    ) {
         switch (type) {
             case "info":
                 that.room.sendAnnouncement(
@@ -179,6 +188,24 @@ module.exports = function (API) {
                     targetId,
                     COLORS.pink,
                     "small-bold"
+                );
+                break;
+            case "announcement":
+                that.room.sendAnnouncement(
+                    msg,
+                    targetId,
+                    COLORS.green,
+                    "small-bold",
+                    0
+                );
+                break;
+            case "hint":
+                that.room.sendAnnouncement(
+                    msg,
+                    targetId,
+                    COLORS.gray,
+                    "small-bold",
+                    0
                 );
                 break;
             case "chat":
@@ -218,6 +245,50 @@ module.exports = function (API) {
                     that.room.sendAnnouncement(str, null, tColor);
                 }
                 break;
+            case "pm":
+                let fromP = that.room.players.find((p) => p.id === byId);
+                let toP = that.room.players.find((p) => p.id === targetId);
+                if (fromP && toP) {
+                    that.room.sendAnnouncement(
+                        `[privado] ${fromP.name}: ${msg}`,
+                        toP.id,
+                        COLORS.lime,
+                        "italic",
+                        2
+                    );
+                    that.room.sendAnnouncement(
+                        `[privado] ${fromP.name} a ${toP.name}: ${msg}`,
+                        byId,
+                        COLORS.lime,
+                        "italic"
+                    );
+                }
+                break;
+            case "tm":
+                let tMsgSender = that.room.players.find(
+                    (p) => p.id === targetId
+                );
+                if (tMsgSender) {
+                    let t = tMsgSender.team.id;
+                    let tColor =
+                        t === 0
+                            ? null
+                            : t === 1
+                            ? (COLORS.redTeam + parseInt("DB292B", 16)) / 2
+                            : (COLORS.blueTeam + parseInt("5329DB", 16)) / 2;
+                    let teamPlayers = that.room.players.filter(
+                        (p) => p.team.id === t
+                    );
+                    teamPlayers.forEach((tp) => {
+                        that.room.sendAnnouncement(
+                            `[equipo] ${tMsgSender.name}: ${msg}`,
+                            tp.id,
+                            tColor,
+                            "italic"
+                        );
+                    });
+                }
+                break;
         }
     };
 
@@ -247,8 +318,27 @@ module.exports = function (API) {
         });
     };
 
+    this.announcementLoop = async function () {
+        for (let a of that.announcements) {
+            await sleep(that.announcementsCycle).then(() => {
+                subsPlayersIds.forEach((id) => {
+                    that.printchat(`🕊️ ${a}`, null, "announcement");
+                    that.printchat(
+                        `(!mute para silenciar estas alertas)`,
+                        null,
+                        "hint"
+                    );
+                });
+            });
+        }
+        this.announcementLoop();
+    };
+
     this.initialize = function () {
         fetchKits();
+        sleep(1000).then(() => {
+            that.initQueue.forEach((action) => action());
+        });
 
         // Aca se registran los comandos
         commands = [
@@ -259,19 +349,83 @@ module.exports = function (API) {
                 admin: false,
                 hidden: false,
                 exec: (msg, args) => {
-                    let commandsString = "Lista de comandos disponibles: \n";
-                    commands.forEach((c) => {
-                        if (!c.hidden) {
-                            if (
-                                c.admin === isAdmin(msg.byId) ||
-                                c.admin === false
-                            ) {
+                    if (args.length === 0) {
+                        let commandsString =
+                            "Lista de comandos disponibles: \n";
+                        commands.forEach((c) => {
+                            if (!c.hidden && !c.admin) {
                                 let cmd = c.prefix + c.name;
                                 commandsString += cmd + "\n" + c.desc + "\n\n";
                             }
+                        });
+                        if (isAdmin(msg.byId)) {
+                            commandsString +=
+                                "Hay comandos adicionales para administradores. Usa ' !help admin ' para verlos.\n";
                         }
-                    });
-                    that.printchat(commandsString, msg.byId);
+                        that.printchat(commandsString, msg.byId);
+                    } else if (args[0] === "admin") {
+                        if (isAdmin(msg.byId)) {
+                            let commandsString =
+                                "Lista de comandos para administradores: \n";
+                            commands.forEach((c) => {
+                                if (!c.hidden) {
+                                    if (c.admin) {
+                                        let cmd = c.prefix + c.name;
+                                        commandsString +=
+                                            cmd + "\n" + c.desc + "\n\n";
+                                    }
+                                }
+                            });
+                            that.printchat(commandsString, msg.byId);
+                        }
+                    }
+                },
+            },
+            {
+                prefix: "!",
+                name: "pm",
+                desc: "Enviar un mensaje privado a un jugador | !pm @nombre Hola!",
+                admin: false,
+                hidden: false,
+                exec: (msg, args) => {
+                    if (args.length < 2) {
+                        that.printchat("Uso: !pm @nombre Hola!", msg.byId);
+                    } else {
+                        console.log(args);
+                        if (args[0].startsWith("@")) {
+                            let name = args[0]
+                                .substring(1)
+                                .replaceAll("_", " ");
+                            let p = that.room.players.find(
+                                (p) => p.name === name
+                            );
+                            if (p) {
+                                let text = args.slice(1).join(" ");
+                                that.printchat(text, p.id, "pm", msg.byId);
+                            }
+                        }
+                    }
+                },
+            },
+            {
+                prefix: "!",
+                name: "tm",
+                desc: "Enviar un mensaje al equipo | !tm Hola!",
+                admin: false,
+                hidden: false,
+                exec: (msg, args) => {
+                    if (args.length < 1) {
+                        that.printchat("Uso: !tm Hola!", msg.byId);
+                    } else {
+                        let p = that.room.players.find(
+                            (p) => p.id === msg.byId
+                        );
+
+                        if (p) {
+                            let text = args.join(" ");
+                            that.printchat(text, p.id, "tm");
+                        }
+                    }
                 },
             },
             {
@@ -296,6 +450,16 @@ module.exports = function (API) {
                         that.room.fakeKickPlayer(msg.byId, "nv");
                         kickBanAllowed = false;
                     }
+                },
+            },
+            {
+                prefix: "!",
+                name: "discord",
+                desc: "Muestra el enlace del servidor de discord.",
+                admin: false,
+                hidden: false,
+                exec: (msg, args) => {
+                    that.printchat("https://discord.gg/qJj6YFxQ", msg.byId);
                 },
             },
             {
@@ -551,8 +715,7 @@ module.exports = function (API) {
             teamId1,
             playerId2,
             teamId2,
-            byId,
-            customData
+            byId
         ) => {
             if (playerId1 === 0 || playerId2 === 0) {
                 that.room.setPlayerTeam(0, 0);
@@ -597,20 +760,13 @@ module.exports = function (API) {
                             msg.text.toUpperCase() === "MTM" ||
                             msg.text.toUpperCase() === "METEME"
                         ) {
-                            sleep(300).then(() => {
+                            sleep(750).then(() => {
                                 that.printchat(
-                                    "la pinga en la cola",
+                                    `la pinga en la cola`,
                                     msg.byId,
                                     "chat"
                                 );
                             });
-                        }
-                        // Temporal hasta acostumbrarse por seguridad
-                        if (
-                            msg.text.startsWith(":godinetes") ||
-                            msg.text.startsWith(":login")
-                        ) {
-                            return false;
                         }
                         // Mensaje normal
                         that.printchat(msg.text, msg.byId, "chat");
@@ -622,6 +778,7 @@ module.exports = function (API) {
                     return kickBanAllowed;
                 } else if (type === OperationType.JoinRoom) {
                     if (that.isSaludoActive) {
+                        that.onPlayerJoinQueue.forEach((action) => action(msg));
                         that.printchat(that.saludo, msg.id, "alert");
                     }
                 } else if (type === OperationType.SendInput) {

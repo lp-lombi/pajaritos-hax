@@ -68,9 +68,11 @@ module.exports = function (API) {
 
     this.checkAfk = function () {
         this.inactivePlayersIds = [];
-        that.room.players.forEach((p) =>
-            p.id > 0 ? this.inactivePlayersIds.push(p.id) : null
-        );
+        that.room.players.forEach((p) => {
+            if (p.team.id !== 0) {
+                p.id > 0 ? this.inactivePlayersIds.push(p.id) : null;
+            }
+        });
         sleep(that.afkTimeMsecs).then(() => {
             if (that.room.gameState && that.active) {
                 let teams = getTeams();
@@ -90,7 +92,7 @@ module.exports = function (API) {
     };
 
     this.checkTeams = function () {
-        sleep(150).then(() => {
+        sleep(250).then(() => {
             if (that.room.gameState && that.active) {
                 let teams = getTeams();
                 if (teams.spects.length > 0) {
@@ -101,6 +103,14 @@ module.exports = function (API) {
                         let t = teams.rTeam.length < teams.bTeam.length ? 1 : 2;
                         if (teams.spects[0]) {
                             that.room.setPlayerTeam(teams.spects[0].id, t);
+                        }
+                    }
+                } else {
+                    if (Math.abs(teams.rTeam.length - teams.bTeam.length) > 1) {
+                        if (teams.rTeam.length > teams.bTeam.length) {
+                            that.room.setPlayerTeam(teams.rTeam[0].id, 2);
+                        } else {
+                            that.room.setPlayerTeam(teams.bTeam[0].id, 1);
                         }
                     }
                 }
@@ -124,7 +134,7 @@ module.exports = function (API) {
                 (msg, args) => {
                     if (args.length === 0) {
                         commands.printchat(
-                            "Uso: ' !autobot on/off ' | !autobot equipos <tamaño>",
+                            "Uso: ' !autobot on/off ' | !autobot equipos <tamaño> | !autobot afk <segundosAfk> ",
                             msg.byId,
                             "error"
                         );
@@ -155,6 +165,21 @@ module.exports = function (API) {
                                         );
                                     }
                                 }
+                                break;
+                            case "afk":
+                                if (args[1]) {
+                                    if (!isNaN(parseInt(args[1]))) {
+                                        that.afkTimeMsecs =
+                                            parseInt(args[1]) * 1000;
+                                        commands.printchat(
+                                            "El tiempo de inactividad considerado AFK cambió a " +
+                                                args[1] +
+                                                " segundos.",
+                                            msg.byId
+                                        );
+                                    }
+                                }
+                                break;
                         }
                     }
                 },

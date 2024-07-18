@@ -140,13 +140,14 @@ module.exports = function (API) {
                 str +=
                     "[" +
                     (playersSessionStats.indexOf(p) + 1) +
-                    "] " +
-                    p.player.name +
+                    "]" +
                     " | " +
                     p.score +
                     " goles | " +
                     p.assists +
-                    " asistencias\n";
+                    " asistencias |          " +
+                    p.player.name +
+                    "\n";
             });
         }
         commands.printchat("Stats de los jugadores:\n" + str, playerId);
@@ -165,13 +166,14 @@ module.exports = function (API) {
                     str +=
                         "[" +
                         (stats.indexOf(s) + 1) +
-                        "] " +
-                        s.username +
+                        "]" +
                         " | " +
                         s.score +
                         " goles | " +
                         s.assists +
-                        " asistencias\n";
+                        " asistencias |          " +
+                        s.username +
+                        "\n";
                 });
                 commands.printchat("Stats de los jugadores:\n" + str, playerId);
             });
@@ -231,6 +233,9 @@ module.exports = function (API) {
                     blueScore: that.room.blueScore,
                     time: new Date().getTime(),
                 });
+                if (matchHistory.length > 30) {
+                    matchHistory.splice(0, 1);
+                }
             };
             that.room.onPlayerBallKick = (playerId) => {
                 lastPlayerKickedBall = lastPlayerInteractedBall =

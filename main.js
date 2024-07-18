@@ -6,13 +6,14 @@ const matchHistory = require("./plugins/matchHistory");
 const commands = require("./plugins/commands");
 const auth = require("./plugins/auth");
 const autobot = require("./plugins/autobot");
-const aiChat = require("./plugins/aiChat");
+const announcements = require("./plugins/announcements");
+const voteKick = require("./plugins/voteKick");
 
 // AJUSTES
-const DEV = false;
+const DEV = true;
 const SALUDO = true;
 const createParams = {
-    name: DEV ? "X" : " 🕊️ FUTSAL CON COMBA 💫 ",
+    name: DEV ? "X" : " 🕊️ 🏆 FUTSAL CON COMBA 🏆 💫 ",
     geo: {
         // san bernardo
         lat: -36.310826904052284,
@@ -20,8 +21,8 @@ const createParams = {
         flag: "ar",
     },
     showInRoomList: true,
-    maxPlayerCount: 30,
-    token: "thr1.AAAAAGaMhsuHFSfLWUH5Iw.wViuDytK75I",
+    maxPlayerCount: 16,
+    token: "thr1.AAAAAGaYpwSwN2BqgRKirg.fBE8JlSIZRk",
 };
 DEV ? (createParams["password"] = "121") : null;
 
@@ -33,6 +34,8 @@ API.Room.create(createParams, {
         new matchHistory(API),
         new auth(API),
         new autobot(API),
+        new announcements(API),
+        new voteKick(API),
     ],
     storage: {
         player_name: "Cristo",
