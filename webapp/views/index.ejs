@@ -1,15 +1,22 @@
-<% const runServer=function() { console.log("server running"); } %>
+<!DOCTYPE html>
+<html>
 
-    <!DOCTYPE html>
-    <html>
+<head>
+    <title>PAJARITOS HAX</title>
+    <script>
+        function startRoom() {
+            fetch("http://127.0.0.1:8000/start").then((res) => {
+                console.log(res);
+            })
+        }
 
-    <head>
-        <title>PAJARITOS HAX</title>
-    </head>
+        let x = 1 
+    </script>
+</head>
 
-    <body>
-        <h1>PAJARITOS HAX</h1>
-        <button onclick=<%=runServer() %>>Iniciar servidor</button>
-    </body>
+<body>
+    <h1>PAJARITOS HAX</h1>
+    <button onClick="startRoom()">Iniciar servidor</button>
+</body>
 
-    </html>
+</html>

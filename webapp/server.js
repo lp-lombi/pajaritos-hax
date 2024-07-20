@@ -1,6 +1,3 @@
-let room = require("../server/mainw");
-room.config = JSON.parse(require("fs").readFileSync("../server/config.json"));
-
 //
 
 var express = require("express");
