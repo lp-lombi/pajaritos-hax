@@ -1,0 +1,11 @@
+.room-options {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.room-options button {
+    width: 80px;
+    font-size: 12px;
+    text-align: center;
+}

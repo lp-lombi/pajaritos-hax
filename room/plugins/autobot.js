@@ -74,49 +74,71 @@ module.exports = function (API) {
             }
         });
         sleep(that.afkTimeMsecs).then(() => {
-            if (that.room.gameState && that.active) {
-                let teams = getTeams();
-                if (teams.spects.length > 0) {
-                    for (let i = 0; i < teams.spects.length; i++) {
-                        if (that.inactivePlayersIds[i]) {
-                            that.room.setPlayerTeam(
-                                that.inactivePlayersIds[i],
-                                0
-                            );
+            if (that.room) {
+                if (that.room.gameState && that.active) {
+                    let teams = getTeams();
+                    if (teams.spects.length > 0) {
+                        for (let i = 0; i < teams.spects.length; i++) {
+                            if (that.inactivePlayersIds[i]) {
+                                that.room.setPlayerTeam(
+                                    that.inactivePlayersIds[i],
+                                    0
+                                );
+                            }
                         }
                     }
                 }
+                this.checkAfk();
             }
-            this.checkAfk();
         });
     };
 
     this.checkTeams = function () {
-        sleep(250).then(() => {
-            if (that.room.gameState && that.active) {
-                let teams = getTeams();
-                if (teams.spects.length > 0) {
-                    if (
-                        teams.rTeam.length < that.teamSize ||
-                        teams.bTeam.length < that.teamSize
-                    ) {
-                        let t = teams.rTeam.length < teams.bTeam.length ? 1 : 2;
-                        if (teams.spects[0]) {
-                            that.room.setPlayerTeam(teams.spects[0].id, t);
-                        }
-                    }
-                } else {
-                    if (Math.abs(teams.rTeam.length - teams.bTeam.length) > 1) {
-                        if (teams.rTeam.length > teams.bTeam.length) {
-                            that.room.setPlayerTeam(teams.rTeam[0].id, 2);
+        if (that.room !== null) {
+            sleep(250).then(() => {
+                if (that.room !== null) {
+                    if (that.room.gameState && that.active) {
+                        let teams = getTeams();
+                        if (teams.spects.length > 0) {
+                            if (
+                                teams.rTeam.length < that.teamSize ||
+                                teams.bTeam.length < that.teamSize
+                            ) {
+                                let t =
+                                    teams.rTeam.length < teams.bTeam.length
+                                        ? 1
+                                        : 2;
+                                if (teams.spects[0]) {
+                                    that.room.setPlayerTeam(
+                                        teams.spects[0].id,
+                                        t
+                                    );
+                                }
+                            }
                         } else {
-                            that.room.setPlayerTeam(teams.bTeam[0].id, 1);
+                            if (
+                                Math.abs(
+                                    teams.rTeam.length - teams.bTeam.length
+                                ) > 1
+                            ) {
+                                if (teams.rTeam.length > teams.bTeam.length) {
+                                    that.room.setPlayerTeam(
+                                        teams.rTeam[0].id,
+                                        2
+                                    );
+                                } else {
+                                    that.room.setPlayerTeam(
+                                        teams.bTeam[0].id,
+                                        1
+                                    );
+                                }
+                            }
                         }
                     }
+                    this.checkTeams();
                 }
-            }
-            this.checkTeams();
-        });
+            });
+        }
     };
 
     this.initialize = function () {

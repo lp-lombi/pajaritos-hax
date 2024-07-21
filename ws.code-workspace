@@ -5,8 +5,8 @@
 			"path": "."
 		},
 		{
-			"name": "server",
-			"path": "server"
+			"name": "room",
+			"path": "room"
 		},
 		{
 			"name": "webapp",

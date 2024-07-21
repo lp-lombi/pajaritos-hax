@@ -1,4 +1,4 @@
-module.exports = function (API) {
+module.exports = function (API, dbPath) {
     const {
         OperationType,
         VariableType,
@@ -44,7 +44,7 @@ module.exports = function (API) {
     };
 
     const sqlite3 = require("sqlite3");
-    db = new sqlite3.Database("./plugins/res/commands.db");
+    db = new sqlite3.Database(dbPath);
 
     var commands,
         kits,
@@ -782,6 +782,8 @@ module.exports = function (API) {
                     }
                 } else if (type === OperationType.SendInput) {
                     that.sendInputQueue.forEach((action) => action(msg));
+                } else if (type === 38) {
+                    console.log("x");
                 }
                 return true;
             } catch (e) {

@@ -1,0 +1,39 @@
+.players-list {
+    height: 70%;
+    overflow-y: auto;
+
+    width: 80%;
+    padding: 1rem;
+}
+
+.players-list li {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 35px;
+    font-size: 16px;
+
+    border-radius: 0.5rem;
+}
+
+.players-list li:nth-child(odd) {
+    background-color: var(--dark-contrast);
+}
+
+.players-list li button {
+    position: absolute;
+    right: 0.5rem;
+
+    justify-self: flex-end;
+
+    width: 40px;
+    height: 25px;
+
+    padding: 0px;
+
+    background-color: orange;
+    font-size: 14px;
+
+    color: black;
+}
