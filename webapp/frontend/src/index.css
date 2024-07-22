@@ -2,6 +2,7 @@
     --header-height: 100px;
     --dark-background: #242424;
     --dark-contrast: #1a1a1a;
+    --primary-color: #e6ab2d;
 
     font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
     line-height: 1.5;
@@ -28,11 +29,10 @@ main {
     display: flex;
     justify-content: center;
     align-items: center;
-    flex-wrap: wrap;
     gap: 2rem;
 
     width: 100vw;
-    height: calc(100vh - var(--header-height));
+    min-height: calc(100vh - var(--header-height));
 }
 
 section {
@@ -56,6 +56,8 @@ button {
 
     border-radius: 8px;
     border: 1px solid transparent;
+    box-shadow: 4px 4px 4px #0000003d;
+
     padding: 0.6em 1.2em;
     font-size: 1em;
     font-weight: 500;
@@ -118,6 +120,27 @@ ul {
 
 .gap3 {
     gap: 3rem;
+}
+
+.panel {
+    width: 100%;
+    height: 100%;
+}
+
+.panel-top {
+    width: 100%;
+    height: 10%;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.199);
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10%;
+}
+
+.panel-bottom {
+    width: 100%;
+    height: 90%;
 }
 
 @media (prefers-color-scheme: light) {

@@ -105,7 +105,7 @@ module.exports = function (API) {
                                 teams.bTeam.length < that.teamSize
                             ) {
                                 let t =
-                                    teams.rTeam.length < teams.bTeam.length
+                                    teams.rTeam.length <= teams.bTeam.length
                                         ? 1
                                         : 2;
                                 if (teams.spects[0]) {

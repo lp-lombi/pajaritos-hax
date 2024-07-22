@@ -1,3 +1,5 @@
+@echo off
+
 cd /D "%~dp0"
 
 cd webapp\frontend

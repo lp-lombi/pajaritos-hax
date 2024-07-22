@@ -46,9 +46,7 @@ async function run(config, DEV = false) {
                 commandsPlugin = room.plugins.find(
                     (p) => p.name === "lmbCommands"
                 );
-                commandsPlugin
-                    ? (commandsPlugin.isSaludoActive = config.greet)
-                    : null;
+                commandsPlugin ? (commandsPlugin.isSaludoActive = true) : null;
 
                 console.log("\nPlugins activos: ");
                 room.plugins.forEach((p) => {

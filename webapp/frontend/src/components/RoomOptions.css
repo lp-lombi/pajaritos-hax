@@ -4,8 +4,164 @@
     justify-content: center;
 }
 
+.room-options .panel-bottom > * {
+    margin-left: 2rem;
+    margin-right: 2rem;
+}
+
 .room-options button {
-    width: 80px;
+    width: 90px;
+    height: 40px;
+    padding: 0px;
     font-size: 12px;
     text-align: center;
+}
+
+.room-options h3 {
+    margin-bottom: 0px;
+}
+
+.room-options ul {
+    font-size: 12px;
+    padding: 0.5rem;
+    list-style: none;
+}
+
+.room-options a {
+    font-size: 14px;
+    color: white;
+}
+/**/
+
+.room-options .tab-container {
+    margin-top: 2rem;
+    display: flex;
+    border-bottom: 1px solid rgba(0, 0, 0, 0);
+}
+
+.room-options .tab {
+    flex: 1;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    font-weight: bold;
+
+    width: 25%;
+    height: 40px;
+    background-color: var(--dark-contrast);
+
+    border-top-right-radius: 2rem;
+
+    cursor: pointer;
+}
+
+/**/
+
+.plugins {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+
+    height: 100%;
+}
+
+.plugins > div {
+    display: flex;
+}
+
+.plugins ul {
+    min-width: 140px;
+    width: 30%;
+    border: 1px solid black;
+    padding: 0.25rem;
+    overflow-x: auto;
+}
+
+.plugins li {
+    border-radius: 0.5rem;
+    padding: 0.5rem;
+
+    font-size: 12px;
+    font-weight: bold;
+
+    cursor: pointer;
+}
+
+.plugins li:nth-child(odd) {
+    background-color: var(--dark-contrast);
+}
+
+.plugins li:hover {
+    background-color: color-mix(
+        in srgb,
+        var(--dark-contrast) 50%,
+        var(--primary-color)
+    );
+}
+
+.plugins .settings-box {
+    background-color: var(--dark-contrast);
+
+    width: 100%;
+    text-align: start;
+}
+
+.plugins .settings-box h4 {
+    text-align: center;
+}
+
+.plugins .setting {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+}
+
+.plugins .setting > div {
+    text-align: center;
+    width: 50%;
+}
+
+.plugins .button-container {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+}
+
+/**/
+
+.stadiums ul {
+    border: 1px solid black;
+    padding: 0.25rem;
+
+    height: 200px;
+    overflow-y: auto;
+}
+
+.stadiums li {
+    border-radius: 0.5rem;
+    padding: 0.5rem;
+
+    font-size: 12px;
+    font-weight: bold;
+
+    cursor: pointer;
+}
+
+.stadiums li:nth-child(odd) {
+    background-color: var(--dark-contrast);
+}
+
+.stadiums li:hover {
+    background-color: color-mix(
+        in srgb,
+        var(--dark-contrast) 50%,
+        var(--primary-color)
+    );
+}
+
+.room-options li.selected {
+    background-color: var(--primary-color);
+    color: black;
 }

@@ -32,7 +32,7 @@
 
     padding: 0px;
 
-    background-color: orange;
+    background-color: var(--primary-color);
     font-size: 14px;
 
     color: black;

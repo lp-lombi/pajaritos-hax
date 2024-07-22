@@ -9,6 +9,7 @@ export const StartForm = () => {
     const [token, setToken] = useState("");
     const [botName, setBotName] = useState("");
     const [maxPlayers, setMaxPlayers] = useState(10);
+    const [dev, setDev] = useState(true);
 
     const handleMaxPlayersChange = (e) => {
         if (!isNaN(e.target.value) && e.target.value !== "") {
@@ -32,6 +33,7 @@ export const StartForm = () => {
                 maxPlayers,
                 botName,
                 token,
+                dev,
             });
             // se guarda la configuracion
             fetch("../../res/config.json").then((res) => {
@@ -40,6 +42,7 @@ export const StartForm = () => {
                     data.roomPassword = roomPassword;
                     data.maxPlayers = maxPlayers;
                     data.botName = botName;
+                    data.dev = dev;
 
                     fetch("../../res/config.json", {
                         method: "PUT",
@@ -56,6 +59,7 @@ export const StartForm = () => {
             setRoomPassword(data.roomPassword);
             setMaxPlayers(data.maxPlayers);
             setBotName(data.botName);
+            setToken(data.token);
         });
     }, []);
 

@@ -32,6 +32,38 @@ module.exports = function (API, dbPath) {
         allowFlags: AllowFlags.CreateRoom,
     });
 
+    this.publicSettings = [
+        {
+            name: "saludo",
+            description: "Saludo al unirse a la sala",
+            type: "bool",
+            getValue: () => {
+                return that.isSaludoActive;
+            },
+            setValue: (value) => {
+                that.isSaludoActive = set;
+            },
+        },
+    ];
+
+    var commands,
+        kits,
+        kickBanAllowed = false,
+        that = this;
+
+    this.utils = Utils;
+
+    this.initQueue = [];
+    this.onPlayerJoinQueue = [];
+    this.onPlayerLeaveQueue = [];
+    this.onGameEndQueue = [];
+    this.sendInputQueue = [];
+
+    this.isSaludoActive = false;
+    this.saludo = `╔═══════════════════════════════════════════════════════╗
+║   PAJARITOS HAX   ║ !pm !hist !stats !login !discord !help !bb ║
+╚═══════════════════════════════════════════════════════╝\n\n\n\n\n\nhttps://discord.gg/tdwy5EGY`;
+
     const COLORS = {
         beige: parseInt("EAD9AA", 16),
         pink: parseInt("EAB2AA", 16),
@@ -45,22 +77,6 @@ module.exports = function (API, dbPath) {
 
     const sqlite3 = require("sqlite3");
     db = new sqlite3.Database(dbPath);
-
-    var commands,
-        kits,
-        kickBanAllowed = false,
-        that = this;
-
-    this.initQueue = [];
-    this.onPlayerJoinQueue = [];
-    this.onPlayerLeaveQueue = [];
-    this.onGameEndQueue = [];
-    this.sendInputQueue = [];
-
-    this.isSaludoActive = false;
-    this.saludo = `╔═══════════════════════════════════════════════════════╗
-║   PAJARITOS HAX   ║ !pm !hist !stats !login !discord !help !bb ║
-╚═══════════════════════════════════════════════════════╝\n\n\n\n\n\nhttps://discord.gg/tdwy5EGY`;
 
     // FUNCIONES
     function sleep(ms) {

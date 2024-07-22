@@ -8,26 +8,31 @@ import RoomOptions from "./components/RoomOptions";
 import Chat from "./components/Chat";
 
 function App() {
-    const { getRoomStatus, update, roomOpen } = useApi();
+    const { fetchRoomStatus, roomStatus } = useApi();
 
     useEffect(() => {
-        getRoomStatus();
+        fetchRoomStatus();
     }, []);
 
     useEffect(() => {
-        console.log("Cambiado elestado de la sala a: " + roomOpen);
-    }, [roomOpen]);
+        console.log("Cambiado elestado de la sala a: " + roomStatus);
+    }, [roomStatus]);
 
     return (
         <>
             <Header />
             <main className="col">
-                {!roomOpen ? (
+                {!roomStatus ? null : roomStatus === "closed" ||
+                  roomStatus === "token" ? (
                     <StartForm />
                 ) : (
                     <>
-                        <div className="flex gap3" style={{ width: "80%" }}>
-                            <RoomOptions /> <PlayersList />
+                        <div
+                            className="flex gap3"
+                            style={{ width: "80%", flexWrap: "wrap" }}
+                        >
+                            <RoomOptions />
+                            <PlayersList />
                         </div>
                         <div className="flex" style={{ width: "80%" }}>
                             <Chat />

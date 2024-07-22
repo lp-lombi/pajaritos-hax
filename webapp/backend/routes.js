@@ -4,29 +4,73 @@ const router = express.Router();
 var roomCreator = require("../../room/mainw");
 var room;
 
-//
-// VIEWS
-//
-router.get("/", function (req, res) {
-    res.render("index");
-});
+var stadiumsPath = "../../room/stadiums/";
 
 //
 // ENDPOINTS
 //
 router.get("/status", function (req, res) {
+    let data = {
+        status: "closed",
+    };
+
+    if (room) {
+        if (room.link.startsWith("https://www.haxball.com/")) {
+            data.status = "open";
+        } else if (room.link.startsWith("Waiting")) {
+            data.status = "token";
+        }
+    }
+
     res.setHeader("Content-Type", "application/json");
-    res.end(JSON.stringify({ open: room ? true : false }));
+    res.end(JSON.stringify(data));
 });
 
-router.get("/defaultConfig", function (req, res) {
+router.get("/room", function (req, res) {
+    if (room) {
+        let roomData = {
+            name: room.name,
+            link: room.link,
+            stadiumName: room.stadium.name,
+            plugins: [],
+            stadiums: [],
+        };
+        room.plugins.forEach((pl) => {
+            let settings = pl.publicSettings ? pl.publicSettings : null;
+            if (settings) {
+                settings.forEach((s) => {
+                    s["value"] = s.getValue();
+                });
+            }
+
+            roomData.plugins.push({
+                name: pl.name,
+                settings: settings,
+            });
+        });
+
+        try {
+            roomData.stadiums = require("fs")
+                .readdirSync(stadiumsPath)
+                .filter((s) => s.toUpperCase().endsWith(".HBS"));
+        } catch (e) {
+            console.log(e);
+        }
+
+        res.send(JSON.stringify(roomData));
+    } else {
+        res.status(400).send("No room open");
+    }
+});
+
+router.get("/room/config", function (req, res) {
     var config = JSON.parse(require("fs").readFileSync("./config.json"));
 
     res.setHeader("Content-Type", "application/json");
     res.end(JSON.stringify(config));
 });
 
-router.post("/start", function (req, res) {
+router.post("/room/start", function (req, res) {
     if (!room) {
         var config = req.body;
         config.db = "../../room/plugins/res/commands.db";
@@ -48,23 +92,152 @@ router.post("/start", function (req, res) {
                 );
             }
         });
-        dr = room;
+        DEBUGROOM = room;
     } else {
         res.send("Host already open");
     }
 });
 
-router.post("/stop", function (req, res) {
+router.post("/room/stop", function (req, res) {
     if (room) {
         try {
             room.leave();
             room = null;
             console.log("Sala cerrada.");
+            res.end("Sala cerrada.");
         } catch (e) {
             console.log(e);
         }
     }
 });
+
+router.post("/room/setting", function (req, res) {
+    if (room) {
+        let pluginName = req.body.pluginName;
+        let settingName = req.body.settingName;
+        let value = req.body.value;
+
+        if (!pluginName || !settingName || !value) {
+            res.status(400).send("Missing arguments");
+            return;
+        } else {
+            let plugin = room.plugins.find((p) => p.name === pluginName);
+            if (plugin) {
+                let setting = plugin.settings.find(
+                    (s) => s.name === settingName
+                );
+                if (setting) {
+                    setting.exec(value);
+                }
+            }
+        }
+    } else {
+        res.status(400).send("No room open");
+    }
+});
+
+// GAME FUNCTIONS
+router.get("/game/start", function (req, res) {
+    if (!room) {
+        res.send("Host not open");
+    } else {
+        try {
+            room.startGame();
+            res.send("Game started");
+        } catch (e) {
+            console.log(e);
+        }
+    }
+});
+
+router.get("/game/stop", function (req, res) {
+    if (!room) {
+        res.send("Host not open");
+    } else {
+        try {
+            room.stopGame();
+            res.send("Game stopped");
+        } catch (e) {
+            console.log(e);
+        }
+    }
+});
+
+router.get("/game/kick", function (req, res) {
+    if (!room) {
+        res.send("Host not open");
+    } else {
+        try {
+            let playerId = isNaN(req.query.id) ? null : parseInt(req.query.id);
+            let reason = req.query.reason;
+            let ban = req.query.ban === "true";
+
+            if (!playerId) {
+                res.send("Invalid player id");
+                return;
+            }
+
+            room.kickPlayer(playerId, reason, ban, 0);
+            res.send("Player kick request processed");
+        } catch (e) {
+            console.log(e);
+        }
+    }
+});
+
+router.post("/game/chat", function (req, res) {
+    if (!room) {
+        res.send("Host not open");
+    } else {
+        try {
+            let msg = req.body.msg;
+            room.sendChat(msg);
+            res.send("Message sent");
+        } catch (e) {
+            console.log(e);
+        }
+    }
+});
+
+router.post("/game/stadium", function (req, res) {
+    if (!room) {
+        res.send("Host not open");
+    } else {
+        try {
+            require("fs").readFile(
+                stadiumsPath + req.body.stadium,
+                "utf8",
+                function (err, data) {
+                    if (!err) {
+                        let c = room.plugins.find(
+                            (p) => p.name === "lmbCommands"
+                        );
+                        if (c) {
+                            let err = null;
+                            let stadium = c.utils.parseStadium(data, () => {
+                                err = true;
+                                res.status(400).send("Stadium parse error");
+                            });
+                            if (!err) {
+                                room.stopGame();
+                                room.setCurrentStadium(stadium);
+                            }
+                        }
+                    }
+                }
+            );
+            try {
+                res.send("Stadium loaded");
+            } catch (e) {
+                res.status(400).send("Error :" + e);
+            }
+        } catch (e) {
+            console.log(e);
+        }
+    }
+});
+
+//
 
 router.get("/players/all", function (req, res) {
     if (room) {
