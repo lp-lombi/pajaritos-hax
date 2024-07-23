@@ -75,7 +75,7 @@ router.post("/room/start", function (req, res) {
         var config = req.body;
         config.db = "../../room/plugins/res/commands.db";
 
-        roomCreator.run(config, false).then((r) => {
+        roomCreator.run(config, true).then((r) => {
             if (r) {
                 room = r;
                 res.send("Host open");

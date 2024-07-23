@@ -39,7 +39,6 @@ export const ApiService = ({ children }) => {
         fetch(`${APIURL}/status`).then((res) => {
             if (res.ok) {
                 res.json().then((data) => {
-                    console.log(data);
                     if (data.status === "open") {
                         setRoomStatus("open");
                         fetchRoomData();
@@ -66,7 +65,6 @@ export const ApiService = ({ children }) => {
         fetch(`${APIURL}/room`).then((res) => {
             if (res.ok) {
                 res.json().then((data) => {
-                    console.log(data);
                     setRoomData(data);
                 });
             }
@@ -148,7 +146,6 @@ export const ApiService = ({ children }) => {
     const kickPlayer = (id, reason = "", ban = false) => {
         fetch(`${APIURL}/game/kick?id=${id}&reason=${reason}&ban=${ban}`).then(
             (res) => {
-                console.log(res);
                 if (res.ok) {
                     return;
                 } else {
@@ -166,7 +163,6 @@ export const ApiService = ({ children }) => {
             },
             body: JSON.stringify({ msg }),
         }).then((res) => {
-            console.log(msg);
             if (res.ok) {
                 return;
             } else {

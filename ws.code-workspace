@@ -1,16 +1,7 @@
 {
     "folders": [
 		{
-			"name": "hb",
 			"path": "."
-		},
-		{
-			"name": "room",
-			"path": "room"
-		},
-		{
-			"name": "webapp",
-			"path": "webapp"
 		}
 	]
 }
