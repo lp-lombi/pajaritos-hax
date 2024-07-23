@@ -99,9 +99,7 @@ export const ApiService = ({ children }) => {
 
     const startGame = () => {
         fetch(`${APIURL}/game/start`).then((res) => {
-            if (res.ok) {
-                fetchRoomData();
-            } else {
+            if (!res.ok) {
                 console.log("Error al iniciar juego");
             }
         });
@@ -118,7 +116,6 @@ export const ApiService = ({ children }) => {
     };
 
     const loadStadium = (stadium) => {
-        console.log(JSON.stringify(stadium));
         fetch(`${APIURL}/game/stadium`, {
             method: "POST",
             headers: {
@@ -126,8 +123,24 @@ export const ApiService = ({ children }) => {
             },
             body: JSON.stringify({ stadium }),
         }).then((res) => {
-            if (res.ok) {
+            if (!res.ok) {
+                console.log("Error al cargar estadio");
+            } else {
                 fetchRoomData();
+            }
+        });
+    };
+
+    const saveStadium = (stadiumName) => {
+        fetch(`${APIURL}/game/stadium/save`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ stadiumName }),
+        }).then((res) => {
+            if (!res.ok) {
+                console.log("Error al guardar estadio");
             }
         });
     };
@@ -169,6 +182,7 @@ export const ApiService = ({ children }) => {
     useEffect(() => {
         setTimeout(() => {
             fetchPlayers();
+            fetchRoomData();
         }, 1000);
     }, [players]);
 
@@ -187,6 +201,7 @@ export const ApiService = ({ children }) => {
                 stopRoom,
                 stopGame,
                 loadStadium,
+                saveStadium,
                 kickPlayer,
                 sendMsg,
                 players,

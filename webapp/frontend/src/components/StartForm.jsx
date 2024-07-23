@@ -64,7 +64,7 @@ export const StartForm = () => {
     }, []);
 
     return (
-        <section className="flex col">
+        <section className="start-form flex col">
             <label htmlFor="roomName">Nombre de la sala</label>
             <input
                 value={roomName}

@@ -2,9 +2,10 @@ import React, { useState } from "react";
 import { useApi } from "../../services/ApiService";
 
 export const Stadiums = () => {
-    const { roomData, loadStadium } = useApi();
+    const { roomData, loadStadium, saveStadium } = useApi();
 
     const [selectedStadium, setSelectedStadium] = useState(null);
+    const [newStadiumName, setNewStadiumName] = useState("");
 
     const handleSelectStadium = (e) => {
         setSelectedStadium(
@@ -19,6 +20,14 @@ export const Stadiums = () => {
             loadStadium(selectedStadium);
         } else {
             alert("Elegí un estadio");
+        }
+    };
+
+    const handleSaveStadium = () => {
+        if (newStadiumName !== "") {
+            saveStadium(newStadiumName);
+        } else {
+            alert("El nombre no puede estar vacío");
         }
     };
 
@@ -53,6 +62,17 @@ export const Stadiums = () => {
                 >
                     Cargar
                 </button>
+                <div className="download">
+                    <input
+                        value={newStadiumName}
+                        onChange={(e) => setNewStadiumName(e.target.value)}
+                        type="text"
+                        placeholder="Nombre del archivo"
+                    />
+                    <button onClick={handleSaveStadium}>
+                        Descargar mapa actual
+                    </button>
+                </div>
             </div>
         </div>
     );

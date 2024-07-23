@@ -161,6 +161,27 @@
     );
 }
 
+.stadiums .button-container {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.stadiums .download {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    gap: 5rem;
+}
+
+.stadiums .download button,
+.stadiums .download input[type="text"] {
+    width: 40%;
+    height: 40px;
+    flex: 0.5;
+}
+
 .room-options li.selected {
     background-color: var(--primary-color);
     color: black;

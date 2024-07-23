@@ -75,7 +75,7 @@ router.post("/room/start", function (req, res) {
         var config = req.body;
         config.db = "../../room/plugins/res/commands.db";
 
-        roomCreator.run(config, true).then((r) => {
+        roomCreator.run(config, false).then((r) => {
             if (r) {
                 room = r;
                 res.send("Host open");
@@ -230,6 +230,37 @@ router.post("/game/stadium", function (req, res) {
                 res.send("Stadium loaded");
             } catch (e) {
                 res.status(400).send("Error :" + e);
+            }
+        } catch (e) {
+            console.log(e);
+        }
+    }
+});
+
+router.post("/game/stadium/save", function (req, res) {
+    if (!room) {
+        res.send("Host not open");
+    } else {
+        try {
+            let c = room.plugins.find((p) => p.name === "lmbCommands");
+            if (c) {
+                let stadiumData = c.utils.exportStadium(room.stadium);
+                if (stadiumData) {
+                    require("fs").writeFile(
+                        stadiumsPath + req.body.stadiumName + ".hbs",
+                        stadiumData,
+                        (err) => {
+                            if (err) {
+                                res.status(400).send(
+                                    "No se pudo guardar el estadio: " + err
+                                );
+                            } else {
+                                res.send("Estadio guardado");
+                            }
+                        }
+                    );
+                    return;
+                }
             }
         } catch (e) {
             console.log(e);

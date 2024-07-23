@@ -86,8 +86,6 @@ input[type="text"],
 input[type="number"] {
     -moz-appearance: textfield;
 
-    width: 90%;
-    min-width: 75%;
     height: 50px;
 
     padding: 0px;
@@ -98,6 +96,12 @@ input[type="number"] {
 
     text-align: center;
     font-size: 16px;
+}
+
+.start-form input[type="text"],
+.start-form input[type="number"] {
+    width: 90%;
+    min-width: 75%;
 }
 
 ul {
