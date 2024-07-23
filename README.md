@@ -6,7 +6,7 @@ Además, cuenta con una interfaz gráfica a través de un servidor web, al cual 
 
 ## Cómo usarlo
 
-#### Instalación de dependencias
+### Instalación de dependencias
 
 -   Este host requiere la previa instalación de Node (https://nodejs.org/)
 
