@@ -37,7 +37,7 @@ module.exports = function (API) {
     var commands,
         that = this;
 
-    this.active = false;
+    this.active = true;
 
     //                       mins
     this.announcementsCycle = 6 * 60000;
@@ -78,9 +78,9 @@ module.exports = function (API) {
                         );
                     });
                 }
+                that.announcementLoop();
             });
         }
-        that.announcementLoop();
     };
 
     this.initialize = function () {

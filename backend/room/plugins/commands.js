@@ -1,4 +1,4 @@
-module.exports = function (API, dbPath) {
+module.exports = function (API) {
     const {
         OperationType,
         VariableType,
@@ -75,8 +75,10 @@ module.exports = function (API, dbPath) {
         blueTeam: parseInt("DBD9FF", 16),
     };
 
+    const path = require("path");
+    const fs = require("fs");
     const sqlite3 = require("sqlite3");
-    db = new sqlite3.Database(dbPath);
+    db = new sqlite3.Database(path.join(__dirname, "res/commands.db"));
 
     // FUNCIONES
     function sleep(ms) {
@@ -258,6 +260,7 @@ module.exports = function (API, dbPath) {
 
                     let str = `${loggedEmoji} [${ballEmoji}] ${p.name}: ${msg}`;
 
+                    that.log(str);
                     that.room.sendAnnouncement(str, null, tColor);
                 }
                 break;
@@ -308,6 +311,16 @@ module.exports = function (API, dbPath) {
         }
     };
 
+    this.log = function (msg) {
+        let maxLines = 50;
+        let newLog =
+            fs.readFileSync(path.join(__dirname, "res/chatlog.txt"), "utf8") +
+            "\n" +
+            msg;
+        newLog = newLog.split("\n").slice(-maxLines).join("\n");
+        fs.writeFileSync(path.join(__dirname, "res/chatlog.txt"), newLog);
+    };
+
     this.getDb = function () {
         return db;
     };
@@ -352,6 +365,7 @@ module.exports = function (API, dbPath) {
 
     this.initialize = function () {
         fetchKits();
+        fs.writeFileSync(path.join(__dirname, "res/chatlog.txt"), ""); // Se limpia el log del chat
         sleep(1000).then(() => {
             that.initQueue.forEach((action) => action());
         });
@@ -629,7 +643,7 @@ module.exports = function (API, dbPath) {
 
                                         that.printchat(
                                             "Fuerza: " +
-                                                12 +
+                                                13 +
                                                 " | Comba: " +
                                                 0.075,
                                             msg.byId

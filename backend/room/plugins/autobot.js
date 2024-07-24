@@ -61,7 +61,7 @@ module.exports = function (API) {
     var commands,
         that = this;
 
-    this.active = false;
+    this.active = true;
     this.teamSize = 4;
     this.afkTimeMsecs = 25000;
     this.inactivePlayersIds = [];

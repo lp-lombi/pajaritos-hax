@@ -8,6 +8,7 @@ export const ApiService = ({ children }) => {
     const [roomStatus, setRoomStatus] = useState(null);
     const [roomData, setRoomData] = useState(null);
     const [players, setPlayers] = useState([]);
+    const [chatLog, setChatLog] = useState("");
 
     const fetchPlayers = () => {
         fetch(`${APIURL}/players/all`).then((res) => {
@@ -36,7 +37,7 @@ export const ApiService = ({ children }) => {
     };
 
     const fetchRoomStatus = (attempts = 0) => {
-        fetch(`${APIURL}/status`).then((res) => {
+        fetch(`${APIURL}/room/status`).then((res) => {
             if (res.ok) {
                 res.json().then((data) => {
                     if (data.status === "open") {
@@ -114,7 +115,7 @@ export const ApiService = ({ children }) => {
     };
 
     const loadStadium = (stadium) => {
-        fetch(`${APIURL}/game/stadium`, {
+        fetch(`${APIURL}/game/stadium/load`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -155,8 +156,20 @@ export const ApiService = ({ children }) => {
         );
     };
 
+    const fetchChat = () => {
+        fetch(`${APIURL}/room/chat`).then((res) => {
+            if (res.ok) {
+                res.json().then((data) => {
+                    setChatLog(data.chat);
+                });
+            } else {
+                console.log("Error al recibir mensajes");
+            }
+        });
+    };
+
     const sendMsg = (msg) => {
-        fetch(`${APIURL}/game/chat`, {
+        fetch(`${APIURL}/room/chat`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -164,6 +177,7 @@ export const ApiService = ({ children }) => {
             body: JSON.stringify({ msg }),
         }).then((res) => {
             if (res.ok) {
+                fetchChat();
                 return;
             } else {
                 console.log("Error al enviar mensaje");
@@ -179,6 +193,7 @@ export const ApiService = ({ children }) => {
         setTimeout(() => {
             fetchPlayers();
             fetchRoomData();
+            fetchChat();
         }, 1000);
     }, [players]);
 
@@ -200,6 +215,8 @@ export const ApiService = ({ children }) => {
                 saveStadium,
                 kickPlayer,
                 sendMsg,
+                fetchChat,
+                chatLog,
                 players,
                 roomStatus,
                 setRoomStatus,
