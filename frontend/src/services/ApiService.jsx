@@ -7,11 +7,12 @@ export const ApiService = ({ children }) => {
 
     const [roomStatus, setRoomStatus] = useState(null);
     const [roomData, setRoomData] = useState(null);
+    const [gameData, setGameData] = useState(null);
     const [players, setPlayers] = useState([]);
     const [chatLog, setChatLog] = useState("");
 
     const fetchPlayers = () => {
-        fetch(`${APIURL}/players/all`).then((res) => {
+        fetch(`/players/all`).then((res) => {
             if (res.ok) {
                 res.json().then((data) => {
                     setPlayers(data.players);
@@ -20,13 +21,9 @@ export const ApiService = ({ children }) => {
         });
     };
 
-    const update = () => {
-        fetchPlayers();
-    };
-
     const getDefaultConfig = async () => {
         return new Promise((resolve, reject) => {
-            fetch(`${APIURL}/room/config`).then((res) => {
+            fetch(`/room/config`).then((res) => {
                 if (res.ok) {
                     res.json().then((data) => {
                         resolve(data);
@@ -37,7 +34,7 @@ export const ApiService = ({ children }) => {
     };
 
     const fetchRoomStatus = (attempts = 0) => {
-        fetch(`${APIURL}/room/status`).then((res) => {
+        fetch(`/room/status`).then((res) => {
             if (res.ok) {
                 res.json().then((data) => {
                     if (data.status === "open") {
@@ -63,7 +60,7 @@ export const ApiService = ({ children }) => {
     };
 
     const fetchRoomData = () => {
-        fetch(`${APIURL}/room`).then((res) => {
+        fetch(`/room`).then((res) => {
             if (res.ok) {
                 res.json().then((data) => {
                     setRoomData(data);
@@ -73,7 +70,7 @@ export const ApiService = ({ children }) => {
     };
 
     const startRoom = (config) => {
-        fetch(`${APIURL}/room/start`, {
+        fetch(`/room/start`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -87,7 +84,7 @@ export const ApiService = ({ children }) => {
     };
 
     const stopRoom = () => {
-        fetch(`${APIURL}/room/stop`, {
+        fetch(`/room/stop`, {
             method: "POST",
         }).then((res) => {
             if (res.ok) {
@@ -97,17 +94,41 @@ export const ApiService = ({ children }) => {
     };
 
     const startGame = () => {
-        fetch(`${APIURL}/game/start`).then((res) => {
+        fetch(`/game/start`).then((res) => {
             if (!res.ok) {
                 console.log("Error al iniciar juego");
+            } else {
+                fetchGameData();
+            }
+        });
+    };
+
+    const pauseGame = () => {
+        fetch(`/game/pause`).then((res) => {
+            if (!res.ok) {
+                console.log("Error al pausar juego");
+            } else {
+                fetchGameData();
             }
         });
     };
 
     const stopGame = () => {
-        fetch(`${APIURL}/game/stop`).then((res) => {
+        fetch(`/game/stop`).then((res) => {
+            if (!res.ok) {
+                console.log("Error al detener juego");
+            } else {
+                fetchGameData();
+            }
+        });
+    };
+
+    const fetchGameData = () => {
+        fetch(`/game/data`).then((res) => {
             if (res.ok) {
-                return;
+                res.json().then((data) => {
+                    setGameData(data);
+                });
             } else {
                 console.log("Error al detener juego");
             }
@@ -115,7 +136,7 @@ export const ApiService = ({ children }) => {
     };
 
     const loadStadium = (stadium) => {
-        fetch(`${APIURL}/game/stadium/load`, {
+        fetch(`/game/stadium/load`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -131,7 +152,7 @@ export const ApiService = ({ children }) => {
     };
 
     const saveStadium = (stadiumName) => {
-        fetch(`${APIURL}/game/stadium/save`, {
+        fetch(`/game/stadium/save`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -145,19 +166,17 @@ export const ApiService = ({ children }) => {
     };
 
     const kickPlayer = (id, reason = "", ban = false) => {
-        fetch(`${APIURL}/game/kick?id=${id}&reason=${reason}&ban=${ban}`).then(
-            (res) => {
-                if (res.ok) {
-                    return;
-                } else {
-                    console.log("Error al kickear");
-                }
+        fetch(`/game/kick?id=${id}&reason=${reason}&ban=${ban}`).then((res) => {
+            if (res.ok) {
+                return;
+            } else {
+                console.log("Error al kickear");
             }
-        );
+        });
     };
 
     const fetchChat = () => {
-        fetch(`${APIURL}/room/chat`).then((res) => {
+        fetch(`/room/chat`).then((res) => {
             if (res.ok) {
                 res.json().then((data) => {
                     setChatLog(data.chat);
@@ -169,7 +188,7 @@ export const ApiService = ({ children }) => {
     };
 
     const sendMsg = (msg) => {
-        fetch(`${APIURL}/room/chat`, {
+        fetch(`/room/chat`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -186,7 +205,10 @@ export const ApiService = ({ children }) => {
     };
 
     useEffect(() => {
-        if (roomStatus === "open") fetchPlayers();
+        if (roomStatus === "open") {
+            fetchPlayers();
+            fetchGameData();
+        }
     }, [roomStatus]);
 
     useEffect(() => {
@@ -194,6 +216,7 @@ export const ApiService = ({ children }) => {
             fetchPlayers();
             fetchRoomData();
             fetchChat();
+            fetchGameData();
         }, 1000);
     }, [players]);
 
@@ -203,14 +226,15 @@ export const ApiService = ({ children }) => {
                 APIURL,
                 fetchPlayers,
                 fetchRoomData,
-                update,
                 roomData,
                 fetchRoomStatus,
                 getDefaultConfig,
                 startRoom,
                 startGame,
+                pauseGame,
                 stopRoom,
                 stopGame,
+                gameData,
                 loadStadium,
                 saveStadium,
                 kickPlayer,

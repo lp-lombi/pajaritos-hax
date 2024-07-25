@@ -1,8 +1,11 @@
-.players-list {
-    height: 70%;
-    overflow-y: auto;
+.players {
+    height: 60%;
+}
 
+.players-list {
     width: 80%;
+
+    overflow-y: auto;
     padding: 1rem;
 }
 

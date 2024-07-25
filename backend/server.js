@@ -19,8 +19,8 @@ app.use("/room", room);
 app.use("/game", game);
 app.use("/players", players);
 
-// app.get("/", function (req, res) {
-//     res.sendFile(__dirname + "/views/home/index.html");
+// app.get("/app", function (req, res) {
+//     res.sendFile(__dirname + "/views/dist/index.html");
 // });
 
 app.listen(port);

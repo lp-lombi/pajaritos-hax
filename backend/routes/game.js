@@ -16,6 +16,19 @@ game.get("/start", function (req, res) {
     }
 });
 
+game.get("/pause", function (req, res) {
+    if (!global.room) {
+        res.send("Host not open");
+    } else {
+        try {
+            global.room.pauseGame();
+            res.send("Game paused");
+        } catch (e) {
+            console.log(e);
+        }
+    }
+});
+
 game.get("/stop", function (req, res) {
     if (!global.room) {
         res.send("Host not open");
@@ -23,6 +36,27 @@ game.get("/stop", function (req, res) {
         try {
             global.room.stopGame();
             res.send("Game stopped");
+        } catch (e) {
+            console.log(e);
+        }
+    }
+});
+
+game.get("/data", function (req, res) {
+    if (!global.room) {
+        res.send("Host not open");
+    } else {
+        try {
+            let data = {
+                redScore: global.room.redScore,
+                blueScore: global.room.blueScore,
+                state: global.room.isGamePaused()
+                    ? "paused"
+                    : global.room.gameState
+                    ? "playing"
+                    : "stopped",
+            };
+            res.send(JSON.stringify(data));
         } catch (e) {
             console.log(e);
         }
@@ -78,11 +112,7 @@ game.post("/stadium/load", function (req, res) {
                     }
                 }
             );
-            try {
-                res.send("Stadium loaded");
-            } catch (e) {
-                res.status(400).send("Error :" + e);
-            }
+            res.send("Stadium loaded");
         } catch (e) {
             console.log(e);
         }

@@ -33,28 +33,26 @@ export const Stadiums = () => {
 
     return (
         <div className="stadiums">
-            <div>
-                <ul>
-                    {roomData.stadiums.map((st) => {
-                        return (
-                            <li
-                                className={
-                                    selectedStadium
-                                        ? selectedStadium === st
-                                            ? "selected"
-                                            : ""
-                                        : null
-                                }
-                                key={st}
-                                st-name={st}
-                                onClick={handleSelectStadium}
-                            >
-                                {st}
-                            </li>
-                        );
-                    })}
-                </ul>
-            </div>
+            <ul>
+                {roomData.stadiums.map((st) => {
+                    return (
+                        <li
+                            className={
+                                selectedStadium
+                                    ? selectedStadium === st
+                                        ? "selected"
+                                        : ""
+                                    : null
+                            }
+                            key={st}
+                            st-name={st}
+                            onClick={handleSelectStadium}
+                        >
+                            {st}
+                        </li>
+                    );
+                })}
+            </ul>
             <div className="button-container">
                 <button
                     onClick={handleLoadStadium}

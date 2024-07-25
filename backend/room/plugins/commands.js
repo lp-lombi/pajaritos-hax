@@ -53,6 +53,8 @@ module.exports = function (API) {
 
     this.utils = Utils;
 
+    this.chatLog = [];
+
     this.initQueue = [];
     this.onPlayerJoinQueue = [];
     this.onPlayerLeaveQueue = [];
@@ -313,12 +315,12 @@ module.exports = function (API) {
 
     this.log = function (msg) {
         let maxLines = 50;
-        let newLog =
-            fs.readFileSync(path.join(__dirname, "res/chatlog.txt"), "utf8") +
-            "\n" +
-            msg;
-        newLog = newLog.split("\n").slice(-maxLines).join("\n");
-        fs.writeFileSync(path.join(__dirname, "res/chatlog.txt"), newLog);
+
+        that.chatLog.push(msg);
+
+        maxLines > that.chatLog.length
+            ? null
+            : that.chatLog.splice(0, that.chatLog.length - maxLines);
     };
 
     this.getDb = function () {

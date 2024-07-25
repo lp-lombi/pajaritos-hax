@@ -2,6 +2,100 @@
     display: flex;
     align-items: center;
     justify-content: center;
+
+    height: 100%;
+}
+
+.room-info {
+    border: 1px solid var(--dark-contrast);
+}
+
+.room-info .top {
+    border-bottom: 1px solid rgba(97, 97, 97, 0.4);
+    height: 60px;
+
+    background-color: var(--dark-contrast);
+}
+
+.room-info .mid {
+    position: relative;
+    display: flex;
+    border-bottom: 1px solid rgba(97, 97, 97, 0.4);
+    height: 60px;
+}
+
+.room-info .score {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    align-items: center;
+
+    font-size: 26px;
+    font-weight: bold;
+
+    width: 30%;
+    height: 100%;
+    background-color: var(--dark-contrast);
+}
+
+.room-info .controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-evenly;
+
+    width: 70%;
+}
+
+.room-info button {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 0px;
+    margin: 0px;
+
+    min-width: 30px !important;
+    width: 30px !important;
+    min-height: 30px !important;
+    height: 30px !important;
+
+    border-radius: 3rem;
+}
+
+.room-info button.play {
+    background-color: rgb(103, 207, 103);
+    color: black;
+}
+
+.room-info button.pause {
+    background-color: rgb(103, 207, 193);
+    color: black;
+}
+
+.room-info button.stop {
+    background-color: rgb(207, 153, 103);
+    color: black;
+}
+
+.room-info .bottom {
+    height: 30px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background-color: var(--dark-contrast);
+}
+
+.room-info .top span {
+    font-size: 20px;
+    font-weight: bold;
+}
+
+.room-info .top a {
+    font-size: 12px;
+    font-weight: normal;
+    color: rgb(184, 184, 184);
 }
 
 .room-options .panel-bottom > * {
@@ -57,6 +151,14 @@
     cursor: pointer;
 }
 
+.room-options .tab:hover {
+    background-color: color-mix(
+        in srgb,
+        var(--dark-contrast) 50%,
+        var(--primary-color)
+    );
+}
+
 /**/
 
 .plugins {
@@ -74,7 +176,7 @@
 .plugins ul {
     min-width: 140px;
     width: 30%;
-    border: 1px solid black;
+    border: 1px solid var(--dark-contrast);
     padding: 0.25rem;
     overflow-x: auto;
 }
@@ -131,11 +233,15 @@
 
 /**/
 
+.stadiums {
+    height: 60%;
+}
+
 .stadiums ul {
-    border: 1px solid black;
+    border: 1px solid var(--dark-contrast);
     padding: 0.25rem;
 
-    height: 200px;
+    height: 300px;
     overflow-y: auto;
 }
 
@@ -169,17 +275,16 @@
 
 .stadiums .download {
     display: flex;
+    flex-direction: column;
     justify-content: center;
     align-items: center;
     width: 100%;
-    gap: 5rem;
 }
 
 .stadiums .download button,
 .stadiums .download input[type="text"] {
-    width: 40%;
     height: 40px;
-    flex: 0.5;
+    width: 40%;
 }
 
 .room-options li.selected {

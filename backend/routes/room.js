@@ -144,13 +144,12 @@ room.post("/setting", function (req, res) {
 
 room.get("/chat", function (req, res) {
     if (global.room) {
-        let chatFile = fs.readFileSync(
-            "./room/plugins/res/chatlog.txt",
-            "utf8"
+        let commands = global.room.plugins.find(
+            (p) => p.name === "lmbCommands"
         );
-
-        if (chatFile) {
-            res.send(JSON.stringify({ chat: chatFile }));
+        if (commands) {
+            let chat = commands.chatLog.join("\n");
+            res.send(JSON.stringify({ chat }));
         }
     } else {
         res.status(400).send("No room open");

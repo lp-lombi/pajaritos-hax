@@ -6,5 +6,10 @@ export default defineConfig({
     plugins: [react()],
     server: {
         port: 8001,
+        proxy: {
+            "/game": "http://localhost:8000",
+            "/room": "http://localhost:8000",
+            "/players": "http://localhost:8000",
+        },
     },
 });

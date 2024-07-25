@@ -7,7 +7,7 @@ export const PlayersList = () => {
     const { players, kickPlayer } = useApi();
 
     return (
-        <section>
+        <section className="players">
             <h1>Jugadores</h1>
             <ul className="players-list">
                 {players.map((p) => (

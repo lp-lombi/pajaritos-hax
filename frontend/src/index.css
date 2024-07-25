@@ -14,6 +14,8 @@
 }
 
 #root {
+    width: 100%;
+
     margin: 0 auto;
     text-align: center;
 }
@@ -31,7 +33,6 @@ main {
     align-items: center;
     gap: 2rem;
 
-    width: 100vw;
     min-height: calc(100vh - var(--header-height));
 }
 
@@ -41,10 +42,8 @@ section {
     align-items: center;
     gap: 1rem;
 
-    width: 80%;
+    min-height: 300px;
     min-width: 400px;
-    max-width: 600px;
-    height: 600px;
 
     border-radius: 1rem;
     box-shadow: 4px 4px 15px rgba(0, 0, 0, 0.2);
@@ -115,6 +114,36 @@ ul {
 
 /* classes */
 
+.main-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+
+    width: 80%;
+    height: 80%;
+}
+
+.col50 {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+
+    width: 50%;
+    min-width: 400px;
+
+    min-height: 800px;
+}
+
+.container90 {
+    width: 90%;
+    height: 100%;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
 .flex {
     display: flex;
     justify-content: center;
@@ -144,6 +173,9 @@ ul {
     justify-content: center;
     align-items: center;
     gap: 10%;
+
+    font-size: 26px;
+    font-weight: bold;
 }
 
 .panel-bottom {

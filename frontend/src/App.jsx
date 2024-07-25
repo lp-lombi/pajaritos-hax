@@ -21,24 +21,27 @@ function App() {
     return (
         <>
             <Header />
-            <main className="col">
-                {!roomStatus ? null : roomStatus === "closed" ||
-                  roomStatus === "token" ? (
-                    <StartForm />
-                ) : (
-                    <>
-                        <div
-                            className="flex gap3"
-                            style={{ width: "80%", flexWrap: "wrap" }}
-                        >
-                            <RoomOptions />
-                            <PlayersList />
-                        </div>
-                        <div className="flex" style={{ width: "80%" }}>
-                            <Chat />
-                        </div>
-                    </>
-                )}
+            <main>
+                <div className="main-container">
+                    {!roomStatus ? null : roomStatus === "closed" ||
+                      roomStatus === "token" ? (
+                        <StartForm />
+                    ) : (
+                        <>
+                            <div className="col50">
+                                <div className="container90">
+                                    <RoomOptions />
+                                </div>
+                            </div>
+                            <div className="col50">
+                                <div className="container90">
+                                    <PlayersList />
+                                    <Chat />
+                                </div>
+                            </div>
+                        </>
+                    )}
+                </div>
             </main>
         </>
     );
