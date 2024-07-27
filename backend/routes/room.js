@@ -13,6 +13,7 @@ room.get("/", function (req, res) {
             stadiumName: global.room.stadium.name,
             plugins: [],
             stadiums: [],
+            banedPlayers: global.room.banList,
         };
         global.room.plugins.forEach((pl) => {
             let settings = pl.publicSettings ? pl.publicSettings : null;
@@ -77,7 +78,7 @@ room.post("/start", function (req, res) {
         var config = req.body;
         config.db = "../../room/plugins/res/commands.db";
 
-        roomCreator.run(config, false).then((r) => {
+        roomCreator.run(config, true).then((r) => {
             if (r) {
                 global.room = r;
                 res.send("Host open");

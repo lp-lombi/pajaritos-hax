@@ -48,7 +48,7 @@ module.exports = function (API) {
     function awaitVote(id) {
         if (that.active) {
             that.requiredVotes = Math.round(that.room.players.length * 0.6);
-            sleep(30000).then(() => {
+            sleep(45 * 1000).then(() => {
                 if (that.voters.length >= that.requiredVotes) {
                     commands.printchat(
                         `La gente decidió fusilar a ${that.toKickName}.`

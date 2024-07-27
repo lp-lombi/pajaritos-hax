@@ -4,8 +4,9 @@ import { faPlay, faPause, faStop } from "@fortawesome/free-solid-svg-icons";
 
 import "./RoomOptions.css";
 import { useApi } from "../services/ApiService";
-import Plugins from "./RoomOptions/Plugins";
 import Stadiums from "./RoomOptions/Stadiums";
+import Bans from "./RoomOptions/Bans";
+import Plugins from "./RoomOptions/Plugins";
 
 export const RoomOptions = () => {
     const { stopRoom, startGame, pauseGame, stopGame, roomData, gameData } =
@@ -156,6 +157,12 @@ export const RoomOptions = () => {
                                 </div>
                                 <div
                                     className="tab"
+                                    onClick={() => setOption("bans")}
+                                >
+                                    <span>Baneos</span>
+                                </div>
+                                <div
+                                    className="tab"
                                     onClick={() => setOption("plugins")}
                                 >
                                     <span>Plugins</span>
@@ -165,6 +172,8 @@ export const RoomOptions = () => {
                                 <Stadiums />
                             ) : option === "plugins" ? (
                                 <Plugins />
+                            ) : option === "bans" ? (
+                                <Bans />
                             ) : null}
                         </>
                     ) : null}

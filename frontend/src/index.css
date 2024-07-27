@@ -1,8 +1,11 @@
 :root {
     --header-height: 100px;
-    --dark-background: #242424;
-    --dark-contrast: #1a1a1a;
     --primary-color: #e6ab2d;
+
+    --background: #242424;
+    --contrast: #1a1a1a;
+    --light-background: #dbdbdb;
+    --light-contrast: #ffffff;
 
     font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
     line-height: 1.5;
@@ -10,7 +13,7 @@
 
     color-scheme: light dark;
     color: rgba(255, 255, 255, 0.87);
-    background-color: var(--dark-background);
+    background-color: var(--background);
 }
 
 #root {
@@ -65,7 +68,7 @@ button {
     font-size: 1em;
     font-weight: 500;
     font-family: inherit;
-    background-color: var(--dark-contrast);
+    background-color: var(--contrast);
     cursor: pointer;
     transition: border-color 0.25s;
 }
@@ -185,13 +188,8 @@ ul {
 
 @media (prefers-color-scheme: light) {
     :root {
-        color: #213547;
-        background-color: #ffffff;
-    }
-    a:hover {
-        color: #747bff;
-    }
-    button {
-        background-color: #f9f9f9;
+        --background: #fff;
+        --contrast: rgb(236, 236, 236);
+        color: black;
     }
 }

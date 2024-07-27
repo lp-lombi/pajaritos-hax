@@ -40,9 +40,14 @@ module.exports = function (API) {
     this.active = true;
 
     //                       mins
-    this.announcementsCycle = 6 * 60000;
-    this.announcements = [{ id: -1, text: "" }];
+    this.announcementsCycle = 3 * 60000;
+    this.announcements = [];
     this.subsPlayersIds = [];
+
+    this.isSaludoActive = true;
+    this.saludo = `╔═══════════════════════════════════════════════════════╗
+║   PAJARITOS HAX   ║ !pm !hist !stats !login !discord !help !bb ║
+╚═══════════════════════════════════════════════════════╝\n\n\n\n\n\nhttps://discord.gg/A5wT4hYA`;
 
     function sleep(ms) {
         return new Promise((r) => setTimeout(r, ms));
@@ -58,29 +63,34 @@ module.exports = function (API) {
                 console.log(err);
                 return;
             }
-            that.announcements = [];
-            rows.forEach((r) => {
-                that.announcements.push(r);
-            });
+            that.announcements = rows;
         });
     };
 
     this.announcementLoop = async function () {
-        for (let a of that.announcements) {
-            await sleep(that.announcementsCycle).then(() => {
-                if (that.active) {
+        await sleep(that.announcementsCycle).then(() => {
+            if (that.active) {
+                for (let a of that.announcements) {
                     that.subsPlayersIds.forEach((id) => {
-                        commands.printchat(`🕊️ ${a.text}`, id, "announcement");
-                        commands.printchat(
-                            `(!mute para silenciar estas alertas)`,
-                            id,
-                            "hint"
-                        );
+                        try {
+                            commands.printchat(
+                                `🕊️ ${a.text}`,
+                                id,
+                                "announcement"
+                            );
+                            commands.printchat(
+                                `(!mute para silenciar estas alertas)`,
+                                id,
+                                "hint"
+                            );
+                        } catch (e) {
+                            console.log(e);
+                        }
                     });
                 }
-                that.announcementLoop();
-            });
-        }
+            }
+            that.announcementLoop();
+        });
     };
 
     this.initialize = function () {
@@ -94,6 +104,9 @@ module.exports = function (API) {
             commands.initQueue.push(that.announcementLoop);
             commands.onPlayerJoinQueue.push((msg) => {
                 that.subsPlayersIds.push(msg.id);
+                if (that.isSaludoActive) {
+                    commands.printchat(that.saludo, msg.id, "announcement");
+                }
             });
             commands.registerCommand(
                 "!",

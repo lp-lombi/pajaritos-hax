@@ -7,14 +7,14 @@
 }
 
 .room-info {
-    border: 1px solid var(--dark-contrast);
+    border: 1px solid var(--contrast);
 }
 
 .room-info .top {
     border-bottom: 1px solid rgba(97, 97, 97, 0.4);
     height: 60px;
 
-    background-color: var(--dark-contrast);
+    background-color: var(--contrast);
 }
 
 .room-info .mid {
@@ -36,7 +36,7 @@
 
     width: 30%;
     height: 100%;
-    background-color: var(--dark-contrast);
+    background-color: var(--contrast);
 }
 
 .room-info .controls {
@@ -84,7 +84,7 @@
     align-items: center;
     justify-content: center;
 
-    background-color: var(--dark-contrast);
+    background-color: var(--contrast);
 }
 
 .room-info .top span {
@@ -144,7 +144,7 @@
 
     width: 25%;
     height: 40px;
-    background-color: var(--dark-contrast);
+    background-color: var(--contrast);
 
     border-top-right-radius: 2rem;
 
@@ -154,7 +154,7 @@
 .room-options .tab:hover {
     background-color: color-mix(
         in srgb,
-        var(--dark-contrast) 50%,
+        var(--contrast) 50%,
         var(--primary-color)
     );
 }
@@ -176,7 +176,7 @@
 .plugins ul {
     min-width: 140px;
     width: 30%;
-    border: 1px solid var(--dark-contrast);
+    border: 1px solid var(--contrast);
     padding: 0.25rem;
     overflow-x: auto;
 }
@@ -192,19 +192,19 @@
 }
 
 .plugins li:nth-child(odd) {
-    background-color: var(--dark-contrast);
+    background-color: var(--contrast);
 }
 
 .plugins li:hover {
     background-color: color-mix(
         in srgb,
-        var(--dark-contrast) 50%,
+        var(--contrast) 50%,
         var(--primary-color)
     );
 }
 
 .plugins .settings-box {
-    background-color: var(--dark-contrast);
+    background-color: var(--contrast);
 
     width: 100%;
     text-align: start;
@@ -238,7 +238,7 @@
 }
 
 .stadiums ul {
-    border: 1px solid var(--dark-contrast);
+    border: 1px solid var(--contrast);
     padding: 0.25rem;
 
     height: 300px;
@@ -256,13 +256,13 @@
 }
 
 .stadiums li:nth-child(odd) {
-    background-color: var(--dark-contrast);
+    background-color: var(--contrast);
 }
 
 .stadiums li:hover {
     background-color: color-mix(
         in srgb,
-        var(--dark-contrast) 50%,
+        var(--contrast) 50%,
         var(--primary-color)
     );
 }
@@ -290,4 +290,36 @@
 .room-options li.selected {
     background-color: var(--primary-color);
     color: black;
+}
+
+.bans li {
+    margin-bottom: 1rem;
+    font-size: 16px;
+    border-bottom: 1px solid var(--contrast);
+}
+
+.bans li .top {
+    display: flex;
+    justify-content: space-evenly;
+    align-items: center;
+
+    height: 30px;
+
+    background-color: var(--contrast);
+    border-radius: 1rem;
+}
+
+.bans li .bottom {
+    display: flex;
+    justify-content: space-evenly;
+    align-items: center;
+}
+
+.bans li .bottom button {
+    height: 30px;
+}
+
+.bans .name {
+    font-weight: bold;
+    font-size: 16px;
 }

@@ -113,6 +113,11 @@ module.exports = function (API) {
                                         teams.spects[0].id,
                                         t
                                     );
+                                    commands.printchat(
+                                        "Entrás al juego.",
+                                        teams.spects[0].id,
+                                        "alert"
+                                    );
                                 }
                             }
                         } else {

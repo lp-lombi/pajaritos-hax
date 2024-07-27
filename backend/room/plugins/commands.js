@@ -41,7 +41,7 @@ module.exports = function (API) {
                 return that.isSaludoActive;
             },
             setValue: (value) => {
-                that.isSaludoActive = set;
+                that.isSaludoActive = value;
             },
         },
     ];
@@ -60,11 +60,6 @@ module.exports = function (API) {
     this.onPlayerLeaveQueue = [];
     this.onGameEndQueue = [];
     this.sendInputQueue = [];
-
-    this.isSaludoActive = false;
-    this.saludo = `╔═══════════════════════════════════════════════════════╗
-║   PAJARITOS HAX   ║ !pm !hist !stats !login !discord !help !bb ║
-╚═══════════════════════════════════════════════════════╝\n\n\n\n\n\nhttps://discord.gg/tdwy5EGY`;
 
     const COLORS = {
         beige: parseInt("EAD9AA", 16),
@@ -167,11 +162,6 @@ module.exports = function (API) {
         return parseFloat(n);
     }
 
-    function hexToNumber(hex) {
-        hex = hex.replace(/^#/, "");
-        return parseInt(hex, 16);
-    }
-
     function isAdmin(id) {
         var player = that.room.players.find((p) => p.id === id);
         if (!player) return false;
@@ -198,8 +188,9 @@ module.exports = function (API) {
                 that.room.sendAnnouncement(
                     msg,
                     targetId,
-                    COLORS.red,
-                    "small-bold"
+                    COLORS.beige,
+                    "small-bold",
+                    2
                 );
                 break;
             case "error":
@@ -215,8 +206,7 @@ module.exports = function (API) {
                     msg,
                     targetId,
                     COLORS.green,
-                    "small-bold",
-                    0
+                    "small-bold"
                 );
                 break;
             case "hint":
@@ -295,8 +285,8 @@ module.exports = function (API) {
                         t === 0
                             ? null
                             : t === 1
-                            ? (COLORS.redTeam + parseInt("DB292B", 16)) / 2
-                            : (COLORS.blueTeam + parseInt("5329DB", 16)) / 2;
+                            ? parseInt("FF9898", 16)
+                            : parseInt("9B98FF", 16);
                     let teamPlayers = that.room.players.filter(
                         (p) => p.team.id === t
                     );
@@ -313,6 +303,14 @@ module.exports = function (API) {
         }
     };
 
+    this.getDb = function () {
+        return db;
+    };
+
+    this.getCommands = function () {
+        return commands;
+    };
+
     this.log = function (msg) {
         let maxLines = 50;
 
@@ -321,14 +319,6 @@ module.exports = function (API) {
         maxLines > that.chatLog.length
             ? null
             : that.chatLog.splice(0, that.chatLog.length - maxLines);
-    };
-
-    this.getDb = function () {
-        return db;
-    };
-
-    this.getCommands = function () {
-        return commands;
     };
 
     this.registerCommand = function (
@@ -808,14 +798,9 @@ module.exports = function (API) {
                     handleKickBanPlayer(msg);
                     return kickBanAllowed;
                 } else if (type === OperationType.JoinRoom) {
-                    if (that.isSaludoActive) {
-                        that.onPlayerJoinQueue.forEach((action) => action(msg));
-                        that.printchat(that.saludo, msg.id, "alert");
-                    }
+                    that.onPlayerJoinQueue.forEach((action) => action(msg));
                 } else if (type === OperationType.SendInput) {
                     that.sendInputQueue.forEach((action) => action(msg));
-                } else if (type === 38) {
-                    console.log("x");
                 }
                 return true;
             } catch (e) {
