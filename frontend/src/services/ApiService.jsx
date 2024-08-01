@@ -1,9 +1,10 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
+import { usePopup } from "./PopupService";
 
 const ApiContext = createContext();
 
 export const ApiService = ({ children }) => {
-    let APIURL = "http://localhost:8000";
+    const { popupLoading, popupAlert, closePopup } = usePopup();
 
     const [roomStatus, setRoomStatus] = useState(null);
     const [roomData, setRoomData] = useState(null);
@@ -40,6 +41,7 @@ export const ApiService = ({ children }) => {
                     if (data.status === "open") {
                         setRoomStatus("open");
                         fetchRoomData();
+                        closePopup();
                     } else if (data.status === "token") {
                         if (attempts < 12) {
                             setTimeout(
@@ -49,7 +51,7 @@ export const ApiService = ({ children }) => {
                         } else {
                             setRoomStatus("token");
                             stopRoom();
-                            alert("Token expirado. Generá uno nuevo.");
+                            popupAlert("Token expirado", "Generá uno nuevo.");
                         }
                     } else if (data.status === "closed") {
                         setRoomStatus("closed");
@@ -59,17 +61,24 @@ export const ApiService = ({ children }) => {
         });
     };
 
-    const fetchRoomData = () => {
-        fetch(`/room`).then((res) => {
-            if (res.ok) {
-                res.json().then((data) => {
-                    setRoomData(data);
-                });
-            }
+    const fetchRoomData = async () => {
+        return new Promise(async (resolve, reject) => {
+            fetch(`/room`).then((res) => {
+                if (res.ok) {
+                    res.json().then((data) => {
+                        setRoomData(data);
+                    });
+                    resolve(true);
+                } else {
+                    resolve(false);
+                }
+            });
         });
     };
 
-    const startRoom = (config) => {
+    const startRoom = async (config) => {
+        popupLoading("Iniciando sala", "");
+
         fetch(`/room/start`, {
             method: "POST",
             headers: {
@@ -79,6 +88,8 @@ export const ApiService = ({ children }) => {
         }).then((res) => {
             if (res.ok) {
                 fetchRoomStatus();
+            } else {
+                resolve(false);
             }
         });
     };
@@ -166,11 +177,19 @@ export const ApiService = ({ children }) => {
     };
 
     const kickPlayer = (id, reason = "", ban = false) => {
-        fetch(`/game/kick?id=${id}&reason=${reason}&ban=${ban}`).then((res) => {
+        fetch(`/room/kick?id=${id}&reason=${reason}&ban=${ban}`).then((res) => {
             if (res.ok) {
                 return;
             } else {
                 console.log("Error al kickear");
+            }
+        });
+    };
+
+    const unbanPlayer = (id) => {
+        fetch(`/room/kick/unban?id=${id}`, { method: "POST" }).then((res) => {
+            if (!res.ok) {
+                console.log("Error al desbanear");
             }
         });
     };
@@ -223,25 +242,32 @@ export const ApiService = ({ children }) => {
     return (
         <ApiContext.Provider
             value={{
-                APIURL,
                 fetchPlayers,
                 fetchRoomData,
                 roomData,
+
                 fetchRoomStatus,
                 getDefaultConfig,
+
                 startRoom,
                 startGame,
                 pauseGame,
                 stopRoom,
                 stopGame,
                 gameData,
+
                 loadStadium,
                 saveStadium,
+
                 kickPlayer,
+                unbanPlayer,
+
                 sendMsg,
                 fetchChat,
                 chatLog,
+
                 players,
+
                 roomStatus,
                 setRoomStatus,
             }}

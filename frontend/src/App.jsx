@@ -6,6 +6,7 @@ import StartForm from "./components/StartForm";
 import PlayersList from "./components/PlayersList";
 import RoomOptions from "./components/RoomOptions";
 import Chat from "./components/Chat";
+import Popup from "./components/Popup";
 
 function App() {
     const { fetchRoomStatus, roomStatus } = useApi();
@@ -20,6 +21,7 @@ function App() {
 
     return (
         <>
+            <Popup />
             <Header />
             <main>
                 <div className="main-container">
@@ -28,12 +30,21 @@ function App() {
                         <StartForm />
                     ) : (
                         <>
-                            <div className="col50">
+                            <div
+                                className="col50"
+                                style={{
+                                    minWidth: "400px",
+                                    minHeight: "700px",
+                                }}
+                            >
                                 <div className="container90">
                                     <RoomOptions />
                                 </div>
                             </div>
-                            <div className="col50">
+                            <div
+                                className="col50"
+                                style={{ minWidth: "400px" }}
+                            >
                                 <div className="container90">
                                     <PlayersList />
                                     <Chat />

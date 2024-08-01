@@ -5,6 +5,51 @@ const room = express.Router();
 var roomCreator = require("../room/mainw");
 var stadiumsPath = "./room/stadiums/";
 
+room.post("/start", function (req, res) {
+    if (!global.room) {
+        var config = req.body;
+        config.db = "../../room/plugins/res/commands.db";
+
+        roomCreator.run(config, true).then((r) => {
+            if (r) {
+                global.room = r;
+                res.send("Host open");
+
+                // se guarda la configuracion
+                setTimeout(() => {
+                    fs.writeFile(
+                        "./config.json",
+                        JSON.stringify(config),
+                        function (err) {
+                            if (err) {
+                                console.log(err);
+                                return;
+                            }
+                        }
+                    );
+                }, 500);
+            }
+        });
+
+        DEBUGROOM = global.room;
+    } else {
+        res.send("Host already open");
+    }
+});
+
+room.post("/stop", function (req, res) {
+    if (global.room) {
+        try {
+            global.room.leave();
+            global.room = null;
+            console.log("Sala cerrada.");
+            res.end("Sala cerrada.");
+        } catch (e) {
+            console.log(e);
+        }
+    }
+});
+
 room.get("/", function (req, res) {
     if (global.room) {
         let roomData = {
@@ -13,7 +58,7 @@ room.get("/", function (req, res) {
             stadiumName: global.room.stadium.name,
             plugins: [],
             stadiums: [],
-            banedPlayers: global.room.banList,
+            bannedPlayers: global.room.banList,
         };
         global.room.plugins.forEach((pl) => {
             let settings = pl.publicSettings ? pl.publicSettings : null;
@@ -73,51 +118,6 @@ room.get("/config", function (req, res) {
     res.end(JSON.stringify(config));
 });
 
-room.post("/start", function (req, res) {
-    if (!global.room) {
-        var config = req.body;
-        config.db = "../../room/plugins/res/commands.db";
-
-        roomCreator.run(config, true).then((r) => {
-            if (r) {
-                global.room = r;
-                res.send("Host open");
-
-                // se guarda la configuracion
-                setTimeout(() => {
-                    fs.writeFile(
-                        "./config.json",
-                        JSON.stringify(config),
-                        function (err) {
-                            if (err) {
-                                console.log(err);
-                                return;
-                            }
-                        }
-                    );
-                }, 500);
-            }
-        });
-
-        DEBUGROOM = global.room;
-    } else {
-        res.send("Host already open");
-    }
-});
-
-room.post("/stop", function (req, res) {
-    if (global.room) {
-        try {
-            global.room.leave();
-            global.room = null;
-            console.log("Sala cerrada.");
-            res.end("Sala cerrada.");
-        } catch (e) {
-            console.log(e);
-        }
-    }
-});
-
 room.post("/setting", function (req, res) {
     if (global.room) {
         let pluginName = req.body.pluginName;
@@ -167,6 +167,47 @@ room.post("/chat", function (req, res) {
             res.send("Message sent");
         } catch (e) {
             console.log(e);
+        }
+    }
+});
+
+room.post("/kick", function (req, res) {
+    if (!global.room) {
+        res.send("Host not open");
+    } else {
+        try {
+            let playerId = isNaN(req.query.id) ? null : parseInt(req.query.id);
+            let reason = req.query.reason;
+            let ban = req.query.ban === "true";
+
+            if (!playerId) {
+                res.send("Invalid player id");
+                return;
+            }
+
+            global.room.kickPlayer(playerId, reason, ban, 0);
+            res.send("Player kick request processed");
+        } catch (e) {
+            console.log(e);
+        }
+    }
+});
+
+room.post("/kick/unban", function (req, res) {
+    if (!global.room) {
+        res.send("Host not open");
+    } else {
+        let playerId = isNaN(req.query.id) ? null : parseInt(req.query.id);
+
+        if (!playerId) {
+            res.send("Invalid player id");
+        } else {
+            try {
+                global.room.clearBan(playerId);
+                res.send("Unbanned");
+            } catch (e) {
+                console.log(e);
+            }
         }
     }
 });

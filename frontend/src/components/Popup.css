@@ -1,0 +1,106 @@
+.popup {
+    cursor: pointer;
+    position: fixed;
+    top: 0;
+    left: 0;
+
+    width: 100%;
+    height: 100%;
+
+    z-index: 9999;
+
+    background-color: rgba(0, 0, 0, 0.1);
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.popup .box {
+    cursor: default;
+    min-width: 350px;
+
+    width: 50%;
+
+    border-radius: 1rem;
+    border: 1px solid rgba(128, 128, 128, 0.411);
+
+    background-color: var(--contrast);
+    box-shadow: 4px 4px 15px rgba(0, 0, 0, 0.5);
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.popup .box-container {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
+    align-items: center;
+    width: 90%;
+    height: 300px;
+}
+
+.popup .box .top {
+    height: 60%;
+    width: 100%;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
+}
+
+.popup .box .bottom {
+    height: 40%;
+    width: 100%;
+}
+
+.popup .box .button-container {
+    display: flex;
+    width: 100%;
+    justify-content: space-evenly;
+}
+
+.popup .box button {
+    width: 30%;
+    background-color: rgba(0, 0, 0, 0.356);
+}
+
+.kickban {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
+    height: 100%;
+}
+
+.kickban .kickban-options {
+    width: 100%;
+    display: flex;
+    justify-content: space-evenly;
+    align-items: center;
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+    background-color: rgba(0, 0, 0, 0.2);
+
+    border: 1px solid rgba(255, 255, 255, 0.281);
+    border-radius: 1rem;
+}
+
+.kickban input[type="text"] {
+    outline: none;
+    background-color: rgba(0, 0, 0, 0);
+    border: 0px;
+    height: 25px;
+    width: 70%;
+}
+
+.kickban input[type="checkbox"] {
+    height: 20px;
+    width: 20px;
+}
+
+.kickban button {
+    height: 40px;
+}

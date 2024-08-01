@@ -12,6 +12,7 @@ players.get("/all", function (req, res) {
                     id: p.id,
                     name: p.name,
                     team: p.team.id,
+                    admin: p.isAdmin,
                 });
             });
         }

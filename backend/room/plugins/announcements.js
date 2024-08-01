@@ -47,7 +47,7 @@ module.exports = function (API) {
     this.isSaludoActive = true;
     this.saludo = `╔═══════════════════════════════════════════════════════╗
 ║   PAJARITOS HAX   ║ !pm !hist !stats !login !discord !help !bb ║
-╚═══════════════════════════════════════════════════════╝\n\n\n\n\n\nhttps://discord.gg/A5wT4hYA`;
+╚═══════════════════════════════════════════════════════╝\n\n\n\n\n\nhttps://discord.gg/qTUA6BZk`;
 
     function sleep(ms) {
         return new Promise((r) => setTimeout(r, ms));

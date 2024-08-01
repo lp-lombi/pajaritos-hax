@@ -480,7 +480,7 @@ module.exports = function (API) {
                 admin: false,
                 hidden: false,
                 exec: (msg, args) => {
-                    that.printchat("https://discord.gg/qJj6YFxQ", msg.byId);
+                    that.printchat("https://discord.gg/qTUA6BZk", msg.byId);
                 },
             },
             {

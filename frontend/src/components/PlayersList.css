@@ -30,13 +30,14 @@
 
     justify-self: flex-end;
 
-    width: 40px;
+    width: 50px;
     height: 25px;
 
     padding: 0px;
 
     background-color: var(--primary-color);
     font-size: 14px;
+    font-weight: bold;
 
     color: black;
 }

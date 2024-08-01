@@ -1,6 +1,6 @@
 :root {
     --header-height: 100px;
-    --primary-color: #e6ab2d;
+    --primary-color: #d49e28;
 
     --background: #242424;
     --contrast: #1a1a1a;
@@ -104,6 +104,14 @@ input[type="number"] {
     font-size: 16px;
 }
 
+.start-form {
+    height: 600px;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
 .start-form input[type="text"],
 .start-form input[type="number"] {
     width: 90%;
@@ -133,9 +141,6 @@ ul {
     align-items: center;
 
     width: 50%;
-    min-width: 400px;
-
-    min-height: 800px;
 }
 
 .container90 {

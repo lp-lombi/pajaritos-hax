@@ -63,28 +63,6 @@ game.get("/data", function (req, res) {
     }
 });
 
-game.get("/kick", function (req, res) {
-    if (!global.room) {
-        res.send("Host not open");
-    } else {
-        try {
-            let playerId = isNaN(req.query.id) ? null : parseInt(req.query.id);
-            let reason = req.query.reason;
-            let ban = req.query.ban === "true";
-
-            if (!playerId) {
-                res.send("Invalid player id");
-                return;
-            }
-
-            global.room.kickPlayer(playerId, reason, ban, 0);
-            res.send("Player kick request processed");
-        } catch (e) {
-            console.log(e);
-        }
-    }
-});
-
 game.post("/stadium/load", function (req, res) {
     if (!global.room) {
         res.send("Host not open");

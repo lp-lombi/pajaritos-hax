@@ -1,8 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { useApi } from "../services/ApiService";
+import { usePopup } from "../services/PopupService";
 
 export const StartForm = () => {
     const { startRoom, getDefaultConfig } = useApi();
+
+    const { popupLoading } = usePopup();
 
     const [roomName, setRoomName] = useState("");
     const [roomPassword, setRoomPassword] = useState("");
@@ -19,7 +22,7 @@ export const StartForm = () => {
         }
     };
 
-    const handleStart = () => {
+    const handleStart = async () => {
         if (roomName === "") {
             alert("El nombre no puede estar vacío");
         } else if (maxPlayers <= 1) {
@@ -35,21 +38,6 @@ export const StartForm = () => {
                 token,
                 dev,
             });
-            // se guarda la configuracion
-            fetch("../../res/config.json").then((res) => {
-                res.json().then((data) => {
-                    data.roomName = roomName;
-                    data.roomPassword = roomPassword;
-                    data.maxPlayers = maxPlayers;
-                    data.botName = botName;
-                    data.dev = dev;
-
-                    fetch("../../res/config.json", {
-                        method: "PUT",
-                        body: JSON.stringify(data),
-                    });
-                });
-            });
         }
     };
 
@@ -64,7 +52,7 @@ export const StartForm = () => {
     }, []);
 
     return (
-        <section className="start-form flex col">
+        <section className="start-form">
             <label htmlFor="roomName">Nombre de la sala</label>
             <input
                 value={roomName}

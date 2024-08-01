@@ -2,8 +2,10 @@ import "./PlayersList.css";
 
 import React from "react";
 import { useApi } from "../services/ApiService";
+import { usePopup } from "../services/PopupService";
 
 export const PlayersList = () => {
+    const { popupKickban } = usePopup();
     const { players, kickPlayer } = useApi();
 
     return (
@@ -14,7 +16,15 @@ export const PlayersList = () => {
                     <li key={p.id}>
                         {p.name}{" "}
                         {p.id !== 0 ? (
-                            <button onClick={() => kickPlayer(p.id)}>
+                            <button
+                                onClick={() =>
+                                    popupKickban(
+                                        "Kickear jugador",
+                                        "Se expulsará al jugador " + p.name,
+                                        p.id
+                                    )
+                                }
+                            >
                                 kick
                             </button>
                         ) : null}

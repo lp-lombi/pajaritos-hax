@@ -7,10 +7,13 @@ import { useApi } from "../services/ApiService";
 import Stadiums from "./RoomOptions/Stadiums";
 import Bans from "./RoomOptions/Bans";
 import Plugins from "./RoomOptions/Plugins";
+import { usePopup } from "../services/PopupService";
 
 export const RoomOptions = () => {
     const { stopRoom, startGame, pauseGame, stopGame, roomData, gameData } =
         useApi();
+    const { popupConfirm } = usePopup();
+
     const [option, setOption] = useState("stadiums");
 
     return (
@@ -20,7 +23,13 @@ export const RoomOptions = () => {
                     <span>Ajustes de la sala</span>
 
                     <button
-                        onClick={stopRoom}
+                        onClick={() =>
+                            popupConfirm(
+                                "Cerrar la sala",
+                                "Confirmar para cerrar la sala",
+                                stopRoom
+                            )
+                        }
                         style={{ backgroundColor: "rgba(150, 50, 50, 0.5)" }}
                     >
                         Cerrar host
