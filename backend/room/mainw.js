@@ -55,6 +55,7 @@ async function run(config, DEV = false) {
 
                 room.onAfterRoomLink = (roomLink) => {
                     console.log("Link de la sala:", roomLink);
+                    room.lockTeams();
                 };
 
                 resolve(room);

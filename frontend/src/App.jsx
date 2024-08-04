@@ -34,7 +34,6 @@ function App() {
                                 className="col50"
                                 style={{
                                     minWidth: "400px",
-                                    minHeight: "700px",
                                 }}
                             >
                                 <div className="container90">

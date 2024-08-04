@@ -20,14 +20,17 @@ export const Popup = ({}) => {
         }
     };
 
-    const handleStop = () => {
-        stopRoom();
+    const handleConfirm = () => {
+        if (params.callback) params.callback();
         setIsOpen(false);
     };
 
     const handleKickBan = () => {
+        console.log(params.id, kickReason, ban);
         kickPlayer(params.id, kickReason, ban);
+
         setIsOpen(false);
+        setBan(false);
     };
 
     return (
@@ -43,7 +46,7 @@ export const Popup = ({}) => {
                             <div className="bottom">
                                 {type === "confirm" ? (
                                     <div className="button-container">
-                                        <button onClick={handleStop}>
+                                        <button onClick={handleConfirm}>
                                             Aceptar
                                         </button>
                                         <button

@@ -47,7 +47,21 @@ module.exports = function (API) {
     this.isSaludoActive = true;
     this.saludo = `╔═══════════════════════════════════════════════════════╗
 ║   PAJARITOS HAX   ║ !pm !hist !stats !login !discord !help !bb ║
-╚═══════════════════════════════════════════════════════╝\n\n\n\n\n\nhttps://discord.gg/qTUA6BZk`;
+╚═══════════════════════════════════════════════════════╝\n\n\n\n\n\nhttps://discord.gg/MV3VBX4q`;
+
+    this.publicSettings = [
+        {
+            name: "saludo",
+            description: "Saludo al unirse a la sala",
+            type: "bool",
+            getValue: () => {
+                return that.isSaludoActive;
+            },
+            setValue: (value) => {
+                that.isSaludoActive = value;
+            },
+        },
+    ];
 
     function sleep(ms) {
         return new Promise((r) => setTimeout(r, ms));
@@ -84,7 +98,7 @@ module.exports = function (API) {
                                 "hint"
                             );
                         } catch (e) {
-                            console.log(e);
+                            // console.log(e);
                         }
                     });
                 }

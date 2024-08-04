@@ -16,10 +16,11 @@ export const PopupService = ({ children }) => {
         setIsOpen(false);
     };
 
-    const popupConfirm = (title, msg) => {
+    const popupConfirm = (title, msg, callback) => {
         setIsOpen(true);
         setTitle(title);
         setMsg(msg);
+        setParams({ callback });
         setType("confirm");
     };
 

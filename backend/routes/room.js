@@ -149,8 +149,8 @@ room.get("/chat", function (req, res) {
             (p) => p.name === "lmbCommands"
         );
         if (commands) {
-            let chat = commands.chatLog.join("\n");
-            res.send(JSON.stringify({ chat }));
+            // let chat = commands.chatLog.join("\n");
+            res.send(JSON.stringify({ chat: commands.chatLog }));
         }
     } else {
         res.status(400).send("No room open");
@@ -187,6 +187,36 @@ room.post("/kick", function (req, res) {
 
             global.room.kickPlayer(playerId, reason, ban, 0);
             res.send("Player kick request processed");
+        } catch (e) {
+            console.log(e);
+        }
+    }
+});
+
+room.post("/kick/permaban", function (req, res) {
+    if (!global.room) {
+        res.send("Host not open");
+    } else {
+        try {
+            let name = req.body.name;
+            let ip = req.body.ip;
+            let auth = req.body.auth;
+
+            if (!name) {
+                res.send("Name required");
+                return;
+            }
+
+            let commands = global.room.plugins.find(
+                (p) => p.name === "lmbCommands"
+            );
+            if (commands) {
+                commands.permaBan(name, ip, auth);
+                res.send("Plaker banned permanently");
+                return;
+            }
+
+            res.send("Unable to find commands plugin");
         } catch (e) {
             console.log(e);
         }

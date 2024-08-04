@@ -6,11 +6,11 @@ import { usePopup } from "../services/PopupService";
 
 export const PlayersList = () => {
     const { popupKickban } = usePopup();
-    const { players, kickPlayer } = useApi();
+    const { players } = useApi();
 
     return (
         <section className="players">
-            <h1>Jugadores</h1>
+            <h1>Jugadores: {players.length}</h1>
             <ul className="players-list">
                 {players.map((p) => (
                     <li key={p.id}>

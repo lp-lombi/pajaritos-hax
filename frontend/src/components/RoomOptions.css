@@ -1,9 +1,9 @@
 .room-options {
+    height: 100%;
+
     display: flex;
     align-items: center;
     justify-content: center;
-
-    height: 100%;
 }
 
 .room-info {
@@ -174,7 +174,6 @@
 .plugins ul {
     min-width: 140px;
     width: 30%;
-    border: 1px solid var(--contrast);
     padding: 0.25rem;
     overflow-x: auto;
 }
@@ -232,14 +231,13 @@
 /**/
 
 .stadiums {
-    height: 60%;
+    height: 40%;
 }
 
 .stadiums ul {
-    border: 1px solid var(--contrast);
     padding: 0.25rem;
+    height: 100%;
 
-    height: 200px;
     overflow-y: auto;
 }
 

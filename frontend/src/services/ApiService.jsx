@@ -177,7 +177,9 @@ export const ApiService = ({ children }) => {
     };
 
     const kickPlayer = (id, reason = "", ban = false) => {
-        fetch(`/room/kick?id=${id}&reason=${reason}&ban=${ban}`).then((res) => {
+        fetch(`/room/kick?id=${id}&reason=${reason}&ban=${ban}`, {
+            method: "POST",
+        }).then((res) => {
             if (res.ok) {
                 return;
             } else {
@@ -198,7 +200,9 @@ export const ApiService = ({ children }) => {
         fetch(`/room/chat`).then((res) => {
             if (res.ok) {
                 res.json().then((data) => {
-                    setChatLog(data.chat);
+                    let chat = "";
+                    data.chat.forEach((m) => (chat += m.text + "\n"));
+                    setChatLog(chat);
                 });
             } else {
                 console.log("Error al recibir mensajes");

@@ -32,20 +32,6 @@ module.exports = function (API) {
         allowFlags: AllowFlags.CreateRoom,
     });
 
-    this.publicSettings = [
-        {
-            name: "saludo",
-            description: "Saludo al unirse a la sala",
-            type: "bool",
-            getValue: () => {
-                return that.isSaludoActive;
-            },
-            setValue: (value) => {
-                that.isSaludoActive = value;
-            },
-        },
-    ];
-
     var commands,
         kits,
         kickBanAllowed = false,
@@ -100,11 +86,12 @@ module.exports = function (API) {
                 if (force) resolve(true);
                 if (p) {
                     db.all(
-                        `SELECT username, role FROM users WHERE username = "${p.name}"`,
+                        `SELECT role FROM users WHERE username = "${p.name}"`,
                         (err, rows) => {
                             if (err) return resolve(true); // si falla, se usa el comportamiento normal de Haxball
                             if (rows.length > 0) {
-                                if (rows[0].role >= 2 && msg.reason !== null) {
+                                if (rows[0].role >= 2 && msg.byId !== 0) {
+                                    console.log(msg.byId);
                                     let authPlugin = that.room.plugins.find(
                                         (p) => p.name === "lmbAuth"
                                     );
@@ -251,8 +238,6 @@ module.exports = function (API) {
                         : null;
 
                     let str = `${loggedEmoji} [${ballEmoji}] ${p.name}: ${msg}`;
-
-                    that.log(str);
                     that.room.sendAnnouncement(str, null, tColor);
                 }
                 break;
@@ -311,10 +296,10 @@ module.exports = function (API) {
         return commands;
     };
 
-    this.log = function (msg) {
+    this.log = function (text, color, style) {
         let maxLines = 50;
 
-        that.chatLog.push(msg);
+        that.chatLog.push({ text, color, style });
 
         maxLines > that.chatLog.length
             ? null
@@ -339,24 +324,40 @@ module.exports = function (API) {
         });
     };
 
-    this.announcementLoop = async function () {
-        for (let a of that.announcements) {
-            await sleep(that.announcementsCycle).then(() => {
-                subsPlayersIds.forEach((id) => {
-                    that.printchat(`🕊️ ${a}`, null, "announcement");
-                    that.printchat(
-                        `(!mute para silenciar estas alertas)`,
-                        null,
-                        "hint"
-                    );
+    this.processBans = function () {
+        try {
+            db.all("SELECT * FROM bans", (err, rows) => {
+                if (err) {
+                    console.log(err);
+                    return;
+                }
+                bans = rows;
+                bans.forEach((b) => {
+                    if (b.ip) {
+                        that.room.addIpBan(b.ip);
+                    }
+                    if (b.auth) {
+                        that.room.addAuthBan(b.auth);
+                    }
                 });
             });
+        } catch (e) {
+            console.log("Error en la base de datos: " + e);
         }
-        this.announcementLoop();
+    };
+
+    this.permaBan = function (playerName, ip = "", auth = "") {
+        db.run(
+            `INSERT INTO bans (name, ip, auth) VALUES ("${playerName}", "${ip}", "${auth}")`,
+            (err) => {
+                if (err) console.log(err);
+            }
+        );
     };
 
     this.initialize = function () {
         fetchKits();
+        that.processBans();
         fs.writeFileSync(path.join(__dirname, "res/chatlog.txt"), ""); // Se limpia el log del chat
         sleep(1000).then(() => {
             that.initQueue.forEach((action) => action());
@@ -480,7 +481,7 @@ module.exports = function (API) {
                 admin: false,
                 hidden: false,
                 exec: (msg, args) => {
-                    that.printchat("https://discord.gg/qTUA6BZk", msg.byId);
+                    that.printchat("https://discord.gg/MV3VBX4q", msg.byId);
                 },
             },
             {
@@ -794,6 +795,10 @@ module.exports = function (API) {
                         //return true;
                     }
                     return false;
+                } else if (type === OperationType.SendAnnouncement) {
+                    if (msg._TP === null || msg._TP === 0) {
+                        that.log(msg.Tc, msg.color, msg.style);
+                    }
                 } else if (type === OperationType.KickBanPlayer) {
                     handleKickBanPlayer(msg);
                     return kickBanAllowed;
