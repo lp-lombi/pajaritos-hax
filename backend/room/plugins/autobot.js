@@ -62,9 +62,12 @@ module.exports = function (API) {
         that = this;
 
     this.active = true;
+    this.goal = false;
+    this.newStadium = true;
     this.teamSize = 4;
     this.afkTimeMsecs = 25000;
     this.inactivePlayersIds = [];
+    this.replaceablePlayers = [];
 
     this.checkAfk = function () {
         this.inactivePlayersIds = [];
@@ -90,6 +93,53 @@ module.exports = function (API) {
                 }
                 this.checkAfk();
             }
+        });
+    };
+
+    this.checkBall = function () {
+        let threshold = 20;
+        sleep(150).then(() => {
+            if (!that.goal) {
+                let leftGoalLine = {
+                    top: that.room.stadium.goals[0].p0,
+                    bottom: that.room.stadium.goals[0].p1,
+                };
+                let rightGoalLine = {
+                    top: that.room.stadium.goals[1].p0,
+                    bottom: that.room.stadium.goals[1].p1,
+                };
+
+                if (
+                    that.room.gameState &&
+                    that.active &&
+                    leftGoalLine &&
+                    rightGoalLine
+                ) {
+                    console.log("bucle");
+                    if (
+                        that.room.getDisc(0).pos.x + threshold <
+                        leftGoalLine.top.x
+                    ) {
+                        let obj = {
+                            x: leftGoalLine.top.x + 10,
+                            y: that.room.getDisc(0).pos.y,
+                        };
+                        that.room.setDiscProperties(0, obj);
+                        console.log("Bola reseteada");
+                    } else if (
+                        that.room.getDisc(0).pos.x - threshold >
+                        rightGoalLine.top.x
+                    ) {
+                        let obj = {
+                            x: rightGoalLine.top.x - 10,
+                            y: that.room.getDisc(0).pos.y,
+                        };
+                        that.room.setDiscProperties(0, obj);
+                        console.log("Bola reseteada");
+                    }
+                }
+            }
+            this.checkBall();
         });
     };
 
@@ -155,6 +205,7 @@ module.exports = function (API) {
         } else {
             that.checkTeams();
             that.checkAfk();
+            that.checkBall();
             commands.registerCommand(
                 "!",
                 "autobot",
@@ -213,6 +264,21 @@ module.exports = function (API) {
                 "Ajustes del autobot de la sala. ' !autobot on/off ' | !autobot equipos <tamaño>",
                 true
             );
+
+            commands.onGameStartQueue.push((byId, customData = null) => {
+                // A la mitad del partido se determina los jugadores elegibles para salir
+                sleep(that.room.timeLimit * 60000 * 0.6).then(() => {
+                    that.replaceablePlayers = [];
+                    that.room.players.forEach((p) => {
+                        if (
+                            p.id !== 0 &&
+                            (p.team.id === 1 || p.team.id === 2)
+                        ) {
+                            that.replaceablePlayers.push(p);
+                        }
+                    });
+                });
+            });
             commands.onGameEndQueue.push((winningTeamId, customData = null) => {
                 if (!that.active) return;
                 let loserTeamId = winningTeamId === 1 ? 2 : 1;
@@ -220,7 +286,7 @@ module.exports = function (API) {
                 let spectPlayersIds = [];
                 sleep(1500).then(() => {
                     // Primero se mueve a los perdedores a espectadores
-                    that.room.players.forEach((p) => {
+                    that.replaceablePlayers.forEach((p) => {
                         if (p.id !== 0) {
                             if (p.team.id === loserTeamId) {
                                 loserPlayersIds.push(p.id);
@@ -241,10 +307,18 @@ module.exports = function (API) {
                     });
                     for (let i = 0; i < that.teamSize; i++)
                         if (spectPlayersIds[i]) {
-                            that.room.setPlayerTeam(
-                                spectPlayersIds[i],
-                                loserTeamId
-                            );
+                            let currentTeamSize = 0;
+                            that.room.players.forEach((p) => {
+                                if (p.team.id === loserTeamId)
+                                    currentTeamSize++;
+                            });
+
+                            if (currentTeamSize < that.teamSize) {
+                                that.room.setPlayerTeam(
+                                    spectPlayersIds[i],
+                                    loserTeamId
+                                );
+                            }
                         }
                     that.room.stopGame();
                     sleep(250).then(() => {
@@ -260,6 +334,15 @@ module.exports = function (API) {
                     );
                 }
             });
+            that.room.onTeamGoal = (teamId) => {
+                that.goal = true;
+                sleep(3000).then(() => {
+                    that.goal = false;
+                });
+            };
+            that.room.onStadiumChange = (stadium, byId) => {
+                that.newStadium = true;
+            };
         }
     };
 };

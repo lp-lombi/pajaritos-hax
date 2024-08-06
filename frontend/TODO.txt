@@ -1,0 +1,1 @@
+TODO: Autobot reemplaza jugadores que hayan jugado más de la mitad del partido 

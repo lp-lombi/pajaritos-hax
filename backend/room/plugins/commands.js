@@ -44,6 +44,7 @@ module.exports = function (API) {
     this.initQueue = [];
     this.onPlayerJoinQueue = [];
     this.onPlayerLeaveQueue = [];
+    this.onGameStartQueue = [];
     this.onGameEndQueue = [];
     this.sendInputQueue = [];
 
@@ -742,6 +743,10 @@ module.exports = function (API) {
             if (playerId1 === 0 || playerId2 === 0) {
                 that.room.setPlayerTeam(0, 0);
             }
+        };
+
+        that.room.onAfterGameStart = (byId, customData) => {
+            that.onGameStartQueue.forEach((action) => action(byId, customData));
         };
 
         that.room.onAfterGameEnd = (winningTeamId, customData) => {
