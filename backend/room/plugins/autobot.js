@@ -100,43 +100,56 @@ module.exports = function (API) {
         let threshold = 20;
         sleep(150).then(() => {
             if (!that.goal) {
-                let leftGoalLine = {
-                    top: that.room.stadium.goals[0].p0,
-                    bottom: that.room.stadium.goals[0].p1,
-                };
-                let rightGoalLine = {
-                    top: that.room.stadium.goals[1].p0,
-                    bottom: that.room.stadium.goals[1].p1,
-                };
+                try {
+                    let g1 = {
+                        top: that.room.stadium.goals[0].p0,
+                        bottom: that.room.stadium.goals[0].p1,
+                    };
+                    let g2 = {
+                        top: that.room.stadium.goals[1].p0,
+                        bottom: that.room.stadium.goals[1].p1,
+                    };
 
-                if (
-                    that.room.gameState &&
-                    that.active &&
-                    leftGoalLine &&
-                    rightGoalLine
-                ) {
-                    console.log("bucle");
-                    if (
-                        that.room.getDisc(0).pos.x + threshold <
-                        leftGoalLine.top.x
-                    ) {
-                        let obj = {
-                            x: leftGoalLine.top.x + 10,
-                            y: that.room.getDisc(0).pos.y,
-                        };
-                        that.room.setDiscProperties(0, obj);
-                        console.log("Bola reseteada");
-                    } else if (
-                        that.room.getDisc(0).pos.x - threshold >
-                        rightGoalLine.top.x
-                    ) {
-                        let obj = {
-                            x: rightGoalLine.top.x - 10,
-                            y: that.room.getDisc(0).pos.y,
-                        };
-                        that.room.setDiscProperties(0, obj);
-                        console.log("Bola reseteada");
+                    let leftGoalLine, rightGoalLine;
+
+                    if (g1.top.x > g2.top.x) {
+                        rightGoalLine = g1;
+                        leftGoalLine = g2;
+                    } else {
+                        rightGoalLine = g2;
+                        leftGoalLine = g1;
                     }
+
+                    if (
+                        that.room.gameState &&
+                        that.active &&
+                        leftGoalLine &&
+                        rightGoalLine
+                    ) {
+                        if (
+                            that.room.getDisc(0).pos.x + threshold <
+                            leftGoalLine.top.x
+                        ) {
+                            let obj = {
+                                x: leftGoalLine.top.x + 10,
+                                y: that.room.getDisc(0).pos.y,
+                            };
+                            that.room.setDiscProperties(0, obj);
+                            console.log("Bola reseteada");
+                        } else if (
+                            that.room.getDisc(0).pos.x - threshold >
+                            rightGoalLine.top.x
+                        ) {
+                            let obj = {
+                                x: rightGoalLine.top.x - 10,
+                                y: that.room.getDisc(0).pos.y,
+                            };
+                            that.room.setDiscProperties(0, obj);
+                            console.log("Bola reseteada");
+                        }
+                    }
+                } catch (e) {
+                    console.log(e);
                 }
             }
             this.checkBall();
@@ -334,15 +347,17 @@ module.exports = function (API) {
                     );
                 }
             });
-            that.room.onTeamGoal = (teamId) => {
+
+            that.room.onStadiumChange = (stadium, byId) => {
+                that.newStadium = true;
+            };
+
+            commands.onTeamGoalQueue.push((teamId, customData) => {
                 that.goal = true;
                 sleep(3000).then(() => {
                     that.goal = false;
                 });
-            };
-            that.room.onStadiumChange = (stadium, byId) => {
-                that.newStadium = true;
-            };
+            });
         }
     };
 };

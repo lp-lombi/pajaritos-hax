@@ -275,7 +275,8 @@ module.exports = function (API) {
                     }
                 }
             };
-            that.room.onTeamGoal = (teamId) => {
+
+            commands.onTeamGoalQueue.push((teamId, customData) => {
                 try {
                     if (
                         lastPlayerKickedBall.team.id === teamId ||
@@ -362,7 +363,8 @@ module.exports = function (API) {
                 } catch (e) {
                     console.log(e);
                 }
-            };
+            });
+
             commands.onPlayerLeaveQueue.push((id) => {
                 let ps = playersSessionStats.find((p) => p.player.id === id);
                 if (ps) {

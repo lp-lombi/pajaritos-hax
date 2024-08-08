@@ -46,6 +46,7 @@ module.exports = function (API) {
     this.onPlayerLeaveQueue = [];
     this.onGameStartQueue = [];
     this.onGameEndQueue = [];
+    this.onTeamGoalQueue = [];
     this.sendInputQueue = [];
 
     const COLORS = {
@@ -743,6 +744,12 @@ module.exports = function (API) {
             if (playerId1 === 0 || playerId2 === 0) {
                 that.room.setPlayerTeam(0, 0);
             }
+        };
+
+        that.room.onAfterTeamGoal = (teamId, customData) => {
+            that.onTeamGoalQueue.forEach((action) =>
+                action(teamId, customData)
+            );
         };
 
         that.room.onAfterGameStart = (byId, customData) => {
