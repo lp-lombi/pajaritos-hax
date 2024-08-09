@@ -101,51 +101,53 @@ module.exports = function (API) {
         sleep(150).then(() => {
             if (!that.goal) {
                 try {
-                    let g1 = {
-                        top: that.room.stadium.goals[0].p0,
-                        bottom: that.room.stadium.goals[0].p1,
-                    };
-                    let g2 = {
-                        top: that.room.stadium.goals[1].p0,
-                        bottom: that.room.stadium.goals[1].p1,
-                    };
+                    if (that.room) {
+                        let g1 = {
+                            top: that.room.stadium.goals[0].p0,
+                            bottom: that.room.stadium.goals[0].p1,
+                        };
+                        let g2 = {
+                            top: that.room.stadium.goals[1].p0,
+                            bottom: that.room.stadium.goals[1].p1,
+                        };
 
-                    let leftGoalLine, rightGoalLine;
+                        let leftGoalLine, rightGoalLine;
 
-                    if (g1.top.x > g2.top.x) {
-                        rightGoalLine = g1;
-                        leftGoalLine = g2;
-                    } else {
-                        rightGoalLine = g2;
-                        leftGoalLine = g1;
-                    }
+                        if (g1.top.x > g2.top.x) {
+                            rightGoalLine = g1;
+                            leftGoalLine = g2;
+                        } else {
+                            rightGoalLine = g2;
+                            leftGoalLine = g1;
+                        }
 
-                    if (
-                        that.room.gameState &&
-                        that.active &&
-                        leftGoalLine &&
-                        rightGoalLine
-                    ) {
                         if (
-                            that.room.getDisc(0).pos.x + threshold <
-                            leftGoalLine.top.x
+                            that.room.gameState &&
+                            that.active &&
+                            leftGoalLine &&
+                            rightGoalLine
                         ) {
-                            let obj = {
-                                x: leftGoalLine.top.x + 10,
-                                y: that.room.getDisc(0).pos.y,
-                            };
-                            that.room.setDiscProperties(0, obj);
-                            console.log("Bola reseteada");
-                        } else if (
-                            that.room.getDisc(0).pos.x - threshold >
-                            rightGoalLine.top.x
-                        ) {
-                            let obj = {
-                                x: rightGoalLine.top.x - 10,
-                                y: that.room.getDisc(0).pos.y,
-                            };
-                            that.room.setDiscProperties(0, obj);
-                            console.log("Bola reseteada");
+                            if (
+                                that.room.getDisc(0).pos.x + threshold <
+                                leftGoalLine.top.x
+                            ) {
+                                let obj = {
+                                    x: leftGoalLine.top.x + 10,
+                                    y: that.room.getDisc(0).pos.y,
+                                };
+                                that.room.setDiscProperties(0, obj);
+                                console.log("Bola reseteada");
+                            } else if (
+                                that.room.getDisc(0).pos.x - threshold >
+                                rightGoalLine.top.x
+                            ) {
+                                let obj = {
+                                    x: rightGoalLine.top.x - 10,
+                                    y: that.room.getDisc(0).pos.y,
+                                };
+                                that.room.setDiscProperties(0, obj);
+                                console.log("Bola reseteada");
+                            }
                         }
                     }
                 } catch (e) {
