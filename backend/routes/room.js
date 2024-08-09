@@ -10,7 +10,7 @@ room.post("/start", function (req, res) {
         var config = req.body;
         config.db = "../../room/plugins/res/commands.db";
 
-        roomCreator.run(config, true).then((r) => {
+        roomCreator.run(config, false).then((r) => {
             if (r) {
                 global.room = r;
                 res.send("Host open");
