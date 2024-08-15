@@ -15,7 +15,6 @@ async function run(config, DEV = false) {
         const createParams = {
             name: DEV ? "X" : config.roomName,
             geo: {
-                // san bernardo
                 lat: -36.310826904052284,
                 lon: -60.45336889643611,
                 flag: "ar",
@@ -23,10 +22,13 @@ async function run(config, DEV = false) {
             showInRoomList: true,
             maxPlayerCount: config.maxPlayers,
             token: config.token,
+            onError: (err) => {
+                console.log("Error: " + err);
+            },
         };
         DEV ? (createParams["password"] = "121") : null;
 
-        API.Room.create(createParams, {
+        var client = API.Room.create(createParams, {
             plugins: [
                 new powerShot(API),
                 new commands(API, config.db),
@@ -56,11 +58,20 @@ async function run(config, DEV = false) {
                 room.onAfterRoomLink = (roomLink) => {
                     console.log("Link de la sala:", roomLink);
                     room.lockTeams();
-                };
 
-                resolve(room);
+                    resolve(room);
+                };
             },
         });
+
+        client.onRequestRecaptcha = (token) => {
+            console.log("Token expirado");
+            client.room.leave();
+            reject({
+                room: client.room,
+                msg: "Token expirado. Generá uno nuevo.",
+            });
+        };
     });
 }
 

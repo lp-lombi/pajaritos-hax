@@ -67,12 +67,28 @@ module.exports = function (API) {
             commands
                 .getDb()
                 .all(
-                    `SELECT id, username, score, assists FROM users`,
+                    `SELECT id, username, score, assists, matches, wins FROM users`,
                     (err, rows) => {
                         if (err) {
                             return reject(err);
                         }
                         resolve(rows);
+                    }
+                );
+        });
+    };
+
+    this.getUserStats = async (username) => {
+        return new Promise((resolve, reject) => {
+            commands
+                .getDb()
+                .all(
+                    `SELECT id, username, score, assists, matches, wins FROM users WHERE username = "${username}"`,
+                    (err, rows) => {
+                        if (err) {
+                            return reject(err);
+                        }
+                        resolve(rows[0]);
                     }
                 );
         });
@@ -110,6 +126,38 @@ module.exports = function (API) {
         });
     };
 
+    this.getUserWins = async (username) => {
+        return new Promise((resolve, reject) => {
+            commands
+                .getDb()
+                .all(
+                    `SELECT wins FROM users WHERE username="${username}"`,
+                    (err, rows) => {
+                        if (err) {
+                            return reject(err);
+                        }
+                        resolve(rows[0].wins);
+                    }
+                );
+        });
+    };
+
+    this.getUserMatches = async (username) => {
+        return new Promise((resolve, reject) => {
+            commands
+                .getDb()
+                .all(
+                    `SELECT matches FROM users WHERE username="${username}"`,
+                    (err, rows) => {
+                        if (err) {
+                            return reject(err);
+                        }
+                        resolve(rows[0].matches);
+                    }
+                );
+        });
+    };
+
     this.setUserScore = async (username, score) => {
         commands
             .getDb()
@@ -132,6 +180,30 @@ module.exports = function (API) {
                 }
             );
         return assists;
+    };
+
+    this.setUserWins = async (username, wins) => {
+        commands
+            .getDb()
+            .run(
+                `UPDATE users SET wins = ${wins} WHERE username="${username}"`,
+                (err) => {
+                    if (err) console.log(err);
+                }
+            );
+        return wins;
+    };
+
+    this.setUserMatches = async (username, matches) => {
+        commands
+            .getDb()
+            .run(
+                `UPDATE users SET matches = ${matches} WHERE username="${username}"`,
+                (err) => {
+                    if (err) console.log(err);
+                }
+            );
+        return matches;
     };
 
     this.getLoggedPlayers = function () {

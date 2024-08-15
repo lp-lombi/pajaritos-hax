@@ -97,6 +97,26 @@ module.exports = function (API) {
         }
     }
 
+    function handleSumDBWin(player, sumWins) {
+        if (auth) {
+            if (auth.getLoggedPlayers().includes(player)) {
+                auth.getUserWins(player.name).then((wins) => {
+                    auth.setUserWins(player.name, wins + sumWins);
+                });
+            }
+        }
+    }
+
+    function handleSumDBMatch(player, sumMatch) {
+        if (auth) {
+            if (auth.getLoggedPlayers().includes(player)) {
+                auth.getUserMatches(player.name).then((matches) => {
+                    auth.setUserMatches(player.name, matches + sumMatch);
+                });
+            }
+        }
+    }
+
     function addPlayerBallInteraction(player, reason) {
         let obj = {
             reason: reason,
@@ -122,13 +142,13 @@ module.exports = function (API) {
         }
     }
 
-    clearHistory = () => {
+    function clearHistory() {
         matchHistory = [];
-    };
+    }
 
-    clearPlayersSessionStats = () => {
+    function clearPlayersSessionStats() {
         playersSessionStats = [];
-    };
+    }
 
     function printPlayersSessionStats(playerId) {
         var str = "";
@@ -153,31 +173,106 @@ module.exports = function (API) {
         commands.printchat("Stats de los jugadores:\n" + str, playerId);
     }
 
-    printPlayersDbStats = (playerId) => {
+    function printPlayersDbStats(targetId) {
         if (auth) {
-            var str = "";
-            auth.getAllUsersStats().then((stats) => {
-                stats.sort((a, b) => (a.score > b.score ? -1 : 1));
+            const maxPlayers = 15;
+            auth.getAllUsersStats().then((data) => {
+                var stats = data.filter((s) => s.matches > 0);
+                stats.sort((a, b) =>
+                    that.calcRating(a) > that.calcRating(b) ? -1 : 1
+                );
                 if (stats.length === 0) {
-                    str = "No hay registros.";
+                    that.room.sendAnnouncement(
+                        "No hay registros.",
+                        targetId,
+                        commands.getColors().orange,
+                        "bold",
+                        0
+                    );
                 }
-                stats.forEach((s) => {
-                    if (s.score === 0 && s.assists === 0) return;
-                    str +=
-                        "[" +
-                        (stats.indexOf(s) + 1) +
-                        "]" +
-                        " | " +
-                        s.score +
-                        " goles | " +
-                        s.assists +
-                        " asistencias |          " +
-                        s.username +
-                        "\n";
+
+                let rest = stats.splice(maxPlayers, stats.length);
+                let reversedStats = stats.slice().reverse();
+
+                reversedStats.forEach((s) => {
+                    var title = "";
+                    var body = "";
+
+                    var rating = that.calcRating(s);
+
+                    title = `${stats.indexOf(s) + 1}. ${
+                        s.username
+                    } - ${rating}\n`;
+                    body = `${s.score} goles - ${s.assists} asistencias - Pj: ${s.matches} / Pg: ${s.wins}\n `;
+
+                    that.room.sendAnnouncement(
+                        title,
+                        targetId,
+                        commands.getColors().orange,
+                        "bold",
+                        0
+                    );
+                    that.room.sendAnnouncement(
+                        body,
+                        targetId,
+                        commands.getColors().orange,
+                        "small-bold",
+                        0
+                    );
                 });
-                commands.printchat("Stats de los jugadores:\n" + str, playerId);
+
+                let isLogged = false;
+                let promises = [];
+
+                auth.getLoggedPlayers().forEach((p) => {
+                    if (p.id === targetId) {
+                        let promise = auth.getUserStats(p.name).then((s) => {
+                            isLogged = true;
+
+                            let str = `Tus stats: ${s.score} goles - ${s.assists} asistencias - Pj: ${s.matches} / Pg: ${s.wins}`;
+
+                            that.room.sendAnnouncement(
+                                str,
+                                targetId,
+                                commands.getColors().lightOrange,
+                                "small-bold",
+                                2
+                            );
+                        });
+                        promises.push(promise);
+                    }
+                });
+
+                Promise.all(promises).then(() => {
+                    if (!isLogged) {
+                        that.room.sendAnnouncement(
+                            "Para guardar tus stats, registrate o inicia sesión.",
+                            targetId,
+                            commands.getColors().lightOrange,
+                            "small-bold",
+                            2
+                        );
+                    }
+                });
             });
         }
+    }
+
+    this.calcRating = function (stats) {
+        const baseScore = 1000;
+        const scoreWeight = 4; // Peso de cada gol
+        const assistWeight = 3; // Peso de cada asistencia
+        const matchWeight = -3; // Peso de cada partido jugado (penalización para evitar inflar la puntuación solo por jugar muchos partidos)
+        const winWeight = 6; // Peso de cada victoria
+
+        const rating =
+            baseScore +
+            stats.score * scoreWeight +
+            stats.assists * assistWeight +
+            stats.matches * matchWeight +
+            stats.wins * winWeight;
+
+        return rating;
     };
 
     this.initialize = function () {
@@ -226,17 +321,6 @@ module.exports = function (API) {
                 false
             );
 
-            that.room.onGameEnd = (winningTeamId) => {
-                matchHistory.push({
-                    winner: winningTeamId,
-                    redScore: that.room.redScore,
-                    blueScore: that.room.blueScore,
-                    time: new Date().getTime(),
-                });
-                if (matchHistory.length > 30) {
-                    matchHistory.splice(0, 1);
-                }
-            };
             that.room.onPlayerBallKick = (playerId) => {
                 lastPlayerKickedBall = lastPlayerInteractedBall =
                     that.room.players.find((p) => p.id === playerId);
@@ -275,6 +359,30 @@ module.exports = function (API) {
                     }
                 }
             };
+
+            commands.onGameEndQueue.push((winningTeamId) => {
+                matchHistory.push({
+                    winner: winningTeamId,
+                    redScore: that.room.redScore,
+                    blueScore: that.room.blueScore,
+                    time: new Date().getTime(),
+                });
+                if (matchHistory.length > 30) {
+                    matchHistory.splice(0, 1);
+                }
+
+                //
+                if (auth) {
+                    auth.getLoggedPlayers().forEach((p) => {
+                        if (p.team.id === winningTeamId) {
+                            handleSumDBWin(p, 1);
+                        }
+                        if (p.team.id !== 0) {
+                            handleSumDBMatch(p, 1);
+                        }
+                    });
+                }
+            });
 
             commands.onTeamGoalQueue.push((teamId, customData) => {
                 try {

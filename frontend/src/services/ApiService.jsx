@@ -89,7 +89,9 @@ export const ApiService = ({ children }) => {
             if (res.ok) {
                 fetchRoomStatus();
             } else {
-                resolve(false);
+                res.text().then((str) => {
+                    popupAlert(str);
+                });
             }
         });
     };

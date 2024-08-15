@@ -3,33 +3,52 @@ const fs = require("fs");
 const room = express.Router();
 
 var roomCreator = require("../room/mainw");
+var discordBot = require("../discord/main");
+
 var stadiumsPath = "./room/stadiums/";
+
+const DEBUG = false;
 
 room.post("/start", function (req, res) {
     if (!global.room) {
         var config = req.body;
         config.db = "../../room/plugins/res/commands.db";
 
-        roomCreator.run(config, true).then((r) => {
-            if (r) {
-                global.room = r;
-                res.send("Host open");
+        roomCreator
+            .run(config, DEBUG)
+            .then((r) => {
+                if (r) {
+                    global.room = r;
+                    res.send("Host open");
 
-                // se guarda la configuracion
-                setTimeout(() => {
-                    fs.writeFile(
-                        "./config.json",
-                        JSON.stringify(config),
-                        function (err) {
-                            if (err) {
-                                console.log(err);
-                                return;
+                    if (!DEBUG) {
+                        setTimeout(() => {
+                            if (global.room.link.startsWith("https://")) {
+                                discordBot.chat(
+                                    "Host abierto: " + global.room.link
+                                );
                             }
-                        }
-                    );
-                }, 500);
-            }
-        });
+                        }, 6000);
+                    }
+
+                    // se guarda la configuracion
+                    setTimeout(() => {
+                        fs.writeFile(
+                            "./config.json",
+                            JSON.stringify(config),
+                            function (err) {
+                                if (err) {
+                                    console.log(err);
+                                    return;
+                                }
+                            }
+                        );
+                    }, 500);
+                }
+            })
+            .catch((err) => {
+                res.status(500).send(err.msg);
+            });
 
         DEBUGROOM = global.room;
     } else {

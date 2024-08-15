@@ -136,7 +136,6 @@ module.exports = function (API) {
                                     y: that.room.getDisc(0).pos.y,
                                 };
                                 that.room.setDiscProperties(0, obj);
-                                console.log("Bola reseteada");
                             } else if (
                                 that.room.getDisc(0).pos.x - threshold >
                                 rightGoalLine.top.x
@@ -146,7 +145,6 @@ module.exports = function (API) {
                                     y: that.room.getDisc(0).pos.y,
                                 };
                                 that.room.setDiscProperties(0, obj);
-                                console.log("Bola reseteada");
                             }
                         }
                     }
@@ -281,6 +279,7 @@ module.exports = function (API) {
             );
 
             commands.onGameStartQueue.push((byId, customData = null) => {
+                that.replaceablePlayers = that.room.players;
                 // A la mitad del partido se determina los jugadores elegibles para salir
                 sleep(that.room.timeLimit * 60000 * 0.6).then(() => {
                     that.replaceablePlayers = [];
@@ -294,7 +293,7 @@ module.exports = function (API) {
                     });
                 });
             });
-            commands.onGameEndQueue.push((winningTeamId, customData = null) => {
+            commands.onGameEndQueue.push((winningTeamId, customData) => {
                 if (!that.active) return;
                 let loserTeamId = winningTeamId === 1 ? 2 : 1;
                 let loserPlayersIds = [];

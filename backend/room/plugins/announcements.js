@@ -45,9 +45,7 @@ module.exports = function (API) {
     this.subsPlayersIds = [];
 
     this.isSaludoActive = true;
-    this.saludo = `╔═══════════════════════════════════════════════════════╗
-║   PAJARITOS HAX   ║ !pm !hist !stats !login !discord !help !bb ║
-╚═══════════════════════════════════════════════════════╝\n\n\n\n\n\nhttps://discord.gg/MV3VBX4q`;
+    this.saludo = "";
 
     this.publicSettings = [
         {
@@ -71,13 +69,21 @@ module.exports = function (API) {
         that.announcementsCycle = minutes * 60000;
     }
 
-    this.fetchAnnouncements = function () {
+    this.fetchAnnouncements = function (defaultAnnouncements = []) {
+        that.announcements = [];
+
+        defaultAnnouncements.forEach((c) =>
+            that.announcements.push({ text: c })
+        );
+
         commands.getDb().all("SELECT * FROM announcements", (err, rows) => {
             if (err) {
                 console.log(err);
                 return;
             }
-            that.announcements = rows;
+            rows.forEach((r) => {
+                that.announcements.push(r);
+            });
         });
     };
 
@@ -114,7 +120,11 @@ module.exports = function (API) {
                 "El plugin de anuncios requiere del plugin de comandos."
             );
         } else {
-            that.fetchAnnouncements();
+            that.saludo = `╔═══════════════════════════════════════════════════════╗
+║   PAJARITOS HAX   ║ !pm !hist !stats !login !discord !help !bb ║
+╚═══════════════════════════════════════════════════════╝\n\n\n\n\n\n${commands.data.discord}`;
+            that.fetchAnnouncements(["Discord: " + commands.data.discord]);
+
             commands.initQueue.push(that.announcementLoop);
             commands.onPlayerJoinQueue.push((msg) => {
                 that.subsPlayersIds.push(msg.id);

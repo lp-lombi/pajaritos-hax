@@ -37,6 +37,10 @@ module.exports = function (API) {
         kickBanAllowed = false,
         that = this;
 
+    this.data = {
+        discord: "https://discord.gg/ZrzCysAD",
+    };
+
     this.utils = Utils;
 
     this.chatLog = [];
@@ -56,6 +60,8 @@ module.exports = function (API) {
         green: parseInt("90F06A", 16),
         gray: parseInt("CCCBCB", 16),
         lime: parseInt("CCE9C1", 16),
+        lightOrange: parseInt("FFC977", 16),
+        orange: parseInt("FFB84C", 16),
         redTeam: parseInt("FFD9D9", 16),
         blueTeam: parseInt("DBD9FF", 16),
     };
@@ -287,11 +293,31 @@ module.exports = function (API) {
                     });
                 }
                 break;
+            case "stat":
+                that.room.sendAnnouncement(
+                    msg.title,
+                    targetId,
+                    COLORS.lime,
+                    "small-bold",
+                    0
+                );
+                that.room.sendAnnouncement(
+                    msg.body,
+                    targetId,
+                    COLORS.lime,
+                    "small-bold",
+                    0
+                );
+                break;
         }
     };
 
     this.getDb = function () {
         return db;
+    };
+
+    this.getColors = function () {
+        return COLORS;
     };
 
     this.getCommands = function () {
@@ -360,7 +386,7 @@ module.exports = function (API) {
     this.initialize = function () {
         fetchKits();
         that.processBans();
-        fs.writeFileSync(path.join(__dirname, "res/chatlog.txt"), ""); // Se limpia el log del chat
+        // fs.writeFileSync(path.join(__dirname, "res/log.txt"), ""); // Se limpia el log del chat
         sleep(1000).then(() => {
             that.initQueue.forEach((action) => action());
         });
@@ -483,7 +509,7 @@ module.exports = function (API) {
                 admin: false,
                 hidden: false,
                 exec: (msg, args) => {
-                    that.printchat("https://discord.gg/MV3VBX4q", msg.byId);
+                    that.printchat(that.data.discord, msg.byId);
                 },
             },
             {
