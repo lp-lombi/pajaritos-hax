@@ -51,13 +51,19 @@ module.exports = function (API) {
             sleep(45 * 1000).then(() => {
                 if (that.voters.length >= that.requiredVotes) {
                     commands.printchat(
-                        `La gente decidió fusilar a ${that.toKickName}.`
+                        `La gente decidió fusilar a ${that.toKickName}.`,
+                        null,
+                        "alert"
                     );
                     sleep(2000).then(() => {
                         that.room.kickPlayer(id, "Tomate el palo.");
                     });
                 } else {
-                    commands.printchat(`No se kickea a ${that.toKickName}.`);
+                    commands.printchat(
+                        `No se kickea a ${that.toKickName}.`,
+                        null,
+                        "alert"
+                    );
                 }
                 that.voters = [];
                 that.requiredVotes = 100;
@@ -107,7 +113,9 @@ module.exports = function (API) {
                                     if (kicker && id !== 0) {
                                         that.toKickName = p.name;
                                         commands.printchat(
-                                            `${kicker.name} inició la votación para kickear al jugador ${that.toKickName} (30 SEGUNDOS).\n\n!votekick si | !votekick no`
+                                            `${kicker.name} inició la votación para kickear al jugador ${that.toKickName} (45 SEGUNDOS).\n\n!votekick si | !votekick no`,
+                                            null,
+                                            "alert"
                                         );
                                         awaitVote(id);
                                     }
@@ -123,7 +131,9 @@ module.exports = function (API) {
                                 if (that.voters.indexOf(msg.byId) === -1) {
                                     that.voters.push(msg.byId);
                                     commands.printchat(
-                                        `${voter.name} votó SÍ a expulsar a ${that.toKickName}( ${that.voters.length}/${that.requiredVotes}) | !votekick si | !votekick no.`
+                                        `${voter.name} votó SÍ a expulsar a ${that.toKickName}( ${that.voters.length}/${that.requiredVotes}) | !votekick si | !votekick no.`,
+                                        null,
+                                        "alert"
                                     );
                                 } else {
                                     commands.printchat(`Ya votaste.`, msg.byId);
@@ -131,7 +141,9 @@ module.exports = function (API) {
                             } else if (args[0] === "no") {
                                 if (that.voters.indexOf(msg.byId) === -1) {
                                     commands.printchat(
-                                        `${voter.name} votó NO a expulsar a ${that.toKickName}( ${that.voters.length}/${that.requiredVotes}) | !votekick si | !votekick no.`
+                                        `${voter.name} votó NO a expulsar a ${that.toKickName}( ${that.voters.length}/${that.requiredVotes}) | !votekick si | !votekick no.`,
+                                        null,
+                                        "alert"
                                     );
                                 } else {
                                     commands.printchat(`Ya votaste.`, msg.byId);

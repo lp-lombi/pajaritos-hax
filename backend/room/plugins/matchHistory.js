@@ -42,7 +42,7 @@ module.exports = function (API) {
         playerBallInteractHistory = [],
         that = this;
 
-    printHistory = (playerId) => {
+    function printHistory(playerId) {
         var str = "";
         matchHistory.forEach((m) => {
             if (matchHistory.length === 0) {
@@ -75,7 +75,7 @@ module.exports = function (API) {
             ")";
 
         commands.printchat("Historial:\n" + str, playerId);
-    };
+    }
 
     function handleSumDBAssists(player, sumAssists) {
         if (auth) {
@@ -150,27 +150,48 @@ module.exports = function (API) {
         playersSessionStats = [];
     }
 
-    function printPlayersSessionStats(playerId) {
+    function printPlayersSessionStats(targetId) {
         var str = "";
         if (playersSessionStats.length === 0) {
-            str = "No hay registros.";
+            that.room.sendAnnouncement(
+                "No hay registros.",
+                targetId,
+                commands.getColors().orange,
+                "bold",
+                2
+            );
         } else {
-            playersSessionStats.sort((a, b) => (a.score > b.score ? -1 : 1));
-            playersSessionStats.forEach((p) => {
-                str +=
-                    "[" +
-                    (playersSessionStats.indexOf(p) + 1) +
-                    "]" +
-                    " | " +
-                    p.score +
-                    " goles | " +
-                    p.assists +
-                    " asistencias |          " +
-                    p.player.name +
-                    "\n";
+            let playersStats = playersSessionStats.slice().sort((a, b) => {
+                return b.score - a.score;
             });
+            let reversedPlayersStats = playersStats.slice().reverse();
+            reversedPlayersStats.forEach((p) => {
+                title = `${playersStats.indexOf(p) + 1}. ${p.player.name}\n`;
+                body = `${p.score} goles - ${p.assists} asistencias\n `;
+
+                that.room.sendAnnouncement(
+                    title,
+                    targetId,
+                    commands.getColors().lightOrange,
+                    "bold",
+                    0
+                );
+                that.room.sendAnnouncement(
+                    body,
+                    targetId,
+                    commands.getColors().lightOrange,
+                    "small-bold",
+                    0
+                );
+            });
+            that.room.sendAnnouncement(
+                "",
+                targetId,
+                commands.getColors().lightOrange,
+                "small-bold",
+                2
+            );
         }
-        commands.printchat("Stats de los jugadores:\n" + str, playerId);
     }
 
     function printPlayersDbStats(targetId) {
@@ -187,7 +208,7 @@ module.exports = function (API) {
                         targetId,
                         commands.getColors().orange,
                         "bold",
-                        0
+                        2
                     );
                 }
 
@@ -257,6 +278,10 @@ module.exports = function (API) {
             });
         }
     }
+
+    this.getPlayersSessionStats = function () {
+        return playersSessionStats;
+    };
 
     this.calcRating = function (stats) {
         const baseScore = 1000;
@@ -474,6 +499,23 @@ module.exports = function (API) {
             });
 
             commands.onPlayerLeaveQueue.push((id) => {
+                // como fix momentaneo a la duplicidad,
+                // se van a mergear todos los jugadores con nombre repetido
+                /* let playersNames = [];
+                for (let i = 0; i < playersSessionStats.length; i++) {
+                    if (
+                        playersNames.includes(
+                            playersSessionStats[i].player.name
+                        )
+                    ) {
+                    }
+                    playersNames.push({
+                        index: i,
+                        name: playersSessionStats[i].player.name,
+                    });
+                } */
+                //
+
                 let ps = playersSessionStats.find((p) => p.player.id === id);
                 if (ps) {
                     playersSessionStats.splice(
