@@ -26,13 +26,14 @@ module.exports = function (API) {
 
     Object.setPrototypeOf(this, Plugin.prototype);
     Plugin.call(this, "lmbAuth", true, {
-        version: "0.2",
+        version: "0.1",
         author: "lombi",
         description: `Autenticación básica para haxball.`,
         allowFlags: AllowFlags.CreateRoom,
     });
 
     var commands,
+        APIURL,
         loggedPlayers = [],
         that = this;
 
@@ -46,6 +47,20 @@ module.exports = function (API) {
         if (role === 1 || role === 2) {
             that.room.setPlayerAdmin(player.id, true);
         }
+    }
+
+    async function validateLogin(password, hash) {
+        let res = await bcrypt
+            .compare(password, hash)
+            .then((res) => {
+                return res;
+            })
+            .catch((err) => {
+                console.log(err);
+                return false;
+            });
+
+        return res;
     }
 
     this.getAllUsersStats = async () => {
@@ -211,6 +226,7 @@ module.exports = function (API) {
                 "El plugin de autenticación requiere del plugin de comandos."
             );
         } else {
+            APIURL = commands.data.APIUrl;
             try {
                 commands.registerCommand(
                     "!",
@@ -230,8 +246,6 @@ module.exports = function (API) {
                                         let username = that.room.players.find(
                                             (p) => p.id === msg.byId
                                         ).name;
-
-                                        ///
 
                                         try {
                                             commands
@@ -304,70 +318,75 @@ module.exports = function (API) {
                     },
                     "Registrarse. ' !register <contraseña> <repetir contraseña> '"
                 );
-                commands.registerCommand("!", "login", (msg, args) => {
-                    if (args.length !== 1) {
-                        commands.printchat(
-                            "Uso: ' !login <contraseña> ' | Para registrarse: ' !register <contraseña> <repetir contraseña> '",
-                            msg.byId,
-                            "error"
-                        );
-                    } else {
-                        let player = that.room.players.find(
-                            (p) => p.id === msg.byId
-                        );
-                        if (player) {
-                            if (loggedPlayers.includes(player)) {
-                                commands.printchat(
-                                    "Ya estás logueado.",
-                                    msg.byId,
-                                    "error"
-                                );
-                                return;
-                            }
-
-                            fetch(commands.data.APIUrl + "/users/auth/login", {
-                                method: "POST",
-                                headers: {
-                                    "Content-Type": "application/json",
-                                },
-                                body: JSON.stringify({
-                                    username: player.name,
-                                    password: args[0],
-                                }),
-                            })
-                                .then((res) => res.json())
-                                .then((data) => {
-                                    if (data.validated) {
-                                        loginPlayer(player, data.role);
-                                        commands.printchat(
-                                            "Sesión iniciada.",
-                                            msg.byId
-                                        );
-                                    } else {
-                                        if (data.reason === "password") {
-                                            commands.printchat(
-                                                "Contraseña incorrecta.",
-                                                msg.byId,
-                                                "error"
-                                            );
-                                        } else if (data.reason === "user") {
-                                            commands.printchat(
-                                                "Usuario no registrado. Usa ' !register <contraseña> <repetir contraseña> ' para registrarte.",
-                                                msg.byId,
-                                                "error"
-                                            );
-                                        } else if (data.reason === "error") {
-                                            console.log(
-                                                "Error al iniciar la sesión de ID " +
-                                                    msg.byId
-                                            );
+                commands.registerCommand(
+                    "!",
+                    "login",
+                    (msg, args) => {
+                        if (args.length !== 1) {
+                            commands.printchat(
+                                "Uso: ' !login <contraseña> ' | Para registrarse: ' !register <contraseña> <repetir contraseña> '",
+                                msg.byId,
+                                "error"
+                            );
+                        } else {
+                            let username = that.room.players.find(
+                                (p) => p.id === msg.byId
+                            ).name;
+                            try {
+                                commands
+                                    .getDb()
+                                    .all(
+                                        `SELECT * FROM users WHERE username = "${username}"`,
+                                        (err, rows) => {
+                                            if (err) return err;
+                                            let user =
+                                                rows.length > 0
+                                                    ? rows[0]
+                                                    : null;
+                                            if (user) {
+                                                validateLogin(
+                                                    args[0],
+                                                    user.password
+                                                ).then((validated) => {
+                                                    if (validated) {
+                                                        let player =
+                                                            that.room.players.find(
+                                                                (p) =>
+                                                                    p.id ===
+                                                                    msg.byId
+                                                            );
+                                                        loginPlayer(
+                                                            player,
+                                                            user.role
+                                                        );
+                                                        commands.printchat(
+                                                            `Sesión iniciada. | ${user.score} goles registrados.`,
+                                                            msg.byId
+                                                        );
+                                                    } else {
+                                                        commands.printchat(
+                                                            "Contraseña incorrecta.",
+                                                            msg.byId,
+                                                            "error"
+                                                        );
+                                                    }
+                                                });
+                                            } else {
+                                                commands.printchat(
+                                                    "No estás registrado. Usa ' !register <contraseña> <repetir contraseña> '.",
+                                                    msg.byId,
+                                                    "error"
+                                                );
+                                            }
                                         }
-                                    }
-                                })
-                                .catch((e) => console.log(e));
+                                    );
+                            } catch (e) {
+                                console.log(e);
+                            }
                         }
-                    }
-                });
+                    },
+                    "Inicia sesión. ' !login <contraseña> '"
+                );
             } catch (err) {
                 console.log(err);
             }

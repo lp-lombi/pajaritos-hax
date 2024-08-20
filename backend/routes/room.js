@@ -7,7 +7,7 @@ var discordBot = require("../discord/main");
 
 var stadiumsPath = "./room/stadiums/";
 
-const DEBUG = false;
+const DEBUG = true;
 
 room.post("/start", function (req, res) {
     if (!global.room) {

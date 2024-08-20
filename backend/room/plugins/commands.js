@@ -39,6 +39,8 @@ module.exports = function (API) {
 
     this.data = {
         discord: "https://discord.gg/ZrzCysAD",
+        APIUrl: "http://localhost:7999",
+        //APIUrl: "https://swpajaritos.onrender.com",
     };
 
     this.utils = Utils;
