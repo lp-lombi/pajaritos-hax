@@ -36,9 +36,6 @@ module.exports = function (API) {
         loggedPlayers = [],
         that = this;
 
-    const bcrypt = require("bcryptjs");
-    const saltRounds = 10;
-
     function loginPlayer(player, role) {
         if (!loggedPlayers.includes(player)) {
             loggedPlayers.push(player);
@@ -50,146 +47,65 @@ module.exports = function (API) {
 
     this.getAllUsersStats = async () => {
         return new Promise((resolve, reject) => {
-            commands
-                .getDb()
-                .all(
-                    `SELECT id, username, score, assists, matches, wins FROM users`,
-                    (err, rows) => {
-                        if (err) {
-                            return reject(err);
-                        }
-                        resolve(rows);
+            fetch(commands.data.APIUrl + "/users/stats/all")
+                .then((res) => {
+                    if (res.ok) {
+                        res.json().then((data) => {
+                            resolve(data.stats);
+                        });
+                    } else {
+                        resolve([]);
                     }
-                );
+                })
+                .catch((err) => {
+                    console.log(err);
+                    resolve([]);
+                });
         });
     };
 
     this.getUserStats = async (username) => {
         return new Promise((resolve, reject) => {
-            commands
-                .getDb()
-                .all(
-                    `SELECT id, username, score, assists, matches, wins FROM users WHERE username = "${username}"`,
-                    (err, rows) => {
-                        if (err) {
-                            return reject(err);
-                        }
-                        resolve(rows[0]);
+            fetch(commands.data.APIUrl + "/users/getuser", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    username,
+                }),
+            })
+                .then((res) => {
+                    if (res.ok) {
+                        res.json().then((data) => {
+                            resolve(data.user);
+                        });
+                    } else {
+                        reject("No se pudo recuperar el usuario: " + err);
                     }
-                );
+                })
+                .catch((err) => {
+                    reject("Error al conectarse con la API: " + err);
+                });
         });
     };
 
-    this.getUserScore = async (username) => {
-        return new Promise((resolve, reject) => {
-            commands
-                .getDb()
-                .all(
-                    `SELECT score FROM users WHERE username="${username}"`,
-                    (err, rows) => {
-                        if (err) {
-                            return reject(err);
-                        }
-                        resolve(rows[0].score);
-                    }
-                );
+    this.sumUserStats = async (username, score, assists, wins, matches) => {
+        fetch(commands.data.APIUrl + "/users/stats/sum", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                username,
+                score,
+                assists,
+                wins,
+                matches,
+            }),
+        }).catch((err) => {
+            console.log(`Error al actualizar los stats de ${username}: ` + err);
         });
-    };
-
-    this.getUserAssists = async (username) => {
-        return new Promise((resolve, reject) => {
-            commands
-                .getDb()
-                .all(
-                    `SELECT assists FROM users WHERE username="${username}"`,
-                    (err, rows) => {
-                        if (err) {
-                            return reject(err);
-                        }
-                        resolve(rows[0].assists);
-                    }
-                );
-        });
-    };
-
-    this.getUserWins = async (username) => {
-        return new Promise((resolve, reject) => {
-            commands
-                .getDb()
-                .all(
-                    `SELECT wins FROM users WHERE username="${username}"`,
-                    (err, rows) => {
-                        if (err) {
-                            return reject(err);
-                        }
-                        resolve(rows[0].wins);
-                    }
-                );
-        });
-    };
-
-    this.getUserMatches = async (username) => {
-        return new Promise((resolve, reject) => {
-            commands
-                .getDb()
-                .all(
-                    `SELECT matches FROM users WHERE username="${username}"`,
-                    (err, rows) => {
-                        if (err) {
-                            return reject(err);
-                        }
-                        resolve(rows[0].matches);
-                    }
-                );
-        });
-    };
-
-    this.setUserScore = async (username, score) => {
-        commands
-            .getDb()
-            .run(
-                `UPDATE users SET score = ${score} WHERE username="${username}"`,
-                (err) => {
-                    if (err) console.log(err);
-                }
-            );
-        return score;
-    };
-
-    this.setUserAssists = async (username, assists) => {
-        commands
-            .getDb()
-            .run(
-                `UPDATE users SET assists = ${assists} WHERE username="${username}"`,
-                (err) => {
-                    if (err) console.log(err);
-                }
-            );
-        return assists;
-    };
-
-    this.setUserWins = async (username, wins) => {
-        commands
-            .getDb()
-            .run(
-                `UPDATE users SET wins = ${wins} WHERE username="${username}"`,
-                (err) => {
-                    if (err) console.log(err);
-                }
-            );
-        return wins;
-    };
-
-    this.setUserMatches = async (username, matches) => {
-        commands
-            .getDb()
-            .run(
-                `UPDATE users SET matches = ${matches} WHERE username="${username}"`,
-                (err) => {
-                    if (err) console.log(err);
-                }
-            );
-        return matches;
     };
 
     this.getLoggedPlayers = function () {
@@ -224,75 +140,54 @@ module.exports = function (API) {
                             );
                         } else {
                             if (args[0] === args[1]) {
-                                bcrypt
-                                    .hash(args[0], saltRounds)
-                                    .then((hash) => {
-                                        let username = that.room.players.find(
-                                            (p) => p.id === msg.byId
-                                        ).name;
-
-                                        ///
-
-                                        try {
-                                            commands
-                                                .getDb()
-                                                .all(
-                                                    `SELECT * FROM users WHERE username = "${username}"`,
-                                                    (err, rows) => {
-                                                        if (err) return err;
-                                                        let user =
-                                                            rows.length > 0
-                                                                ? rows[0]
-                                                                : null;
-                                                        if (!user) {
-                                                            let error = false;
-                                                            try {
-                                                                commands
-                                                                    .getDb()
-                                                                    .run(
-                                                                        `INSERT INTO users (username, password) VALUES ("${username}", "${hash}")`,
-                                                                        (
-                                                                            err
-                                                                        ) => {
-                                                                            error = true;
-                                                                            console.log(
-                                                                                err
-                                                                            );
-                                                                        }
-                                                                    );
-                                                                if (!error) {
-                                                                    let player =
-                                                                        that.room.players.find(
-                                                                            (
-                                                                                p
-                                                                            ) =>
-                                                                                p.id ===
-                                                                                msg.byId
-                                                                        );
-                                                                    commands.printchat(
-                                                                        "Registrado con éxito. Iniciá la sesión con ' !login '",
-                                                                        msg.byId
-                                                                    );
-                                                                }
-                                                            } catch (e) {
-                                                                console.log(e);
-                                                            }
-                                                        } else {
-                                                            commands.printchat(
-                                                                "El usuario ya está registrado.",
-                                                                msg.byId,
-                                                                "error"
-                                                            );
-                                                        }
-                                                    }
-                                                );
-                                        } catch (e) {
-                                            console.log(e);
+                                let player = that.room.players.find(
+                                    (p) => p.id === msg.byId
+                                );
+                                if (player) {
+                                    fetch(
+                                        commands.data.APIUrl +
+                                            "/users/auth/register",
+                                        {
+                                            method: "POST",
+                                            headers: {
+                                                "Content-Type":
+                                                    "application/json",
+                                            },
+                                            body: JSON.stringify({
+                                                username: player.name,
+                                                password: args[0],
+                                            }),
                                         }
-                                    })
-                                    .catch((err) => {
-                                        console.log(err);
-                                    });
+                                    )
+                                        .then((res) => res.json())
+                                        .then((data) => {
+                                            if (data.success) {
+                                                loginPlayer(player, data.role);
+                                                commands.printchat(
+                                                    "¡Registrado exitosamente! :)",
+                                                    msg.byId
+                                                );
+                                            } else {
+                                                if (
+                                                    data.reason === "registered"
+                                                ) {
+                                                    commands.printchat(
+                                                        "El usuario ya existe.",
+                                                        msg.byId,
+                                                        "error"
+                                                    );
+                                                } else if (
+                                                    data.reason === "error"
+                                                ) {
+                                                    commands.printchat(
+                                                        "Hubo un error, intentá más tarde.",
+                                                        msg.byId,
+                                                        "error"
+                                                    );
+                                                }
+                                            }
+                                        });
+                                }
                             } else {
                                 commands.printchat(
                                     "Las contraseñas no coinciden.",

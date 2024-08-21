@@ -77,22 +77,18 @@ module.exports = function (API) {
         commands.printchat("Historial:\n" + str, playerId);
     }
 
-    function handleSumDBAssists(player, sumAssists) {
+    function handleSumDBScore(player, sumScore) {
         if (auth) {
             if (auth.getLoggedPlayers().includes(player)) {
-                auth.getUserAssists(player.name).then((assists) => {
-                    auth.setUserAssists(player.name, assists + sumAssists);
-                });
+                auth.sumUserStats(player.name, sumScore, 0, 0, 0);
             }
         }
     }
 
-    function handleSumDBScore(player, sumScore) {
+    function handleSumDBAssists(player, sumAssists) {
         if (auth) {
             if (auth.getLoggedPlayers().includes(player)) {
-                auth.getUserScore(player.name).then((score) => {
-                    auth.setUserScore(player.name, score + sumScore);
-                });
+                auth.sumUserStats(player.name, 0, sumAssists, 0, 0);
             }
         }
     }
@@ -100,9 +96,7 @@ module.exports = function (API) {
     function handleSumDBWin(player, sumWins) {
         if (auth) {
             if (auth.getLoggedPlayers().includes(player)) {
-                auth.getUserWins(player.name).then((wins) => {
-                    auth.setUserWins(player.name, wins + sumWins);
-                });
+                auth.sumUserStats(player.name, 0, 0, sumWins, 0);
             }
         }
     }
@@ -110,9 +104,7 @@ module.exports = function (API) {
     function handleSumDBMatch(player, sumMatch) {
         if (auth) {
             if (auth.getLoggedPlayers().includes(player)) {
-                auth.getUserMatches(player.name).then((matches) => {
-                    auth.setUserMatches(player.name, matches + sumMatch);
-                });
+                auth.sumUserStats(player.name, 0, 0, 0, sumMatch);
             }
         }
     }
@@ -199,9 +191,7 @@ module.exports = function (API) {
             const maxPlayers = 15;
             auth.getAllUsersStats().then((data) => {
                 var stats = data.filter((s) => s.matches > 0);
-                stats.sort((a, b) =>
-                    that.calcRating(a) > that.calcRating(b) ? -1 : 1
-                );
+                stats.sort((a, b) => (a.rating > b.rating ? -1 : 1));
                 if (stats.length === 0) {
                     that.room.sendAnnouncement(
                         "No hay registros.",
@@ -219,11 +209,9 @@ module.exports = function (API) {
                     var title = "";
                     var body = "";
 
-                    var rating = that.calcRating(s);
-
-                    title = `${stats.indexOf(s) + 1}. ${
-                        s.username
-                    } - ${rating}\n`;
+                    title = `${stats.indexOf(s) + 1}. ${s.username} - ${
+                        s.rating
+                    }\n`;
                     body = `${s.score} goles - ${s.assists} asistencias - Pj: ${s.matches} / Pg: ${s.wins}\n `;
 
                     that.room.sendAnnouncement(
@@ -247,19 +235,24 @@ module.exports = function (API) {
 
                 auth.getLoggedPlayers().forEach((p) => {
                     if (p.id === targetId) {
-                        let promise = auth.getUserStats(p.name).then((s) => {
-                            isLogged = true;
+                        let promise = auth
+                            .getUserStats(p.name)
+                            .then((s) => {
+                                isLogged = true;
 
-                            let str = `Tus stats: ${s.score} goles - ${s.assists} asistencias - Pj: ${s.matches} / Pg: ${s.wins}`;
+                                let str = `Tus stats: ${s.score} goles - ${s.assists} asistencias - Pj: ${s.matches} / Pg: ${s.wins}`;
 
-                            that.room.sendAnnouncement(
-                                str,
-                                targetId,
-                                commands.getColors().lightOrange,
-                                "small-bold",
-                                2
-                            );
-                        });
+                                that.room.sendAnnouncement(
+                                    str,
+                                    targetId,
+                                    commands.getColors().lightOrange,
+                                    "small-bold",
+                                    2
+                                );
+                            })
+                            .catch((err) => {
+                                console.log(err);
+                            });
                         promises.push(promise);
                     }
                 });
@@ -281,23 +274,6 @@ module.exports = function (API) {
 
     this.getPlayersSessionStats = function () {
         return playersSessionStats;
-    };
-
-    this.calcRating = function (stats) {
-        const baseScore = 1000;
-        const scoreWeight = 4; // Peso de cada gol
-        const assistWeight = 3; // Peso de cada asistencia
-        const matchWeight = -3; // Peso de cada partido jugado (penalización para evitar inflar la puntuación solo por jugar muchos partidos)
-        const winWeight = 6; // Peso de cada victoria
-
-        const rating =
-            baseScore +
-            stats.score * scoreWeight +
-            stats.assists * assistWeight +
-            stats.matches * matchWeight +
-            stats.wins * winWeight;
-
-        return rating;
     };
 
     this.initialize = function () {
@@ -412,8 +388,10 @@ module.exports = function (API) {
             commands.onTeamGoalQueue.push((teamId, customData) => {
                 try {
                     if (
-                        lastPlayerKickedBall.team.id === teamId ||
-                        lastPlayerTouchedBall.team.id === teamId
+                        (lastPlayerTouchedBall &&
+                            lastPlayerKickedBall.team.id === teamId) ||
+                        (lastPlayerTouchedBall &&
+                            lastPlayerTouchedBall.team.id === teamId)
                     ) {
                         // Para que el gol sea computado positivo, tiene que haber sido el último jugador en interactuar
                         // con la pelota, ya sea pateando o tocandola.
