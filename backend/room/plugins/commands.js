@@ -40,7 +40,7 @@ module.exports = function (API) {
     this.data = {
         discord: "https://discord.gg/U7Tc9uKg",
         //APIUrl: "http://localhost:7999",
-        APIUrl: "https://swpajaritos.onrender.com",
+        APIUrl: "https://vps-4333390-x.dattaweb.com",
     };
 
     this.utils = Utils;
