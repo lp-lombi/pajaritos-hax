@@ -38,9 +38,9 @@ module.exports = function (API) {
         that = this;
 
     this.data = {
-        discord: "https://discord.gg/ZrzCysAD",
-        APIUrl: "http://localhost:7999",
-        //APIUrl: "https://swpajaritos.onrender.com",
+        discord: "https://discord.gg/U7Tc9uKg",
+        //APIUrl: "http://localhost:7999",
+        APIUrl: "https://swpajaritos.onrender.com",
     };
 
     this.utils = Utils;
@@ -95,38 +95,62 @@ module.exports = function (API) {
             let allowed = new Promise((resolve, reject) => {
                 if (force) resolve(true);
                 if (p) {
-                    db.all(
-                        `SELECT role FROM users WHERE username = "${p.name}"`,
-                        (err, rows) => {
-                            if (err) return resolve(true); // si falla, se usa el comportamiento normal de Haxball
-                            if (rows.length > 0) {
-                                if (rows[0].role >= 2 && msg.byId !== 0) {
-                                    console.log(msg.byId);
-                                    let authPlugin = that.room.plugins.find(
-                                        (p) => p.name === "lmbAuth"
-                                    );
-                                    if (authPlugin) {
-                                        let isLogged = authPlugin
-                                            .getLoggedPlayers()
-                                            .find((lp) => lp.id === msg.id);
-                                        if (isLogged) {
-                                            that.room.setPlayerAdmin(
-                                                msg.byId,
-                                                false
-                                            );
-                                            that.printchat(
-                                                "FLASHASTE UNA BANDA",
-                                                msg.byId,
-                                                "error"
-                                            );
-                                            resolve(false);
+                    fetch(that.data.APIUrl + "/users/getuser", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify({
+                            username: p.name,
+                        }),
+                    })
+                        .then((res) => {
+                            if (res.ok) {
+                                res.json()
+                                    .then((data) => {
+                                        if (
+                                            data &&
+                                            data.user &&
+                                            data.user.role >= 2 &&
+                                            msg.byId !== 0
+                                        ) {
+                                            let authPlugin =
+                                                that.room.plugins.find(
+                                                    (p) => p.name === "lmbAuth"
+                                                );
+                                            if (authPlugin) {
+                                                let isLogged = authPlugin
+                                                    .getLoggedPlayers()
+                                                    .find(
+                                                        (lp) => lp.id === msg.id
+                                                    );
+                                                if (isLogged) {
+                                                    that.room.setPlayerAdmin(
+                                                        msg.byId,
+                                                        false
+                                                    );
+                                                    that.printchat(
+                                                        "FLASHASTE UNA BANDA",
+                                                        msg.byId,
+                                                        "error"
+                                                    );
+                                                    resolve(false);
+                                                }
+                                            }
                                         }
-                                    }
-                                }
-                            }
+                                        resolve(true);
+                                    })
+                                    .catch((err) => {
+                                        // si falla, se usa el comportamiento normal de Haxball
+                                        console.log(err);
+                                        resolve(true);
+                                    });
+                            } else resolve(true);
+                        })
+                        .catch((err) => {
+                            console.log(err);
                             resolve(true);
-                        }
-                    );
+                        });
                 }
             });
 

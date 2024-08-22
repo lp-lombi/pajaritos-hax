@@ -233,6 +233,7 @@ module.exports = function (API) {
                                 .then((res) => res.json())
                                 .then((data) => {
                                     if (data.validated) {
+                                        console.log("Deberia loguear");
                                         loginPlayer(player, data.role);
                                         commands.printchat(
                                             "Sesión iniciada.",

@@ -3,7 +3,7 @@ const fs = require("fs");
 const room = express.Router();
 
 var roomCreator = require("../room/mainw");
-var discordBot = require("../discord/main");
+// var discordBot = require("../discord/main");
 
 var stadiumsPath = "./room/stadiums/";
 
@@ -22,13 +22,15 @@ room.post("/start", function (req, res) {
                     res.send("Host open");
 
                     if (!DEBUG) {
-                        setTimeout(() => {
-                            if (global.room.link.startsWith("https://")) {
-                                discordBot.chat(
-                                    "Host abierto: " + global.room.link
-                                );
-                            }
-                        }, 6000);
+                        if (discordBot) {
+                            setTimeout(() => {
+                                if (global.room.link.startsWith("https://")) {
+                                    discordBot.chat(
+                                        "Host abierto: " + global.room.link
+                                    );
+                                }
+                            }, 6000);
+                        }
                     }
 
                     // se guarda la configuracion

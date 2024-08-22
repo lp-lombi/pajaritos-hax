@@ -9,7 +9,7 @@ export const ApiService = ({ children }) => {
     const [roomStatus, setRoomStatus] = useState(null);
     const [roomData, setRoomData] = useState(null);
     const [gameData, setGameData] = useState(null);
-    const [players, setPlayers] = useState([]);
+    const [players, setPlayers] = useState([]);true
     const [chatLog, setChatLog] = useState("");
 
     const fetchPlayers = () => {
