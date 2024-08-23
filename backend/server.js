@@ -3,7 +3,7 @@ var cors = require("cors");
 var express = require("express");
 var app = express();
 
-const port = 42925;
+var port = 42925;
 
 global.room = null;
 
@@ -23,6 +23,25 @@ app.get("/app", function (req, res) {
     res.sendFile(__dirname + "/views/dist/index.html");
 });
 
-app.listen(port);
+function start(ttl = 10) {
+    app.listen(port)
+        .once("listening", () => {
+            console.log(`Servidor web corriendo en http://localhost:${port}/`);
+        })
+        .once("error", (err) => {
+            if (err.code === "EADDRINUSE") {
+                if (ttl > 0) {
+                    port++;
+                    start(ttl - 1);
+                    console.log(
+                        `El puerto ${port} está en uso, utilizando el siguiente`
+                    );
+                } else {
+                    console.error("Máximo de intentos alcanzados.");
+                    process.exit(1);
+                }
+            }
+        });
+}
 
-console.log(`Servidor web corriendo en http://localhost:${port}/`);
+start();
