@@ -389,9 +389,15 @@ module.exports = function (API) {
                 try {
                     if (
                         (lastPlayerTouchedBall &&
+                            lastPlayerTouchedBall ===
+                                lastPlayerInteractedBall &&
+                            lastPlayerTouchedBall.team.id === teamId) ||
+                        (lastPlayerTouchedBall &&
                             lastPlayerKickedBall.team.id === teamId) ||
                         (lastPlayerTouchedBall &&
-                            lastPlayerTouchedBall.team.id === teamId)
+                            lastPlayerTouchedBall.team.id === teamId) ||
+                        (lastPlayerInteractedBall === lastPlayerKickedBall &&
+                            lastPlayerInteractedBall.team.id === teamId)
                     ) {
                         // Para que el gol sea computado positivo, tiene que haber sido el último jugador en interactuar
                         // con la pelota, ya sea pateando o tocandola.
@@ -445,7 +451,8 @@ module.exports = function (API) {
                             }
                         }
                     } else if (lastPlayerKickedBall) {
-                        if (lastPlayerKickedBall.teamId !== teamId) {
+                        if (lastPlayerKickedBall.team.id !== teamId) {
+                            console.log(lastPlayerKickedBall);
                             // Para que el gol sea computado negativo, sólo cuenta si fue el último en patearla.
                             let playerInStats = playersSessionStats.find(
                                 (p) => p.player.id === lastPlayerKickedBall.id

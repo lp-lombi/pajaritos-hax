@@ -33,13 +33,10 @@ module.exports = function (API) {
     });
 
     var commands,
-        loggedPlayers = [],
         that = this;
 
     function loginPlayer(player, role) {
-        if (!loggedPlayers.includes(player)) {
-            loggedPlayers.push(player);
-        }
+        player.isLoggedIn = true;
         if (role === 1 || role === 2) {
             that.room.setPlayerAdmin(player.id, true);
         }
@@ -109,15 +106,21 @@ module.exports = function (API) {
     };
 
     this.getLoggedPlayers = function () {
+        let loggedPlayers = [];
+        that.room.players.forEach((p) => {
+            if (p.isLoggedIn) {
+                loggedPlayers.push(p);
+            }
+        });
         return loggedPlayers;
     };
 
     this.isPlayerLogged = function (playerId) {
-        let logged = false;
-        loggedPlayers.forEach((p) => {
-            p.id === playerId ? (logged = true) : null;
-        });
-        return logged;
+        let p = that.room.players.find((p) => p.id === playerId);
+        if (p && p.isLoggedIn) {
+            return true;
+        }
+        return false;
     };
 
     this.initialize = function () {
@@ -211,7 +214,7 @@ module.exports = function (API) {
                             (p) => p.id === msg.byId
                         );
                         if (player) {
-                            if (loggedPlayers.includes(player)) {
+                            if (that.getLoggedPlayers().includes(player)) {
                                 commands.printchat(
                                     "Ya estás logueado.",
                                     msg.byId,
@@ -264,18 +267,17 @@ module.exports = function (API) {
                         }
                     }
                 });
+                commands.onPlayerJoinQueue.push((msg) => {
+                    setTimeout(() => {
+                        let player = that.room.players.find(
+                            (p) => p.id === msg.V
+                        );
+                        player.isLoggedIn = false;
+                    }, 1000);
+                });
             } catch (err) {
                 console.log(err);
             }
-            commands.onPlayerLeaveQueue.push((id) => {
-                let loggedPlayer = loggedPlayers.find((p) => p.id === id);
-                loggedPlayer
-                    ? loggedPlayers.splice(
-                          loggedPlayers.indexOf(loggedPlayer),
-                          1
-                      )
-                    : null;
-            });
         }
     };
 };
