@@ -35,7 +35,7 @@ room.post("/start", function (req, res) {
 
                     // se guarda la configuracion
                     setTimeout(() => {
-                        fs.writeFile(
+                        fs.writeFileSync(
                             "./config.json",
                             JSON.stringify(config),
                             function (err) {

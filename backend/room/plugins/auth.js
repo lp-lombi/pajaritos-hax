@@ -35,6 +35,11 @@ module.exports = function (API) {
     var commands,
         that = this;
 
+    var fs = require("fs/promises");
+    var path = require("path");
+
+    this.apiKey = "";
+
     function loginPlayer(player, role) {
         player.isLoggedIn = true;
         if (role === 1 || role === 2) {
@@ -44,7 +49,11 @@ module.exports = function (API) {
 
     this.getAllUsersStats = async () => {
         return new Promise((resolve, reject) => {
-            fetch(commands.data.APIUrl + "/users/stats/all")
+            fetch(commands.data.APIUrl + "/users/stats/all", {
+                headers: {
+                    "x-api-key": that.apiKey,
+                },
+            })
                 .then((res) => {
                     if (res.ok) {
                         res.json().then((data) => {
@@ -67,6 +76,7 @@ module.exports = function (API) {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
+                    "x-api-key": that.apiKey,
                 },
                 body: JSON.stringify({
                     username,
@@ -92,6 +102,7 @@ module.exports = function (API) {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
+                "x-api-key": that.apiKey,
             },
             body: JSON.stringify({
                 username,
@@ -131,6 +142,32 @@ module.exports = function (API) {
             );
         } else {
             try {
+                fs.readFile(path.join(__dirname, "/res/auth.json"))
+                    .then((data) => {
+                        let authData = JSON.parse(data);
+                        if (authData.apiKey && authData.apiKey !== "") {
+                            that.apiKey = authData.apiKey;
+                        } else {
+                            console.log(
+                                "auth: La apiKey del archivo es inválida"
+                            );
+                        }
+                    })
+                    .catch((err) => {
+                        if (err.code === "ENOENT") {
+                            console.log(
+                                "auth: Creando un nuevo archivo. en /plugins/res/auth.json, poné el token en el campo apiKey (requiere reinicio)"
+                            );
+                            fs.writeFile(
+                                path.join(__dirname, "/res/auth.json"),
+                                JSON.stringify({ apiKey: "" }),
+                                (err) => {
+                                    console.log(err);
+                                }
+                            );
+                        }
+                    });
+
                 commands.registerCommand(
                     "!",
                     "register",
@@ -155,6 +192,7 @@ module.exports = function (API) {
                                             headers: {
                                                 "Content-Type":
                                                     "application/json",
+                                                "x-api-key": that.apiKey,
                                             },
                                             body: JSON.stringify({
                                                 username: player.name,
@@ -227,6 +265,7 @@ module.exports = function (API) {
                                 method: "POST",
                                 headers: {
                                     "Content-Type": "application/json",
+                                    "x-api-key": that.apiKey,
                                 },
                                 body: JSON.stringify({
                                     username: player.name,

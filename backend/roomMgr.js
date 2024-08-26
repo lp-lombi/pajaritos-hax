@@ -1,4 +1,4 @@
-/**/
+/*  */
 var cors = require("cors");
 var express = require("express");
 var app = express();
@@ -19,7 +19,7 @@ app.use("/room", room);
 app.use("/game", game);
 app.use("/players", players);
 
-app.get("/app", function (req, res) {
+app.get("/app", (req, res) => {
     res.sendFile(__dirname + "/views/dist/index.html");
 });
 
