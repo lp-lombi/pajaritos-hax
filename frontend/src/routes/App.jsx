@@ -1,18 +1,19 @@
 import { useEffect, useState } from "react";
-import { useApi } from "./services/ApiService";
+import { useApi } from "../services/ApiService";
 
-import Header from "./components/Header";
-import StartForm from "./components/StartForm";
-import PlayersList from "./components/PlayersList";
-import RoomOptions from "./components/RoomOptions";
-import Chat from "./components/Chat";
-import Popup from "./components/Popup";
+import Header from "../components/Header";
+import StartForm from "../components/StartForm";
+import PlayersList from "../components/PlayersList";
+import RoomOptions from "../components/RoomOptions";
+import Chat from "../components/Chat";
 
 function App() {
-    const { fetchRoomStatus, roomStatus } = useApi();
+    const { apiToken, setApiToken, fetchRoomStatus, roomStatus } = useApi();
 
     useEffect(() => {
-        fetchRoomStatus();
+        if (apiToken) {
+            fetchRoomStatus();
+        }
     }, []);
 
     useEffect(() => {
@@ -21,7 +22,6 @@ function App() {
 
     return (
         <>
-            <Popup />
             <Header />
             <main>
                 <div className="main-container">

@@ -113,6 +113,7 @@ export const StartForm = () => {
                     name="token"
                     type="text"
                     placeholder="Pegar token acá (sin comillas)"
+                    style={{ minWidth: "60%" }}
                 />
                 <button
                     style={{

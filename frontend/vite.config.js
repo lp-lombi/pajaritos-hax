@@ -7,9 +7,10 @@ export default defineConfig({
     server: {
         port: 8001,
         proxy: {
-            "/game": "http://localhost:8000",
-            "/room": "http://localhost:8000",
-            "/players": "http://localhost:8000",
+            "/game": "http://localhost:42925",
+            "/room": "http://localhost:42925",
+            "/players": "http://localhost:42925",
+            "/login": "http://localhost:42925",
         },
     },
 });

@@ -46,7 +46,7 @@ section {
     gap: 1rem;
 
     min-height: 300px;
-    min-width: 400px;
+    min-width: 325px;
 
     border-radius: 1rem;
     box-shadow: 4px 4px 15px rgba(0, 0, 0, 0.2);
@@ -94,6 +94,7 @@ input::-webkit-inner-spin-button {
 }
 
 input[type="text"],
+input[type="password"],
 input[type="number"] {
     -moz-appearance: textfield;
 
@@ -111,6 +112,8 @@ input[type="number"] {
 
 .start-form {
     height: 600px;
+    width: 100%;
+    max-width: 1000px;
 
     display: flex;
     flex-direction: column;
@@ -118,9 +121,23 @@ input[type="number"] {
 }
 
 .start-form input[type="text"],
+.start-form input[type="password"],
 .start-form input[type="number"] {
     width: 90%;
     min-width: 75%;
+}
+
+.start-form.login {
+    justify-content: space-evenly;
+    height: 500px;
+}
+
+.start-form.login .form-field {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
 }
 
 ul {

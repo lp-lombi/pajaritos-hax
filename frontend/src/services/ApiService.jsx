@@ -6,14 +6,51 @@ const ApiContext = createContext();
 export const ApiService = ({ children }) => {
     const { popupLoading, popupAlert, closePopup } = usePopup();
 
+    const [apiToken, setApiToken] = useState("");
+
     const [roomStatus, setRoomStatus] = useState(null);
     const [roomData, setRoomData] = useState(null);
     const [gameData, setGameData] = useState(null);
-    const [players, setPlayers] = useState([]);true
+    const [players, setPlayers] = useState([]);
     const [chatLog, setChatLog] = useState("");
 
+    const login = (username, password) => {
+        fetch("/login", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ username, password }),
+        }).then((res) => {
+            if (res.ok) {
+                res.json().then((data) => {
+                    if (data.token) {
+                        localStorage.setItem("token", data.token);
+                        setApiToken(data.token);
+                    } else {
+                        localStorage.setItem("token", "");
+                        setApiToken("");
+                        popupAlert(
+                            "No se pudo validar",
+                            "Usuario o contraseña incorrectos."
+                        );
+                    }
+                });
+            } else {
+                localStorage.setItem("token", "");
+                setApiToken("");
+                popupAlert("No se pudo validar", "Error del servidor.");
+                console.log(res.statusText);
+            }
+        });
+    };
+
     const fetchPlayers = () => {
-        fetch(`/players/all`).then((res) => {
+        fetch(`/players/all`, {
+            headers: {
+                token: apiToken,
+            },
+        }).then((res) => {
             if (res.ok) {
                 res.json().then((data) => {
                     setPlayers(data.players);
@@ -24,7 +61,11 @@ export const ApiService = ({ children }) => {
 
     const getDefaultConfig = async () => {
         return new Promise((resolve, reject) => {
-            fetch(`/room/config`).then((res) => {
+            fetch(`/room/config`, {
+                headers: {
+                    token: apiToken,
+                },
+            }).then((res) => {
                 if (res.ok) {
                     res.json().then((data) => {
                         resolve(data);
@@ -35,7 +76,11 @@ export const ApiService = ({ children }) => {
     };
 
     const fetchRoomStatus = (attempts = 0) => {
-        fetch(`/room/status`).then((res) => {
+        fetch(`/room/status`, {
+            headers: {
+                token: apiToken,
+            },
+        }).then((res) => {
             if (res.ok) {
                 res.json().then((data) => {
                     if (data.status === "open") {
@@ -63,7 +108,11 @@ export const ApiService = ({ children }) => {
 
     const fetchRoomData = async () => {
         return new Promise(async (resolve, reject) => {
-            fetch(`/room`).then((res) => {
+            fetch(`/room`, {
+                headers: {
+                    token: apiToken,
+                },
+            }).then((res) => {
                 if (res.ok) {
                     res.json().then((data) => {
                         setRoomData(data);
@@ -83,6 +132,7 @@ export const ApiService = ({ children }) => {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
+                token: apiToken,
             },
             body: JSON.stringify(config),
         }).then((res) => {
@@ -99,6 +149,9 @@ export const ApiService = ({ children }) => {
     const stopRoom = () => {
         fetch(`/room/stop`, {
             method: "POST",
+            headers: {
+                token: apiToken,
+            },
         }).then((res) => {
             if (res.ok) {
                 fetchRoomStatus();
@@ -107,7 +160,11 @@ export const ApiService = ({ children }) => {
     };
 
     const startGame = () => {
-        fetch(`/game/start`).then((res) => {
+        fetch(`/game/start`, {
+            headers: {
+                token: apiToken,
+            },
+        }).then((res) => {
             if (!res.ok) {
                 console.log("Error al iniciar juego");
             } else {
@@ -117,7 +174,11 @@ export const ApiService = ({ children }) => {
     };
 
     const pauseGame = () => {
-        fetch(`/game/pause`).then((res) => {
+        fetch(`/game/pause`, {
+            headers: {
+                token: apiToken,
+            },
+        }).then((res) => {
             if (!res.ok) {
                 console.log("Error al pausar juego");
             } else {
@@ -127,7 +188,11 @@ export const ApiService = ({ children }) => {
     };
 
     const stopGame = () => {
-        fetch(`/game/stop`).then((res) => {
+        fetch(`/game/stop`, {
+            headers: {
+                token: apiToken,
+            },
+        }).then((res) => {
             if (!res.ok) {
                 console.log("Error al detener juego");
             } else {
@@ -137,7 +202,11 @@ export const ApiService = ({ children }) => {
     };
 
     const fetchGameData = () => {
-        fetch(`/game/data`).then((res) => {
+        fetch(`/game/data`, {
+            headers: {
+                token: apiToken,
+            },
+        }).then((res) => {
             if (res.ok) {
                 res.json().then((data) => {
                     setGameData(data);
@@ -153,6 +222,7 @@ export const ApiService = ({ children }) => {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
+                token: apiToken,
             },
             body: JSON.stringify({ stadium }),
         }).then((res) => {
@@ -169,6 +239,7 @@ export const ApiService = ({ children }) => {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
+                token: apiToken,
             },
             body: JSON.stringify({ stadiumName }),
         }).then((res) => {
@@ -181,6 +252,9 @@ export const ApiService = ({ children }) => {
     const kickPlayer = (id, reason = "", ban = false) => {
         fetch(`/room/kick?id=${id}&reason=${reason}&ban=${ban}`, {
             method: "POST",
+            headers: {
+                token: apiToken,
+            },
         }).then((res) => {
             if (res.ok) {
                 return;
@@ -191,7 +265,10 @@ export const ApiService = ({ children }) => {
     };
 
     const unbanPlayer = (id) => {
-        fetch(`/room/kick/unban?id=${id}`, { method: "POST" }).then((res) => {
+        fetch(`/room/kick/unban?id=${id}`, {
+            method: "POST",
+            headers: { token: apiToken },
+        }).then((res) => {
             if (!res.ok) {
                 console.log("Error al desbanear");
             }
@@ -199,7 +276,11 @@ export const ApiService = ({ children }) => {
     };
 
     const fetchChat = () => {
-        fetch(`/room/chat`).then((res) => {
+        fetch(`/room/chat`, {
+            headers: {
+                token: apiToken,
+            },
+        }).then((res) => {
             if (res.ok) {
                 res.json().then((data) => {
                     let chat = "";
@@ -217,6 +298,7 @@ export const ApiService = ({ children }) => {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
+                token: apiToken,
             },
             body: JSON.stringify({ msg }),
         }).then((res) => {
@@ -228,6 +310,25 @@ export const ApiService = ({ children }) => {
             }
         });
     };
+
+    // Este useEffect es solo para hacer un get a este endpoint que solo devuelve
+    // el estado. La unica posibilidad de que falle es si el token es invalido.
+    // Si el token es invalido, se borra de la memoria local.
+    useEffect(() => {
+        fetch(`/room/status`, {
+            headers: {
+                token: localStorage.getItem("token"),
+            },
+        }).then((res) => {
+            if (res.status === 401 || res.status === 403) {
+                localStorage.setItem("token", "");
+                setApiToken("");
+                console.log(
+                    "Token previo posiblemente expirado: \n" + res.statusText
+                );
+            }
+        });
+    }, []);
 
     useEffect(() => {
         if (roomStatus === "open") {
@@ -248,6 +349,10 @@ export const ApiService = ({ children }) => {
     return (
         <ApiContext.Provider
             value={{
+                apiToken,
+                setApiToken,
+                login,
+
                 fetchPlayers,
                 fetchRoomData,
                 roomData,

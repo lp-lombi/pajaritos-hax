@@ -26,7 +26,7 @@ login.post("/", function (req, res) {
                     }
                 });
             } else {
-                console.log(res.status + " | " + res.statusText);
+                console.log(response.status + " | " + response.statusText);
                 res.status(401).send({
                     message: "No se pudo iniciar la sesión",
                 });
