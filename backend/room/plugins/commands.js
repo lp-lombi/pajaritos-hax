@@ -1,4 +1,4 @@
-module.exports = function (API) {
+module.exports = function (API, customData = {}) {
     const {
         OperationType,
         VariableType,
@@ -38,9 +38,11 @@ module.exports = function (API) {
         that = this;
 
     this.data = {
-        discord: "https://discord.gg/U7Tc9uKg",
-        //APIUrl: "http://localhost:7999",
-        APIUrl: "https://vps-4333390-x.dattaweb.com",
+        discord: "https://discord.com/invite/Y5ZWvjftP6",
+        webApi: {
+            url: "",
+            key: "",
+        },
     };
 
     this.utils = Utils;
@@ -69,7 +71,6 @@ module.exports = function (API) {
     };
 
     const path = require("path");
-    const fs = require("fs");
     const sqlite3 = require("sqlite3");
     db = new sqlite3.Database(path.join(__dirname, "res/commands.db"));
 
@@ -410,6 +411,10 @@ module.exports = function (API) {
     };
 
     this.initialize = function () {
+        if (customData.webApi) {
+            that.data.webApi = customData.webApi;
+        }
+
         fetchKits();
         that.processBans();
         // fs.writeFileSync(path.join(__dirname, "res/log.txt"), ""); // Se limpia el log del chat

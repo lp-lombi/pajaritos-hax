@@ -31,7 +31,7 @@ DEV ? (createParams["password"] = "121") : null;
 API.Room.create(createParams, {
     plugins: [
         new powerShot(API),
-        new commands(API),
+        new commands(API, config.APIURL ? config.APIURL : null),
         new matchHistory(API),
         new auth(API),
         new autobot(API),

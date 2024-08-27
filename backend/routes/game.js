@@ -3,7 +3,7 @@ const game = express.Router();
 
 var stadiumsPath = "./room/stadiums/";
 
-game.get("/start", function (req, res) {
+game.get("/start", global.verifyToken, function (req, res) {
     if (!global.room) {
         res.send("Host not open");
     } else {
@@ -16,7 +16,7 @@ game.get("/start", function (req, res) {
     }
 });
 
-game.get("/pause", function (req, res) {
+game.get("/pause", global.verifyToken, function (req, res) {
     if (!global.room) {
         res.send("Host not open");
     } else {
@@ -29,7 +29,7 @@ game.get("/pause", function (req, res) {
     }
 });
 
-game.get("/stop", function (req, res) {
+game.get("/stop", global.verifyToken, function (req, res) {
     if (!global.room) {
         res.send("Host not open");
     } else {
@@ -42,7 +42,7 @@ game.get("/stop", function (req, res) {
     }
 });
 
-game.get("/data", function (req, res) {
+game.get("/data", global.verifyToken, function (req, res) {
     if (!global.room) {
         res.send("Host not open");
     } else {
@@ -63,7 +63,7 @@ game.get("/data", function (req, res) {
     }
 });
 
-game.post("/stadium/load", function (req, res) {
+game.post("/stadium/load", global.verifyToken, function (req, res) {
     if (!global.room) {
         res.send("Host not open");
     } else {
@@ -97,7 +97,7 @@ game.post("/stadium/load", function (req, res) {
     }
 });
 
-game.post("/stadium/save", function (req, res) {
+game.post("/stadium/save", global.verifyToken, function (req, res) {
     if (!global.room) {
         res.send("Host not open");
     } else {

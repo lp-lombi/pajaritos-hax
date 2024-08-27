@@ -1,7 +1,7 @@
 const express = require("express");
 const players = express.Router();
 
-players.get("/all", (req, res) => {
+players.get("/all", global.verifyToken, (req, res) => {
     if (global.room) {
         let playersData = {
             players: [],
@@ -23,7 +23,7 @@ players.get("/all", (req, res) => {
     }
 });
 
-players.get("/logged", (req, res) => {
+players.get("/logged", global.verifyToken, (req, res) => {
     if (global.room) {
         let auth = global.room.plugins.find((p) => p.name === "lmbAuth");
         if (auth) {

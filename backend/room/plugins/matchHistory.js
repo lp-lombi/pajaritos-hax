@@ -452,7 +452,6 @@ module.exports = function (API) {
                         }
                     } else if (lastPlayerKickedBall) {
                         if (lastPlayerKickedBall.team.id !== teamId) {
-                            console.log(lastPlayerKickedBall);
                             // Para que el gol sea computado negativo, sólo cuenta si fue el último en patearla.
                             let playerInStats = playersSessionStats.find(
                                 (p) => p.player.id === lastPlayerKickedBall.id

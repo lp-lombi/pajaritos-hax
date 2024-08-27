@@ -49,9 +49,9 @@ module.exports = function (API) {
 
     this.getAllUsersStats = async () => {
         return new Promise((resolve, reject) => {
-            fetch(commands.data.APIUrl + "/users/stats/all", {
+            fetch(commands.data.webApi.url + "/users/stats/all", {
                 headers: {
-                    "x-api-key": that.apiKey,
+                    "x-api-key": commands.data.webApi.key,
                 },
             })
                 .then((res) => {
@@ -72,11 +72,11 @@ module.exports = function (API) {
 
     this.getUserStats = async (username) => {
         return new Promise((resolve, reject) => {
-            fetch(commands.data.APIUrl + "/users/getuser", {
+            fetch(commands.data.webApi.url + "/users/getuser", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
-                    "x-api-key": that.apiKey,
+                    "x-api-key": commands.data.webApi.key,
                 },
                 body: JSON.stringify({
                     username,
@@ -98,11 +98,11 @@ module.exports = function (API) {
     };
 
     this.sumUserStats = async (username, score, assists, wins, matches) => {
-        fetch(commands.data.APIUrl + "/users/stats/sum", {
+        fetch(commands.data.webApi.url + "/users/stats/sum", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
-                "x-api-key": that.apiKey,
+                "x-api-key": commands.data.webApi.key,
             },
             body: JSON.stringify({
                 username,
@@ -142,11 +142,23 @@ module.exports = function (API) {
             );
         } else {
             try {
-                fs.readFile(path.join(__dirname, "/res/auth.json"))
+                if (
+                    commands.data.webApi.url === "" ||
+                    commands.data.webApi.key === ""
+                ) {
+                    setTimeout(() => {
+                        console.error(
+                            "***\nauth: No se recibió URL de la API o el token, el plugin no se iniciará.\n***"
+                        );
+                    }, 500);
+
+                    return;
+                }
+                /* fs.readFile(path.join(__dirname, "/res/auth.json"))
                     .then((data) => {
                         let authData = JSON.parse(data);
                         if (authData.apiKey && authData.apiKey !== "") {
-                            that.apiKey = authData.apiKey;
+                            commands.data.webApi.key = authData.apiKey;
                         } else {
                             console.log(
                                 "auth: La apiKey del archivo es inválida"
@@ -166,7 +178,7 @@ module.exports = function (API) {
                                 }
                             );
                         }
-                    });
+                    }); */
 
                 commands.registerCommand(
                     "!",
@@ -185,14 +197,15 @@ module.exports = function (API) {
                                 );
                                 if (player) {
                                     fetch(
-                                        commands.data.APIUrl +
+                                        commands.data.webApi.url +
                                             "/users/auth/register",
                                         {
                                             method: "POST",
                                             headers: {
                                                 "Content-Type":
                                                     "application/json",
-                                                "x-api-key": that.apiKey,
+                                                "x-api-key":
+                                                    commands.data.webApi.key,
                                             },
                                             body: JSON.stringify({
                                                 username: player.name,
@@ -261,21 +274,26 @@ module.exports = function (API) {
                                 return;
                             }
 
-                            fetch(commands.data.APIUrl + "/users/auth/login", {
-                                method: "POST",
-                                headers: {
-                                    "Content-Type": "application/json",
-                                    "x-api-key": that.apiKey,
-                                },
-                                body: JSON.stringify({
-                                    username: player.name,
-                                    password: args[0],
-                                }),
-                            })
+                            fetch(
+                                commands.data.webApi.url + "/users/auth/login",
+                                {
+                                    method: "POST",
+                                    headers: {
+                                        "Content-Type": "application/json",
+                                        "x-api-key": commands.data.webApi.key,
+                                    },
+                                    body: JSON.stringify({
+                                        username: player.name,
+                                        password: args[0],
+                                    }),
+                                }
+                            )
                                 .then((res) => res.json())
                                 .then((data) => {
                                     if (data.validated) {
-                                        console.log("Deberia loguear");
+                                        console.log(
+                                            "Inicio de sesión: " + player.name
+                                        );
                                         loginPlayer(player, data.role);
                                         commands.printchat(
                                             "Sesión iniciada.",

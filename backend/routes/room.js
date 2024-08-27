@@ -9,10 +9,10 @@ var stadiumsPath = "./room/stadiums/";
 
 const DEBUG = true;
 
-room.post("/start", function (req, res) {
+room.post("/start", global.verifyToken, function (req, res) {
     if (!global.room) {
         var config = req.body;
-        config.db = "../../room/plugins/res/commands.db";
+        config.webApi = global.webApi;
 
         roomCreator
             .run(config, DEBUG)
@@ -36,7 +36,7 @@ room.post("/start", function (req, res) {
                     // se guarda la configuracion
                     setTimeout(() => {
                         fs.writeFileSync(
-                            "./config.json",
+                            "./room/config.json",
                             JSON.stringify(config),
                             function (err) {
                                 if (err) {
@@ -58,7 +58,7 @@ room.post("/start", function (req, res) {
     }
 });
 
-room.post("/stop", function (req, res) {
+room.post("/stop", global.verifyToken, function (req, res) {
     if (global.room) {
         try {
             global.room.leave();
@@ -71,7 +71,7 @@ room.post("/stop", function (req, res) {
     }
 });
 
-room.get("/", function (req, res) {
+room.get("/", global.verifyToken, function (req, res) {
     if (global.room) {
         let roomData = {
             name: global.room.name,
@@ -109,7 +109,7 @@ room.get("/", function (req, res) {
     }
 });
 
-room.get("/status", function (req, res) {
+room.get("/status", global.verifyToken, function (req, res) {
     let data = {
         status: "closed",
     };
@@ -126,11 +126,11 @@ room.get("/status", function (req, res) {
     res.end(JSON.stringify(data));
 });
 
-room.get("/config", function (req, res) {
+room.get("/config", global.verifyToken, function (req, res) {
     var config = "";
 
     try {
-        config = JSON.parse(fs.readFileSync("./config.json"));
+        config = JSON.parse(fs.readFileSync("./room/config.json"));
     } catch (e) {
         console.log(e);
     }
@@ -139,7 +139,7 @@ room.get("/config", function (req, res) {
     res.end(JSON.stringify(config));
 });
 
-room.post("/setting", function (req, res) {
+room.post("/setting", global.verifyToken, function (req, res) {
     if (global.room) {
         let pluginName = req.body.pluginName;
         let settingName = req.body.settingName;
@@ -164,7 +164,7 @@ room.post("/setting", function (req, res) {
     }
 });
 
-room.get("/chat", function (req, res) {
+room.get("/chat", global.verifyToken, function (req, res) {
     if (global.room) {
         let commands = global.room.plugins.find(
             (p) => p.name === "lmbCommands"
@@ -178,7 +178,7 @@ room.get("/chat", function (req, res) {
     }
 });
 
-room.post("/chat", function (req, res) {
+room.post("/chat", global.verifyToken, function (req, res) {
     if (!global.room) {
         res.send("Host not open");
     } else {
@@ -192,7 +192,7 @@ room.post("/chat", function (req, res) {
     }
 });
 
-room.post("/kick", function (req, res) {
+room.post("/kick", global.verifyToken, function (req, res) {
     if (!global.room) {
         res.send("Host not open");
     } else {
@@ -214,7 +214,7 @@ room.post("/kick", function (req, res) {
     }
 });
 
-room.post("/kick/permaban", function (req, res) {
+room.post("/kick/permaban", global.verifyToken, function (req, res) {
     if (!global.room) {
         res.send("Host not open");
     } else {
@@ -244,7 +244,7 @@ room.post("/kick/permaban", function (req, res) {
     }
 });
 
-room.post("/kick/unban", function (req, res) {
+room.post("/kick/unban", global.verifyToken, function (req, res) {
     if (!global.room) {
         res.send("Host not open");
     } else {

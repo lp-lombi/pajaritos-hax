@@ -31,7 +31,7 @@ async function run(config, DEV = false) {
         var client = API.Room.create(createParams, {
             plugins: [
                 new powerShot(API),
-                new commands(API, config.db),
+                new commands(API, { webApi: config.webApi }),
                 new matchHistory(API),
                 new auth(API),
                 new autobot(API),
