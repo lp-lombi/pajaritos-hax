@@ -96,7 +96,7 @@ module.exports = function (API, customData = {}) {
             let allowed = new Promise((resolve, reject) => {
                 if (force) resolve(true);
                 if (p) {
-                    fetch(that.data.APIUrl + "/users/getuser", {
+                    fetch(that.data.webApi.url + "/users/getuser", {
                         method: "POST",
                         headers: {
                             "Content-Type": "application/json",

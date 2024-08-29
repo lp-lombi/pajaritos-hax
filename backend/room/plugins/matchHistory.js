@@ -35,7 +35,6 @@ module.exports = function (API) {
     var commands,
         auth,
         matchHistory = [],
-        playersSessionStats = [],
         lastPlayerInteractedBall = null,
         lastPlayerTouchedBall = null,
         lastPlayerKickedBall = null,
@@ -138,13 +137,13 @@ module.exports = function (API) {
         matchHistory = [];
     }
 
-    function clearPlayersSessionStats() {
+    /* function clearPlayersSessionStats() {
         playersSessionStats = [];
-    }
+    } */
 
     function printPlayersSessionStats(targetId) {
         var str = "";
-        if (playersSessionStats.length === 0) {
+        if (that.getPlayersSessionStats().length === 0) {
             that.room.sendAnnouncement(
                 "No hay registros.",
                 targetId,
@@ -153,9 +152,12 @@ module.exports = function (API) {
                 2
             );
         } else {
-            let playersStats = playersSessionStats.slice().sort((a, b) => {
-                return b.score - a.score;
-            });
+            let playersStats = that
+                .getPlayersSessionStats()
+                .slice()
+                .sort((a, b) => {
+                    return b.score - a.score;
+                });
             let reversedPlayersStats = playersStats.slice().reverse();
             reversedPlayersStats.forEach((p) => {
                 title = `${playersStats.indexOf(p) + 1}. ${p.player.name}\n`;
@@ -186,7 +188,7 @@ module.exports = function (API) {
         }
     }
 
-    function printPlayersDbStats(targetId) {
+    function printPlayersDbStats(targetId, page = 0) {
         if (auth) {
             const maxPlayers = 15;
             auth.getAllUsersStats().then((data) => {
@@ -240,7 +242,7 @@ module.exports = function (API) {
                             .then((s) => {
                                 isLogged = true;
 
-                                let str = `Tus stats: ${s.score} goles - ${s.assists} asistencias - Pj: ${s.matches} / Pg: ${s.wins}`;
+                                let str = `Tus stats: ${s.score} goles - ${s.assists} asistencias - Pj: ${s.matches} / Pg: ${s.wins} - (${s.rating})`;
 
                                 that.room.sendAnnouncement(
                                     str,
@@ -273,7 +275,19 @@ module.exports = function (API) {
     }
 
     this.getPlayersSessionStats = function () {
-        return playersSessionStats;
+        let stats = [];
+        that.room.players.forEach((p) => {
+            if (
+                p.sessionStats &&
+                (p.sessionStats.score > 0 || p.sessionStats.assists > 0)
+            )
+                stats.push({
+                    player: p,
+                    score: p.sessionStats.score,
+                    assists: p.sessionStats.assists,
+                });
+        });
+        return stats;
     };
 
     this.initialize = function () {
@@ -339,7 +353,6 @@ module.exports = function (API) {
                 let ball = that.room.gameState.physicsState.discs[0];
                 let ballCollided = false;
                 let player = null;
-                let playerCollided = false;
 
                 if (that.room.getBall(discId1) === ball) {
                     ballCollided = true;
@@ -387,88 +400,38 @@ module.exports = function (API) {
 
             commands.onTeamGoalQueue.push((teamId, customData) => {
                 try {
+                    // Para que el gol sea computado positivo, tiene que haber sido el último jugador en interactuar
+                    // con la pelota, ya sea pateando o tocandola.
                     if (
-                        (lastPlayerTouchedBall &&
-                            lastPlayerTouchedBall ===
-                                lastPlayerInteractedBall &&
-                            lastPlayerTouchedBall.team.id === teamId) ||
-                        (lastPlayerTouchedBall &&
-                            lastPlayerKickedBall.team.id === teamId) ||
-                        (lastPlayerTouchedBall &&
-                            lastPlayerTouchedBall.team.id === teamId) ||
-                        (lastPlayerInteractedBall === lastPlayerKickedBall &&
-                            lastPlayerInteractedBall.team.id === teamId)
+                        lastPlayerInteractedBall &&
+                        lastPlayerInteractedBall.team.id === teamId
                     ) {
-                        // Para que el gol sea computado positivo, tiene que haber sido el último jugador en interactuar
-                        // con la pelota, ya sea pateando o tocandola.
-                        let playerInStats = playersSessionStats.find(
-                            (p) => p.player.id === lastPlayerInteractedBall.id
-                        );
-                        if (!playerInStats) {
-                            playersSessionStats.push({
-                                player: lastPlayerInteractedBall,
-                                score: 0,
-                                assists: 0,
-                            });
-                            playerInStats = playersSessionStats.find(
-                                (p) =>
-                                    p.player.id === lastPlayerInteractedBall.id
-                            );
-                        }
-                        playerInStats.score += 1;
-                        handleSumDBScore(playerInStats.player, 1);
+                        lastPlayerInteractedBall.sessionStats.score += 1;
+                        handleSumDBScore(lastPlayerInteractedBall, 1);
+
                         // Para la asistencia, la anterior interacción tuvo que haber sido un pateo de un jugador del mismo equipo
                         if (playerBallInteractHistory.length > 1) {
-                            let penultimate =
-                                playerBallInteractHistory[
-                                    playerBallInteractHistory.length - 2
-                                ];
-                            let last =
-                                playerBallInteractHistory[
-                                    playerBallInteractHistory.length - 1
-                                ];
+                            let penultimate = playerBallInteractHistory.at(-2);
+                            let last = playerBallInteractHistory.at(-1);
                             if (
+                                penultimate.player &&
                                 penultimate.player.team.id === teamId &&
                                 penultimate.player.id !== last.player.id &&
                                 penultimate.reason === "kick"
                             ) {
-                                playerInStats = playersSessionStats.find(
-                                    (p) => p.player.id === penultimate.player.id
-                                );
-                                if (!playerInStats) {
-                                    playersSessionStats.push({
-                                        player: penultimate.player,
-                                        score: 0,
-                                        assists: 0,
-                                    });
-                                    playerInStats =
-                                        playersSessionStats[
-                                            playersSessionStats.length - 1
-                                        ];
-                                }
-                                playerInStats.assists += 1;
-                                handleSumDBAssists(playerInStats.player, 1);
+                                penultimate.player.sessionStats.assists += 1;
+                                handleSumDBAssists(penultimate.player, 1);
                             }
                         }
                     } else if (lastPlayerKickedBall) {
                         if (lastPlayerKickedBall.team.id !== teamId) {
                             // Para que el gol sea computado negativo, sólo cuenta si fue el último en patearla.
-                            let playerInStats = playersSessionStats.find(
-                                (p) => p.player.id === lastPlayerKickedBall.id
+                            let player = that.room.players.find(
+                                (p) => p.id === lastPlayerKickedBall.id
                             );
-                            if (!playerInStats) {
-                                playersSessionStats.push({
-                                    player: lastPlayerKickedBall,
-                                    score: 0,
-                                    assists: 0,
-                                });
-                                playerInStats = playersSessionStats.find(
-                                    (p) =>
-                                        p.player.id === lastPlayerKickedBall.id
-                                );
-                            }
-                            handleSumDBScore(playerInStats.player, -1);
-                            playerInStats.score -= 1;
+                            if (!player) return;
+                            player.sessionStats.score -= 1;
+                            handleSumDBScore(player, -1);
                         }
                     }
 
@@ -482,31 +445,16 @@ module.exports = function (API) {
                 }
             });
 
-            commands.onPlayerLeaveQueue.push((id) => {
-                // como fix momentaneo a la duplicidad,
-                // se van a mergear todos los jugadores con nombre repetido
-                /* let playersNames = [];
-                for (let i = 0; i < playersSessionStats.length; i++) {
-                    if (
-                        playersNames.includes(
-                            playersSessionStats[i].player.name
-                        )
-                    ) {
+            commands.onPlayerJoinQueue.push((pObj) => {
+                setTimeout(() => {
+                    let player = that.room.players.find((p) => pObj.V == p.id);
+                    if (player) {
+                        player.sessionStats = {
+                            score: 0,
+                            assists: 0,
+                        };
                     }
-                    playersNames.push({
-                        index: i,
-                        name: playersSessionStats[i].player.name,
-                    });
-                } */
-                //
-
-                let ps = playersSessionStats.find((p) => p.player.id === id);
-                if (ps) {
-                    playersSessionStats.splice(
-                        playersSessionStats.indexOf(ps),
-                        1
-                    );
-                }
+                }, 500);
             });
         }
     };
