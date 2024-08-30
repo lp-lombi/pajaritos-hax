@@ -8,6 +8,7 @@ const auth = require("./plugins/auth");
 const autobot = require("./plugins/autobot");
 const announcements = require("./plugins/announcements");
 const voteKick = require("./plugins/voteKick");
+const customDisc = require("./plugins/customDisc");
 
 // ROOM
 async function run(config, DEV = false) {
@@ -37,6 +38,7 @@ async function run(config, DEV = false) {
                 new autobot(API),
                 new announcements(API),
                 new voteKick(API),
+                new customDisc(API),
             ],
             storage: {
                 player_name: config.botName,
