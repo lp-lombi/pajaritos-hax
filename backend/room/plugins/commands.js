@@ -74,6 +74,8 @@ module.exports = function (API, customData = {}) {
     const sqlite3 = require("sqlite3");
     db = new sqlite3.Database(path.join(__dirname, "res/commands.db"));
 
+    var lockPowerShot = false;
+
     // FUNCIONES
     function sleep(ms) {
         return new Promise((r) => setTimeout(r, ms));
@@ -667,64 +669,70 @@ module.exports = function (API, customData = {}) {
                             (p) => p.name === "powerShot"
                         );
                         if (powerShotPlugin) {
-                            if (args[0] === "c") {
-                                const defaultValue = 0.075;
-                                let v = getValue(args[1]);
-                                isNaN(v) ? (v = defaultValue) : null;
-                                powerShotPlugin.swingGravity = v;
+                            if (args[0] && args[0] === "lock") {
+                                lockPowerShot = !lockPowerShot;
+                                return;
+                            }
+                            if (!lockPowerShot) {
+                                if (args[0] === "c") {
+                                    const defaultValue = 0.075;
+                                    let v = getValue(args[1]);
+                                    isNaN(v) ? (v = defaultValue) : null;
+                                    powerShotPlugin.swingGravity = v;
 
-                                that.printchat(
-                                    "Cambiando la comba a " + v,
-                                    msg.byId
-                                );
-                            } else if (args[0] === "f") {
-                                const defaultValue = 14;
-                                let v = getValue(args[1]);
-                                isNaN(v) ? (v = defaultValue) : null;
-                                powerShotPlugin.ballSpeed = v;
+                                    that.printchat(
+                                        "Cambiando la comba a " + v,
+                                        msg.byId
+                                    );
+                                } else if (args[0] === "f") {
+                                    const defaultValue = 14;
+                                    let v = getValue(args[1]);
+                                    isNaN(v) ? (v = defaultValue) : null;
+                                    powerShotPlugin.ballSpeed = v;
 
-                                that.printchat(
-                                    "Cambiando la fuerza a " + v,
-                                    msg.byId
-                                );
-                            } else if (args[0] === "preset") {
-                                switch (args[1]) {
-                                    case "1":
-                                        powerShotPlugin.ballSpeed = 12;
-                                        powerShotPlugin.swingGravity = 0.075;
+                                    that.printchat(
+                                        "Cambiando la fuerza a " + v,
+                                        msg.byId
+                                    );
+                                } else if (args[0] === "preset") {
+                                    switch (args[1]) {
+                                        case "1":
+                                            powerShotPlugin.ballSpeed = 12;
+                                            powerShotPlugin.swingGravity = 0.075;
 
-                                        that.printchat(
-                                            "Fuerza: " +
-                                                13 +
-                                                " | Comba: " +
-                                                0.075,
-                                            msg.byId
-                                        );
-                                        break;
-                                    case "2":
-                                        powerShotPlugin.ballSpeed = 15;
-                                        powerShotPlugin.swingGravity = 0.08;
+                                            that.printchat(
+                                                "Fuerza: " +
+                                                    13 +
+                                                    " | Comba: " +
+                                                    0.075,
+                                                msg.byId
+                                            );
+                                            break;
+                                        case "2":
+                                            powerShotPlugin.ballSpeed = 15;
+                                            powerShotPlugin.swingGravity = 0.08;
 
-                                        that.printchat(
-                                            "Fuerza: " +
-                                                15 +
-                                                " | Comba: " +
-                                                0.08,
-                                            msg.byId
-                                        );
-                                        break;
-                                    case "3":
-                                        powerShotPlugin.ballSpeed = 20;
-                                        powerShotPlugin.swingGravity = 0.08;
+                                            that.printchat(
+                                                "Fuerza: " +
+                                                    15 +
+                                                    " | Comba: " +
+                                                    0.08,
+                                                msg.byId
+                                            );
+                                            break;
+                                        case "3":
+                                            powerShotPlugin.ballSpeed = 20;
+                                            powerShotPlugin.swingGravity = 0.08;
 
-                                        that.printchat(
-                                            "Fuerza: " +
-                                                20 +
-                                                " | Comba: " +
-                                                0.08,
-                                            msg.byId
-                                        );
-                                        break;
+                                            that.printchat(
+                                                "Fuerza: " +
+                                                    20 +
+                                                    " | Comba: " +
+                                                    0.08,
+                                                msg.byId
+                                            );
+                                            break;
+                                    }
                                 }
                             }
                         } else {
