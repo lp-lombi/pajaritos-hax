@@ -68,10 +68,12 @@ module.exports = function (API, customData = {}) {
         orange: parseInt("FFB84C", 16),
         redTeam: parseInt("FFD9D9", 16),
         blueTeam: parseInt("DBD9FF", 16),
+        vip: parseInt("FFDCB3", 16),
     };
 
     const path = require("path");
     const sqlite3 = require("sqlite3");
+    const chroma = require('chroma-js');
     db = new sqlite3.Database(path.join(__dirname, "res/commands.db"));
 
     var lockPowerShot = false;
@@ -248,6 +250,7 @@ module.exports = function (API, customData = {}) {
                     // a veces se crashea si muchos idiotas spamean
                     let ballEmoji,
                         loggedEmoji = "",
+                        subEmoji = "",
                         tColor;
 
                     switch (p.team.id) {
@@ -270,11 +273,20 @@ module.exports = function (API, customData = {}) {
                     );
                     authPlugin
                         ? authPlugin.isPlayerLogged(p.id)
-                            ? (loggedEmoji = "⚡")
+                            ? (loggedEmoji = "✔️ ")
                             : null
                         : null;
 
-                    let str = `${loggedEmoji} [${ballEmoji}] ${p.name}: ${msg}`;
+                    if (p.subscription && p.subscription.tier >= 1) {
+                        if (tColor) {
+                            let color = chroma(tColor.toString(16).padStart(6, "0"))
+                            tColor = parseInt(color.saturate(3).brighten(0.2).hex().substring(1), 16)
+                        } else {
+                            tColor = COLORS.vip
+                        }
+                        subEmoji = "⭐ "
+                    }
+                    let str = `${subEmoji}${loggedEmoji}[${ballEmoji}] ${p.name}: ${msg}`;
                     that.room.sendAnnouncement(str, null, tColor);
                 }
                 break;
@@ -307,8 +319,8 @@ module.exports = function (API, customData = {}) {
                         t === 0
                             ? null
                             : t === 1
-                            ? parseInt("FF9898", 16)
-                            : parseInt("9B98FF", 16);
+                                ? parseInt("FF9898", 16)
+                                : parseInt("9B98FF", 16);
                     let teamPlayers = that.room.players.filter(
                         (p) => p.team.id === t
                     );
@@ -577,19 +589,19 @@ module.exports = function (API, customData = {}) {
                                             args[0] === "red"
                                                 ? 1
                                                 : args[0] === "blue"
-                                                ? 2
-                                                : null;
+                                                    ? 2
+                                                    : null;
 
                                         t
                                             ? that.room.setTeamColors(
-                                                  t,
-                                                  angle,
-                                                  ...colorsList.map((c) => c)
-                                              )
+                                                t,
+                                                angle,
+                                                ...colorsList.map((c) => c)
+                                            )
                                             : that.printchat(
-                                                  "Equipo inválido.",
-                                                  msg.byId
-                                              );
+                                                "Equipo inválido.",
+                                                msg.byId
+                                            );
                                     } else {
                                         that.printchat(
                                             "Camiseta no encontrada.",
@@ -702,9 +714,9 @@ module.exports = function (API, customData = {}) {
 
                                             that.printchat(
                                                 "Fuerza: " +
-                                                    13 +
-                                                    " | Comba: " +
-                                                    0.075,
+                                                13 +
+                                                " | Comba: " +
+                                                0.075,
                                                 msg.byId
                                             );
                                             break;
@@ -714,9 +726,9 @@ module.exports = function (API, customData = {}) {
 
                                             that.printchat(
                                                 "Fuerza: " +
-                                                    15 +
-                                                    " | Comba: " +
-                                                    0.08,
+                                                15 +
+                                                " | Comba: " +
+                                                0.08,
                                                 msg.byId
                                             );
                                             break;
@@ -726,9 +738,9 @@ module.exports = function (API, customData = {}) {
 
                                             that.printchat(
                                                 "Fuerza: " +
-                                                    20 +
-                                                    " | Comba: " +
-                                                    0.08,
+                                                20 +
+                                                " | Comba: " +
+                                                0.08,
                                                 msg.byId
                                             );
                                             break;

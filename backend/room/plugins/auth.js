@@ -40,9 +40,11 @@ module.exports = function (API) {
 
     this.apiKey = "";
 
-    function loginPlayer(player, role) {
+    function loginPlayer(player, data) {
         player.isLoggedIn = true;
-        if (role === 1 || role === 2) {
+        player.role = data.role;
+        player.subscription = data.subscription;
+        if (data.role > 1) {
             that.room.setPlayerAdmin(player.id, true);
         }
     }
@@ -198,7 +200,7 @@ module.exports = function (API) {
                                 if (player) {
                                     fetch(
                                         commands.data.webApi.url +
-                                            "/users/auth/register",
+                                        "/users/auth/register",
                                         {
                                             method: "POST",
                                             headers: {
@@ -294,11 +296,13 @@ module.exports = function (API) {
                                         console.log(
                                             "Inicio de sesión: " + player.name
                                         );
-                                        loginPlayer(player, data.role);
-                                        commands.printchat(
-                                            "Sesión iniciada.",
-                                            msg.byId
-                                        );
+                                        if (player) {
+                                            loginPlayer(player, data);
+                                            commands.printchat(
+                                                "Sesión iniciada.",
+                                                msg.byId
+                                            );
+                                        }
                                     } else {
                                         if (data.reason === "password") {
                                             commands.printchat(
@@ -315,7 +319,7 @@ module.exports = function (API) {
                                         } else if (data.reason === "error") {
                                             console.log(
                                                 "Error al iniciar la sesión de ID " +
-                                                    msg.byId
+                                                msg.byId
                                             );
                                         }
                                     }

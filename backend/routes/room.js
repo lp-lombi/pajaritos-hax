@@ -51,7 +51,6 @@ room.post("/start", global.verifyToken, function (req, res) {
             .catch((err) => {
                 res.status(500).send(err.msg);
             });
-
         DEBUGROOM = global.room;
     } else {
         res.send("Host already open");
