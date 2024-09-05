@@ -38,7 +38,7 @@ module.exports = function (API, customData = {}) {
         that = this;
 
     this.data = {
-        discord: "https://discord.com/invite/Y5ZWvjftP6",
+        discord: "https://discord.gg/Y5ZWvjftP6",
         webApi: {
             url: "",
             key: "",
@@ -159,6 +159,10 @@ module.exports = function (API, customData = {}) {
                 }
             });
 
+            class Hola {
+
+            }
+
             if (!kickBanAllowed) {
                 // Este código es ejecutado solo una vez, a diferencia del de OperationType el cual
                 // se ejecuta al menos dos veces ya que se lo llama recursivamente
@@ -271,11 +275,10 @@ module.exports = function (API, customData = {}) {
                     let authPlugin = that.room.plugins.find(
                         (p) => p.name === "lmbAuth"
                     );
-                    authPlugin
-                        ? authPlugin.isPlayerLogged(p.id)
-                            ? (loggedEmoji = "✔️ ")
-                            : null
-                        : null;
+
+                    if (authPlugin && authPlugin.isPlayerLogged(p.id)) {
+                        loggedEmoji = "✔️ "
+                    } 5
 
                     if (p.subscription && p.subscription.tier >= 1) {
                         if (tColor) {
@@ -286,6 +289,7 @@ module.exports = function (API, customData = {}) {
                         }
                         subEmoji = "⭐ "
                     }
+
                     let str = `${subEmoji}${loggedEmoji}[${ballEmoji}] ${p.name}: ${msg}`;
                     that.room.sendAnnouncement(str, null, tColor);
                 }

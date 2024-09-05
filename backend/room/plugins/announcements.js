@@ -66,10 +66,12 @@ module.exports = function (API) {
     }
 
     function setAnnouncementsCycleMinutes(minutes) {
+        if (minutes < 0.25) return;
         that.announcementsCycle = minutes * 60000;
     }
 
-    this.fetchAnnouncements = function (defaultAnnouncements = []) {
+    this.fetchAnnouncements = function () {
+        let defaultAnnouncements = ["Discord: " + commands.data.discord]
         that.announcements = [];
 
         defaultAnnouncements.forEach((c) =>
@@ -87,29 +89,36 @@ module.exports = function (API) {
         });
     };
 
-    this.announcementLoop = async function () {
+    this.announcementLoop = async function (i = 0) {
         await sleep(that.announcementsCycle).then(() => {
+            console.log(i)
             if (that.active) {
-                for (let a of that.announcements) {
-                    that.subsPlayersIds.forEach((id) => {
-                        try {
-                            commands.printchat(
-                                `🕊️ ${a.text}`,
-                                id,
-                                "announcement"
-                            );
-                            commands.printchat(
-                                `(!mute para silenciar estas alertas)`,
-                                id,
-                                "hint"
-                            );
-                        } catch (e) {
-                            // console.log(e);
-                        }
-                    });
+                if (!that.announcements[i] && that.announcements[0]) {
+                    i = 0;
+                } else if (!that.announcements[0]) {
+                    that.announcementLoop();
+                    return;
                 }
+
+                let an = that.announcements[i];
+                that.subsPlayersIds.forEach((id) => {
+                    try {
+                        commands.printchat(
+                            `🕊️ ${an.text}`,
+                            id,
+                            "announcement"
+                        );
+                        commands.printchat(
+                            `(!mute para silenciar estas alertas)`,
+                            id,
+                            "hint"
+                        );
+                    } catch (e) {
+                        // console.log(e);
+                    }
+                });
             }
-            that.announcementLoop();
+            that.announcementLoop(i + 1);
         });
     };
 
@@ -123,7 +132,7 @@ module.exports = function (API) {
             that.saludo = `╔═══════════════════════════════════════════════════════╗
 ║   PAJARITOS HAX   ║ !pm !hist !stats !login !discord !help !bb ║
 ╚═══════════════════════════════════════════════════════╝\n\n\n\n\n\n${commands.data.discord}`;
-            that.fetchAnnouncements(["Discord: " + commands.data.discord]);
+            that.fetchAnnouncements();
 
             commands.initQueue.push(that.announcementLoop);
             commands.onPlayerJoinQueue.push((msg) => {
@@ -164,11 +173,10 @@ module.exports = function (API) {
                             commands.printchat("Avisos desactivados", msg.byId);
                         } else if (args[0] === "ciclo" && args[1]) {
                             if (!isNaN(args[1])) {
-                                setAnnouncementsCycleMinutes(parseInt(args[1]));
+                                let fact = parseFloat(args[1])
+                                setAnnouncementsCycleMinutes(fact);
                                 commands.printchat(
-                                    `Ciclo de anuncios cambiado a ${parseInt(
-                                        args[1]
-                                    )} minutos`,
+                                    `Ciclo de anuncios cambiado a ${fact} minutos`,
                                     msg.byId
                                 );
                                 return;
@@ -211,11 +219,13 @@ module.exports = function (API) {
                             if (!args[1]) {
                                 let str = "";
                                 that.announcements.forEach((a) => {
-                                    let txt =
-                                        a.text.length < 75
-                                            ? a.text
-                                            : a.text.slice(0, 75) + "...";
-                                    str += `[${a.id}] ${txt}\n`;
+                                    if (a.id) {
+                                        let txt =
+                                            a.text.length < 75
+                                                ? a.text
+                                                : a.text.slice(0, 75) + "...";
+                                        str += `[${a.id}] ${txt}\n`;
+                                    }
                                 });
                                 str +=
                                     "\n' !anuncio borrar <numero> ' para borrarlo.";
@@ -240,10 +250,16 @@ module.exports = function (API) {
                                         }
                                     );
                             }
+                        } else if (args[0] === "fetch") {
+                            that.fetchAnnouncements();
+                            commands.printchat(
+                                `Se actualizaron los anuncios de la sala.`,
+                                msg.byId
+                            );
                         }
                     }
                 },
-                "Ajustes de los anuncios. !anuncios on / off | !anuncios ciclo <minutos> | !anuncios nuevo <texto del nuevo anuncio> | !anuncios borrar",
+                "Ajustes de los anuncios. !anuncios on / off | !anuncios ciclo <minutos> | !anuncios nuevo <texto del nuevo anuncio> | !anuncios borrar | !anuncios fetch",
                 true,
                 false
             );
