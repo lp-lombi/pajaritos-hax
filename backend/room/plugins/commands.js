@@ -253,7 +253,7 @@ module.exports = function (API, customData = {}) {
                 if (p) {
                     // a veces se crashea si muchos idiotas spamean
                     let ballEmoji,
-                        loggedEmoji = "",
+                        loggedEmoji = "      ",
                         subEmoji = "",
                         tColor;
 
@@ -276,18 +276,22 @@ module.exports = function (API, customData = {}) {
                         (p) => p.name === "lmbAuth"
                     );
 
-                    if (authPlugin && authPlugin.isPlayerLogged(p.id)) {
-                        loggedEmoji = "✔️ "
-                    } 5
-
-                    if (p.subscription && p.subscription.tier >= 1) {
-                        if (tColor) {
-                            let color = chroma(tColor.toString(16).padStart(6, "0"))
-                            tColor = parseInt(color.saturate(3).brighten(0.2).hex().substring(1), 16)
-                        } else {
-                            tColor = COLORS.vip
+                    if (authPlugin) {
+                        if (authPlugin.isPlayerLogged(p.id)) {
+                            loggedEmoji = "✔️ "
+                        };
+                        if (authPlugin.isPlayerSubscribed(p.id)) {
+                            let subscription = authPlugin.getPlayerSubscription(p.id);
+                            if (subscription && subscription && subscription.tier >= 1) {
+                                if (tColor) {
+                                    let color = chroma(tColor.toString(16).padStart(6, "0"))
+                                    tColor = parseInt(color.saturate(3).brighten(0.2).hex().substring(1), 16)
+                                } else {
+                                    tColor = COLORS.vip
+                                }
+                                loggedEmoji = "⭐ "
+                            }
                         }
-                        subEmoji = "⭐ "
                     }
 
                     let str = `${subEmoji}${loggedEmoji}[${ballEmoji}] ${p.name}: ${msg}`;

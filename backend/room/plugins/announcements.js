@@ -91,7 +91,6 @@ module.exports = function (API) {
 
     this.announcementLoop = async function (i = 0) {
         await sleep(that.announcementsCycle).then(() => {
-            console.log(i)
             if (that.active) {
                 if (!that.announcements[i] && that.announcements[0]) {
                     i = 0;

@@ -128,6 +128,11 @@ module.exports = function (API) {
         return loggedPlayers;
     };
 
+    this.getPlayerSubscription = function (playerId) {
+        let p = that.room.players.find((p) => p.id === playerId);
+        return p.subscription ? p.subscription : null;
+    }
+
     this.isPlayerLogged = function (playerId) {
         let p = that.room.players.find((p) => p.id === playerId);
         if (p && p.isLoggedIn) {
@@ -135,6 +140,14 @@ module.exports = function (API) {
         }
         return false;
     };
+
+    this.isPlayerSubscribed = function (playerId) {
+        let p = that.room.players.find((p) => p.id === playerId);
+        if (p && p.subscription && p.subscription.tier >= 1) {
+            return true;
+        }
+        return false;
+    }
 
     this.initialize = function () {
         commands = that.room.plugins.find((p) => p.name === "lmbCommands");
