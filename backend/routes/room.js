@@ -50,6 +50,7 @@ room.post("/start", global.verifyToken, function (req, res) {
             })
             .catch((err) => {
                 res.status(500).send(err.msg);
+                console.log(err);
             });
         DEBUGROOM = global.room;
     } else {

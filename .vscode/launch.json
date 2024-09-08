@@ -10,13 +10,6 @@
             ],
             "program": "roomMgr.js",
             "cwd": "${workspaceFolder}\\backend"
-        },
-        {
-            "type": "node-terminal",
-            "name": "Run Script: backend",
-            "request": "launch",
-            "command": "npm run backend",
-            "cwd": "${workspaceFolder}\\backend"
         }
     ]
 }

@@ -113,7 +113,7 @@ module.exports = function (API) {
                                     if (kicker && id !== 0) {
                                         that.toKickName = p.name;
                                         commands.printchat(
-                                            `${kicker.name} inició la votación para kickear al jugador ${that.toKickName} (45 SEGUNDOS).\n\n!votekick si | !votekick no`,
+                                            `" ${kicker.name} " inició una votación para kickear a un jugador (45 segundos para votar).\n\n>>> VOTACIÓN PARA KICKEAR A " ${that.toKickName} " <<<\n\n>>> !votekick si\n>>> !votekick no`,
                                             null,
                                             "alert"
                                         );
@@ -130,18 +130,38 @@ module.exports = function (API) {
                             if (args[0] === "si") {
                                 if (that.voters.indexOf(msg.byId) === -1) {
                                     that.voters.push(msg.byId);
+
+                                    // si es sub, su voto vale doble
+                                    let authPlugin = that.room.plugins.find(
+                                        (p) => p.name === "lmbAuth"
+                                    );
+                                    let isSub =
+                                        authPlugin &&
+                                        authPlugin.isPlayerSubscribed(msg.byId);
+                                    if (isSub) {
+                                        that.voters.push(msg.byId);
+                                    }
+
                                     commands.printchat(
-                                        `${voter.name} votó SÍ a expulsar a ${that.toKickName}( ${that.voters.length}/${that.requiredVotes}) | !votekick si | !votekick no.`,
+                                        `${voter.name} votó SÍ a expulsar a >>> ${that.toKickName} <<< ( ${that.voters.length} / ${that.requiredVotes} )\n>>> !votekick si\n>>> !votekick no.`,
                                         null,
                                         "alert"
                                     );
+
+                                    if (isSub) {
+                                        commands.printchat(
+                                            `⭐ El voto de ${voter.name} vale x2.`,
+                                            null,
+                                            "announcement-mute"
+                                        );
+                                    }
                                 } else {
                                     commands.printchat(`Ya votaste.`, msg.byId);
                                 }
                             } else if (args[0] === "no") {
                                 if (that.voters.indexOf(msg.byId) === -1) {
                                     commands.printchat(
-                                        `${voter.name} votó NO a expulsar a ${that.toKickName}( ${that.voters.length}/${that.requiredVotes}) | !votekick si | !votekick no.`,
+                                        `${voter.name} votó NO a expulsar a >>> ${that.toKickName} <<< ( ${that.voters.length} / ${that.requiredVotes} )\n>>> !votekick si\n>>> !votekick no.`,
                                         null,
                                         "alert"
                                     );

@@ -73,7 +73,7 @@ module.exports = function (API, customData = {}) {
 
     const path = require("path");
     const sqlite3 = require("sqlite3");
-    const chroma = require('chroma-js');
+    const chroma = require("chroma-js");
     db = new sqlite3.Database(path.join(__dirname, "res/commands.db"));
 
     var lockPowerShot = false;
@@ -159,9 +159,7 @@ module.exports = function (API, customData = {}) {
                 }
             });
 
-            class Hola {
-
-            }
+            class Hola {}
 
             if (!kickBanAllowed) {
                 // Este código es ejecutado solo una vez, a diferencia del de OperationType el cual
@@ -239,6 +237,15 @@ module.exports = function (API, customData = {}) {
                     "small-bold"
                 );
                 break;
+            case "announcement-mute":
+                that.room.sendAnnouncement(
+                    msg,
+                    targetId,
+                    COLORS.green,
+                    "small-bold",
+                    0
+                );
+                break;
             case "hint":
                 that.room.sendAnnouncement(
                     msg,
@@ -278,18 +285,33 @@ module.exports = function (API, customData = {}) {
 
                     if (authPlugin) {
                         if (authPlugin.isPlayerLogged(p.id)) {
-                            loggedEmoji = "✔️ "
-                        };
+                            loggedEmoji = "✔️ ";
+                        }
                         if (authPlugin.isPlayerSubscribed(p.id)) {
-                            let subscription = authPlugin.getPlayerSubscription(p.id);
-                            if (subscription && subscription && subscription.tier >= 1) {
+                            let subscription = authPlugin.getPlayerSubscription(
+                                p.id
+                            );
+                            if (
+                                subscription &&
+                                subscription &&
+                                subscription.tier >= 1
+                            ) {
                                 if (tColor) {
-                                    let color = chroma(tColor.toString(16).padStart(6, "0"))
-                                    tColor = parseInt(color.saturate(3).brighten(0.2).hex().substring(1), 16)
+                                    let color = chroma(
+                                        tColor.toString(16).padStart(6, "0")
+                                    );
+                                    tColor = parseInt(
+                                        color
+                                            .saturate(3)
+                                            .brighten(0.2)
+                                            .hex()
+                                            .substring(1),
+                                        16
+                                    );
                                 } else {
-                                    tColor = COLORS.vip
+                                    tColor = COLORS.vip;
                                 }
-                                loggedEmoji = "⭐ "
+                                loggedEmoji = "⭐ ";
                             }
                         }
                     }
@@ -327,8 +349,8 @@ module.exports = function (API, customData = {}) {
                         t === 0
                             ? null
                             : t === 1
-                                ? parseInt("FF9898", 16)
-                                : parseInt("9B98FF", 16);
+                            ? parseInt("FF9898", 16)
+                            : parseInt("9B98FF", 16);
                     let teamPlayers = that.room.players.filter(
                         (p) => p.team.id === t
                     );
@@ -597,19 +619,19 @@ module.exports = function (API, customData = {}) {
                                             args[0] === "red"
                                                 ? 1
                                                 : args[0] === "blue"
-                                                    ? 2
-                                                    : null;
+                                                ? 2
+                                                : null;
 
                                         t
                                             ? that.room.setTeamColors(
-                                                t,
-                                                angle,
-                                                ...colorsList.map((c) => c)
-                                            )
+                                                  t,
+                                                  angle,
+                                                  ...colorsList.map((c) => c)
+                                              )
                                             : that.printchat(
-                                                "Equipo inválido.",
-                                                msg.byId
-                                            );
+                                                  "Equipo inválido.",
+                                                  msg.byId
+                                              );
                                     } else {
                                         that.printchat(
                                             "Camiseta no encontrada.",
@@ -722,9 +744,9 @@ module.exports = function (API, customData = {}) {
 
                                             that.printchat(
                                                 "Fuerza: " +
-                                                13 +
-                                                " | Comba: " +
-                                                0.075,
+                                                    13 +
+                                                    " | Comba: " +
+                                                    0.075,
                                                 msg.byId
                                             );
                                             break;
@@ -734,9 +756,9 @@ module.exports = function (API, customData = {}) {
 
                                             that.printchat(
                                                 "Fuerza: " +
-                                                15 +
-                                                " | Comba: " +
-                                                0.08,
+                                                    15 +
+                                                    " | Comba: " +
+                                                    0.08,
                                                 msg.byId
                                             );
                                             break;
@@ -746,9 +768,9 @@ module.exports = function (API, customData = {}) {
 
                                             that.printchat(
                                                 "Fuerza: " +
-                                                20 +
-                                                " | Comba: " +
-                                                0.08,
+                                                    20 +
+                                                    " | Comba: " +
+                                                    0.08,
                                                 msg.byId
                                             );
                                             break;

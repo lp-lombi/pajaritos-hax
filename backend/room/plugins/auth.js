@@ -35,9 +35,6 @@ module.exports = function (API) {
     var commands,
         that = this;
 
-    var fs = require("fs/promises");
-    var path = require("path");
-
     this.apiKey = "";
 
     function loginPlayer(player, data) {
@@ -131,7 +128,7 @@ module.exports = function (API) {
     this.getPlayerSubscription = function (playerId) {
         let p = that.room.players.find((p) => p.id === playerId);
         return p.subscription ? p.subscription : null;
-    }
+    };
 
     this.isPlayerLogged = function (playerId) {
         let p = that.room.players.find((p) => p.id === playerId);
@@ -147,7 +144,7 @@ module.exports = function (API) {
             return true;
         }
         return false;
-    }
+    };
 
     this.initialize = function () {
         commands = that.room.plugins.find((p) => p.name === "lmbCommands");
@@ -169,31 +166,6 @@ module.exports = function (API) {
 
                     return;
                 }
-                /* fs.readFile(path.join(__dirname, "/res/auth.json"))
-                    .then((data) => {
-                        let authData = JSON.parse(data);
-                        if (authData.apiKey && authData.apiKey !== "") {
-                            commands.data.webApi.key = authData.apiKey;
-                        } else {
-                            console.log(
-                                "auth: La apiKey del archivo es inválida"
-                            );
-                        }
-                    })
-                    .catch((err) => {
-                        if (err.code === "ENOENT") {
-                            console.log(
-                                "auth: Creando un nuevo archivo. en /plugins/res/auth.json, poné el token en el campo apiKey (requiere reinicio)"
-                            );
-                            fs.writeFile(
-                                path.join(__dirname, "/res/auth.json"),
-                                JSON.stringify({ apiKey: "" }),
-                                (err) => {
-                                    console.log(err);
-                                }
-                            );
-                        }
-                    }); */
 
                 commands.registerCommand(
                     "!",
@@ -213,7 +185,7 @@ module.exports = function (API) {
                                 if (player) {
                                     fetch(
                                         commands.data.webApi.url +
-                                        "/users/auth/register",
+                                            "/users/auth/register",
                                         {
                                             method: "POST",
                                             headers: {
@@ -332,7 +304,7 @@ module.exports = function (API) {
                                         } else if (data.reason === "error") {
                                             console.log(
                                                 "Error al iniciar la sesión de ID " +
-                                                msg.byId
+                                                    msg.byId
                                             );
                                         }
                                     }
