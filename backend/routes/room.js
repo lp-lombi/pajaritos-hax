@@ -7,7 +7,7 @@ var roomCreator = require("../room/mainw");
 
 var stadiumsPath = "./room/stadiums/";
 
-const DEBUG = true;
+const DEBUG = false;
 
 room.post("/start", global.verifyToken, function (req, res) {
     if (!global.room) {
