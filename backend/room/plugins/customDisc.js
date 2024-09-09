@@ -43,6 +43,8 @@ module.exports = function (API) {
 
     this.initialize = function () {
         commands = that.room.plugins.find((p) => p.name === "lmbCommands");
+        authPlugin = that.room.plugins.find((p) => p.name === "lmbAuth");
+
         if (!commands) {
             console.log("El plugin de discos requiere del plugin de comandos.");
         } else {
@@ -106,6 +108,17 @@ module.exports = function (API) {
                                 }
                             }
                         }
+                    }
+                },
+                "Modifica los discos.",
+                true,
+                false
+            );
+            commands.registerCommand(
+                "!",
+                "agrandar",
+                (msg, args) => {
+                    if (authPlugin && authPlugin.isPlayerSub(msg.byId)) {
                     }
                 },
                 "Modifica los discos.",

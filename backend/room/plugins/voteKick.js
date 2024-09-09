@@ -127,44 +127,53 @@ module.exports = function (API) {
                             (p) => p.id === msg.byId
                         );
                         if (voter) {
-                            if (args[0] === "si") {
-                                if (that.voters.indexOf(msg.byId) === -1) {
-                                    that.voters.push(msg.byId);
+                            if (args[0] === "si" || args[0] === "no") {
+                                if (that.voters.indexOf(voter.auth) === -1) {
+                                    if (args[0] === "si") {
+                                        that.voters.push(voter.auth);
 
-                                    // si es sub, su voto vale doble
-                                    let authPlugin = that.room.plugins.find(
-                                        (p) => p.name === "lmbAuth"
-                                    );
-                                    let isSub =
-                                        authPlugin &&
-                                        authPlugin.isPlayerSubscribed(msg.byId);
-                                    if (isSub) {
-                                        that.voters.push(msg.byId);
-                                    }
-
-                                    commands.printchat(
-                                        `${voter.name} votó SÍ a expulsar a >>> ${that.toKickName} <<< ( ${that.voters.length} / ${that.requiredVotes} )\n>>> !votekick si\n>>> !votekick no.`,
-                                        null,
-                                        "alert"
-                                    );
-
-                                    if (isSub) {
-                                        commands.printchat(
-                                            `⭐ El voto de ${voter.name} vale x2.`,
-                                            null,
-                                            "announcement-mute"
+                                        // si es sub, su voto vale doble
+                                        let authPlugin = that.room.plugins.find(
+                                            (p) => p.name === "lmbAuth"
                                         );
+                                        let isSub =
+                                            authPlugin &&
+                                            authPlugin.isPlayerSubscribed(
+                                                msg.byId
+                                            );
+                                        if (isSub) {
+                                            that.voters.push(voter.auth);
+                                        }
+
+                                        commands.printchat(
+                                            `${voter.name} votó SÍ a expulsar a >>> ${that.toKickName} <<< ( ${that.voters.length} / ${that.requiredVotes} )\n>>> !votekick si\n>>> !votekick no`,
+                                            null,
+                                            "alert"
+                                        );
+
+                                        if (isSub) {
+                                            commands.printchat(
+                                                `⭐ El voto de ${voter.name} vale x2.`,
+                                                null,
+                                                "announcement-mute"
+                                            );
+                                        }
+                                    } else if (args[0] === "no") {
+                                        if (
+                                            that.voters.indexOf(msg.byId) === -1
+                                        ) {
+                                            commands.printchat(
+                                                `${voter.name} votó NO a expulsar a >>> ${that.toKickName} <<< ( ${that.voters.length} / ${that.requiredVotes} )\n>>> !votekick si\n>>> !votekick no`,
+                                                null,
+                                                "alert"
+                                            );
+                                        } else {
+                                            commands.printchat(
+                                                `Ya votaste.`,
+                                                msg.byId
+                                            );
+                                        }
                                     }
-                                } else {
-                                    commands.printchat(`Ya votaste.`, msg.byId);
-                                }
-                            } else if (args[0] === "no") {
-                                if (that.voters.indexOf(msg.byId) === -1) {
-                                    commands.printchat(
-                                        `${voter.name} votó NO a expulsar a >>> ${that.toKickName} <<< ( ${that.voters.length} / ${that.requiredVotes} )\n>>> !votekick si\n>>> !votekick no.`,
-                                        null,
-                                        "alert"
-                                    );
                                 } else {
                                     commands.printchat(`Ya votaste.`, msg.byId);
                                 }

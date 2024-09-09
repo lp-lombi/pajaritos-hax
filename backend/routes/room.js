@@ -3,7 +3,8 @@ const fs = require("fs");
 const room = express.Router();
 
 var roomCreator = require("../room/mainw");
-// var discordBot = require("../discord/main");
+var discordBot = null;
+// discordBot = require("../discord/main");
 
 var stadiumsPath = "./room/stadiums/";
 
