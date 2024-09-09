@@ -9,11 +9,12 @@ const autobot = require("./plugins/autobot");
 const announcements = require("./plugins/announcements");
 const voteKick = require("./plugins/voteKick");
 const customDisc = require("./plugins/customDisc");
+const subsFeatures = require("./plugins/subsFeatures");
 
 // ROOM
 async function run(config, DEV = false) {
     return new Promise((resolve, reject) => {
-        const createParams = {
+        var createParams = {
             name: DEV ? "X" : config.roomName,
             geo: {
                 lat: -36.310826904052284,
@@ -23,6 +24,7 @@ async function run(config, DEV = false) {
             showInRoomList: true,
             maxPlayerCount: config.maxPlayers,
             token: config.token,
+            password: config.roomPassword,
             onError: (err) => {
                 console.log("Error: " + err);
             },
@@ -39,6 +41,7 @@ async function run(config, DEV = false) {
                 new announcements(API),
                 new voteKick(API),
                 new customDisc(API),
+                new subsFeatures(API),
             ],
             storage: {
                 player_name: config.botName,

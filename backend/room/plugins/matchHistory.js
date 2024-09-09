@@ -41,6 +41,9 @@ module.exports = function (API) {
         playerBallInteractHistory = [],
         that = this;
 
+    this.scorer = null;
+    this.assister = null;
+
     function printHistory(playerId) {
         var str = "";
         matchHistory.forEach((m) => {
@@ -136,10 +139,6 @@ module.exports = function (API) {
     function clearHistory() {
         matchHistory = [];
     }
-
-    /* function clearPlayersSessionStats() {
-        playersSessionStats = [];
-    } */
 
     function printPlayersSessionStats(targetId) {
         var str = "";
@@ -408,6 +407,10 @@ module.exports = function (API) {
                     ) {
                         lastPlayerInteractedBall.sessionStats.score += 1;
                         handleSumDBScore(lastPlayerInteractedBall, 1);
+                        that.scorer = lastPlayerInteractedBall;
+                        setTimeout(() => {
+                            that.scorer = null;
+                        }, 3000);
 
                         // Para la asistencia, la anterior interacción tuvo que haber sido un pateo de un jugador del mismo equipo
                         if (playerBallInteractHistory.length > 1) {
@@ -421,6 +424,10 @@ module.exports = function (API) {
                             ) {
                                 penultimate.player.sessionStats.assists += 1;
                                 handleSumDBAssists(penultimate.player, 1);
+                                that.assister = penultimate.player;
+                                setTimeout(() => {
+                                    that.assister = null;
+                                }, 3000);
                             }
                         }
                     } else if (lastPlayerKickedBall) {
