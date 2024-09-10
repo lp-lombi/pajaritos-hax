@@ -33,7 +33,7 @@ module.exports = function (API, customData = {}) {
     });
 
     var commands,
-        kits,
+        kits = [],
         kickBanAllowed = false,
         that = this;
 
@@ -72,9 +72,29 @@ module.exports = function (API, customData = {}) {
     };
 
     const path = require("path");
+    const fs = require("fs");
     const sqlite3 = require("sqlite3");
     const chroma = require("chroma-js");
-    db = new sqlite3.Database(path.join(__dirname, "res/commands.db"));
+
+    // db
+    this.db = null;
+    const dbPath = path.join(__dirname, "res/cmd.db");
+    if (fs.existsSync(dbPath)) {
+        that.db = new sqlite3.Database(dbPath);
+    } else {
+        const createFromSchema = require(path.join(
+            __dirname,
+            "res/cmdschema.js"
+        ));
+        createFromSchema(dbPath)
+            .then((db) => {
+                that.db = db;
+                console.log("commands: Base de datos creada.");
+            })
+            .catch((err) => {
+                throw err;
+            });
+    }
 
     var lockPowerShot = false;
 
@@ -84,13 +104,15 @@ module.exports = function (API, customData = {}) {
     }
 
     function fetchKits() {
-        try {
-            db.all("SELECT * FROM kits", (err, rows) => {
-                if (err) throw err;
-                kits = rows;
-            });
-        } catch (e) {
-            console.log("Error en la base de datos: " + e);
+        if (that.db) {
+            try {
+                that.db.all("SELECT * FROM kits", (err, rows) => {
+                    if (err) throw err;
+                    kits = rows;
+                });
+            } catch (e) {
+                console.log("Error en la base de datos: " + e);
+            }
         }
     }
 
@@ -384,7 +406,7 @@ module.exports = function (API, customData = {}) {
     };
 
     this.getDb = function () {
-        return db;
+        return that.db;
     };
 
     this.getColors = function () {
@@ -424,29 +446,33 @@ module.exports = function (API, customData = {}) {
     };
 
     this.processBans = function () {
-        try {
-            db.all("SELECT * FROM bans", (err, rows) => {
-                if (err) {
-                    console.log(err);
-                    return;
-                }
-                bans = rows;
-                bans.forEach((b) => {
-                    if (b.ip) {
-                        that.room.addIpBan(b.ip);
+        if (that.db) {
+            try {
+                that.db.all("SELECT * FROM bans", (err, rows) => {
+                    if (err) {
+                        console.log(err);
+                        return;
                     }
-                    if (b.auth) {
-                        that.room.addAuthBan(b.auth);
-                    }
+                    bans = rows;
+                    bans.forEach((b) => {
+                        if (b.ip) {
+                            that.room.addIpBan(b.ip);
+                        }
+                        if (b.auth) {
+                            that.room.addAuthBan(b.auth);
+                        }
+                    });
                 });
-            });
-        } catch (e) {
-            console.log("Error en la base de datos: " + e);
+            } catch (e) {
+                console.log("Error en la base de datos: " + e);
+            }
+        } else {
+            console.log("Base de datos no definida");
         }
     };
 
     this.permaBan = function (playerName, ip = "", auth = "") {
-        db.run(
+        that.db.run(
             `INSERT INTO bans (name, ip, auth) VALUES ("${playerName}", "${ip}", "${auth}")`,
             (err) => {
                 if (err) console.log(err);
@@ -666,7 +692,7 @@ module.exports = function (API, customData = {}) {
 
                                         let error = false;
 
-                                        db.run(
+                                        that.db.run(
                                             `INSERT INTO kits (name, cfg) VALUES ("${kitName}", "${cfg}")`,
                                             (err) => {
                                                 error = true;
@@ -911,7 +937,6 @@ module.exports = function (API, customData = {}) {
                         }
                         // Mensaje normal
                         that.printchat(msg.text, msg.byId, "chat");
-                        //return true;
                     }
                     return false;
                 } else if (type === OperationType.SendAnnouncement) {

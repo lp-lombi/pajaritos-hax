@@ -71,22 +71,24 @@ module.exports = function (API) {
     }
 
     this.fetchAnnouncements = function () {
-        let defaultAnnouncements = ["Discord: " + commands.data.discord]
+        let defaultAnnouncements = ["Discord: " + commands.data.discord];
         that.announcements = [];
 
         defaultAnnouncements.forEach((c) =>
             that.announcements.push({ text: c })
         );
 
-        commands.getDb().all("SELECT * FROM announcements", (err, rows) => {
-            if (err) {
-                console.log(err);
-                return;
-            }
-            rows.forEach((r) => {
-                that.announcements.push(r);
+        if (commands.getDb()) {
+            commands.getDb().all("SELECT * FROM announcements", (err, rows) => {
+                if (err) {
+                    console.log(err);
+                    return;
+                }
+                rows.forEach((r) => {
+                    that.announcements.push(r);
+                });
             });
-        });
+        }
     };
 
     this.announcementLoop = async function (i = 0) {
@@ -102,11 +104,7 @@ module.exports = function (API) {
                 let an = that.announcements[i];
                 that.subsPlayersIds.forEach((id) => {
                     try {
-                        commands.printchat(
-                            `🕊️ ${an.text}`,
-                            id,
-                            "announcement"
-                        );
+                        commands.printchat(`🕊️ ${an.text}`, id, "announcement");
                         commands.printchat(
                             `(!mute para silenciar estas alertas)`,
                             id,
@@ -172,7 +170,7 @@ module.exports = function (API) {
                             commands.printchat("Avisos desactivados", msg.byId);
                         } else if (args[0] === "ciclo" && args[1]) {
                             if (!isNaN(args[1])) {
-                                let fact = parseFloat(args[1])
+                                let fact = parseFloat(args[1]);
                                 setAnnouncementsCycleMinutes(fact);
                                 commands.printchat(
                                     `Ciclo de anuncios cambiado a ${fact} minutos`,

@@ -118,7 +118,7 @@ module.exports = function (API) {
     this.getLoggedPlayers = function () {
         let loggedPlayers = [];
         that.room.players.forEach((p) => {
-            if (p.isLoggedIn) {
+            if (p && p.isLoggedIn) {
                 loggedPlayers.push(p);
             }
         });
@@ -318,7 +318,9 @@ module.exports = function (API) {
                         let player = that.room.players.find(
                             (p) => p.id === msg.V
                         );
-                        player.isLoggedIn = false;
+                        if (player) {
+                            player.isLoggedIn = false;
+                        }
                     }, 1000);
                 });
             } catch (err) {
