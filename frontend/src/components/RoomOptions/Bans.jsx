@@ -3,7 +3,7 @@ import { useApi } from "../../services/ApiService";
 import { usePopup } from "../../services/PopupService";
 
 export const Bans = () => {
-    const { roomData, unbanPlayer } = useApi();
+    const { roomData, permaBanPlayer, unbanPlayer } = useApi();
     const { popupConfirm } = usePopup();
 
     return (
@@ -48,33 +48,12 @@ export const Bans = () => {
                                                         "Se baneará permanentemente la IP del jugador " +
                                                             ban.value.pName,
                                                         () => {
-                                                            fetch(
-                                                                `/room/kick/permaban`,
-                                                                {
-                                                                    method: "POST",
-                                                                    headers: {
-                                                                        "Content-Type":
-                                                                            "application/json",
-                                                                    },
-                                                                    body: JSON.stringify(
-                                                                        {
-                                                                            name: ban
-                                                                                .value
-                                                                                .pName,
-                                                                            ip: ban
-                                                                                .value
-                                                                                .ips[0],
-                                                                            auth: ban
-                                                                                .value
-                                                                                .auth,
-                                                                        }
-                                                                    ),
-                                                                }
-                                                            ).then((res) => {
-                                                                console.log(
-                                                                    res
-                                                                );
-                                                            });
+                                                            permaBanPlayer(
+                                                                ban.value.pName,
+                                                                ban.value
+                                                                    .ips[0],
+                                                                ban.value.auth
+                                                            );
                                                         }
                                                     )
                                                 }

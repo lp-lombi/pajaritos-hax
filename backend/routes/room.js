@@ -234,7 +234,7 @@ room.post("/kick/permaban", global.verifyToken, function (req, res) {
             );
             if (commands) {
                 commands.permaBan(name, ip, auth);
-                res.send("Plaker banned permanently");
+                res.send("Player banned permanently");
                 return;
             }
 

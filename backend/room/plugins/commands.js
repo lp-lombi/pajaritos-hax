@@ -126,6 +126,7 @@ module.exports = function (API, customData = {}) {
                         method: "POST",
                         headers: {
                             "Content-Type": "application/json",
+                            "x-api-key": that.data.webApi.key,
                         },
                         body: JSON.stringify({
                             username: p.name,
@@ -446,38 +447,38 @@ module.exports = function (API, customData = {}) {
     };
 
     this.processBans = function () {
-        if (that.db) {
-            try {
-                that.db.all("SELECT * FROM bans", (err, rows) => {
-                    if (err) {
-                        console.log(err);
-                        return;
+        fetch(that.data.webApi.url + "/bans/all", {
+            method: "GET",
+            headers: { "x-api-key": that.data.webApi.key },
+        })
+            .then((res) => res.json())
+            .then((bans) => {
+                if (!bans || bans.length === 0) return;
+                bans.forEach((b) => {
+                    if (b.ip) {
+                        that.room.addIpBan(b.ip);
                     }
-                    bans = rows;
-                    bans.forEach((b) => {
-                        if (b.ip) {
-                            that.room.addIpBan(b.ip);
-                        }
-                        if (b.auth) {
-                            that.room.addAuthBan(b.auth);
-                        }
-                    });
+                    if (b.auth) {
+                        that.room.addAuthBan(b.auth);
+                    }
                 });
-            } catch (e) {
-                console.log("Error en la base de datos: " + e);
-            }
-        } else {
-            console.log("Base de datos no definida");
-        }
+            })
+            .catch((err) => console.log(err));
     };
 
     this.permaBan = function (playerName, ip = "", auth = "") {
-        that.db.run(
-            `INSERT INTO bans (name, ip, auth) VALUES ("${playerName}", "${ip}", "${auth}")`,
-            (err) => {
-                if (err) console.log(err);
-            }
-        );
+        fetch(that.data.webApi.url + "/bans/new", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "x-api-key": that.data.webApi.key,
+            },
+            body: JSON.stringify({
+                name: playerName,
+                ip,
+                auth,
+            }),
+        });
     };
 
     this.initialize = function () {

@@ -264,6 +264,23 @@ export const ApiService = ({ children }) => {
         });
     };
 
+    const permaBanPlayer = (name, ip, auth) => {
+        fetch(`/room/kick/permaban`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                token: apiToken,
+            },
+            body: JSON.stringify({
+                name,
+                ip,
+                auth,
+            }),
+        }).then((res) => {
+            console.log(res);
+        });
+    };
+
     const unbanPlayer = (id) => {
         fetch(`/room/kick/unban?id=${id}`, {
             method: "POST",
@@ -371,6 +388,7 @@ export const ApiService = ({ children }) => {
                 saveStadium,
 
                 kickPlayer,
+                permaBanPlayer,
                 unbanPlayer,
 
                 sendMsg,
