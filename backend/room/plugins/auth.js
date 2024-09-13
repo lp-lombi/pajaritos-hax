@@ -315,11 +315,15 @@ module.exports = function (API) {
                 });
                 commands.onPlayerJoinQueue.push((msg) => {
                     setTimeout(() => {
-                        let player = that.room.players.find(
-                            (p) => p.id === msg.V
-                        );
-                        if (player) {
-                            player.isLoggedIn = false;
+                        try {
+                            let player = that.room.players.find(
+                                (p) => p.id === msg.V
+                            );
+                            if (player) {
+                                player.isLoggedIn = false;
+                            }
+                        } catch (e) {
+                            console.log(e);
                         }
                     }, 1000);
                 });
