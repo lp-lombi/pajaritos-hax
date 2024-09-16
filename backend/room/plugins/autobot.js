@@ -96,64 +96,80 @@ module.exports = function (API) {
         });
     };
 
+    this.getGoalLines = function (s) {
+        let g1 = {
+            top: s.goals[0].p0,
+            bottom: s.goals[0].p1,
+        };
+        let g2 = {
+            top: s.goals[1].p0,
+            bottom: s.goals[1].p1,
+        };
+
+        if (g1.top.x > g2.top.x) {
+            return { left: g2, right: g1 };
+        } else if (g1.top.x < g2.top.x) {
+            return { left: g1, right: g2 };
+        } else {
+            return null;
+        }
+    };
+
     this.checkBall = function () {
         let threshold = 20;
-        sleep(150).then(() => {
-            if (!that.goal) {
-                try {
-                    if (that.room) {
-                        let g1 = {
-                            top: that.room.stadium.goals[0].p0,
-                            bottom: that.room.stadium.goals[0].p1,
-                        };
-                        let g2 = {
-                            top: that.room.stadium.goals[1].p0,
-                            bottom: that.room.stadium.goals[1].p1,
-                        };
+        let goals = that.getGoalLines(that.room.stadium);
+        let updating = false;
 
-                        let leftGoalLine, rightGoalLine;
+        this.onStadiumChange = (s) => {
+            goals = that.getGoalLines(s);
+        };
 
-                        if (g1.top.x > g2.top.x) {
-                            rightGoalLine = g1;
-                            leftGoalLine = g2;
-                        } else {
-                            rightGoalLine = g2;
-                            leftGoalLine = g1;
-                        }
+        this.onGameTick = () => {
+            try {
+                if (that.room && goals) {
+                    if (that.room.gameState && that.active) {
+                        let modifyObj = null;
 
-                        if (
-                            that.room.gameState &&
-                            that.active &&
-                            leftGoalLine &&
-                            rightGoalLine
+                        let ball = that.room.getDisc(0);
+
+                        if (ball && ball.pos.x + threshold < goals.left.top.x) {
+                            modifyObj = {
+                                x: goals.left.top.x + 10,
+                                y: ball.pos.y,
+                            };
+                            if (ball.speed.x < -1) {
+                                modifyObj.xspeed = -ball.speed.x * 0.9;
+                            }
+                        } else if (
+                            ball &&
+                            ball.pos.x - threshold > goals.right.top.x
                         ) {
-                            if (
-                                that.room.getDisc(0).pos.x + threshold <
-                                leftGoalLine.top.x
-                            ) {
-                                let obj = {
-                                    x: leftGoalLine.top.x + 10,
-                                    y: that.room.getDisc(0).pos.y,
-                                };
-                                that.room.setDiscProperties(0, obj);
-                            } else if (
-                                that.room.getDisc(0).pos.x - threshold >
-                                rightGoalLine.top.x
-                            ) {
-                                let obj = {
-                                    x: rightGoalLine.top.x - 10,
-                                    y: that.room.getDisc(0).pos.y,
-                                };
-                                that.room.setDiscProperties(0, obj);
+                            modifyObj = {
+                                x: goals.right.top.x - 10,
+                                y: ball.pos.y,
+                            };
+                            if (ball.speed.x > 1) {
+                                modifyObj.xspeed = -ball.speed.x * 0.9;
                             }
                         }
+
+                        if (modifyObj && !updating) {
+                            updating = true;
+                            setTimeout(() => {
+                                if (!that.goal) {
+                                    that.room.setDiscProperties(0, modifyObj);
+                                }
+                                setTimeout(() => {
+                                    updating = false;
+                                }, 300);
+                            }, 100);
+                        }
                     }
-                } catch (e) {
-                    console.log(e);
                 }
+            } catch (e) {
+                console.log(e);
             }
-            this.checkBall();
-        });
+        };
     };
 
     this.checkTeams = function () {
@@ -355,7 +371,7 @@ module.exports = function (API) {
 
             commands.onTeamGoalQueue.push((teamId, customData) => {
                 that.goal = true;
-                sleep(3000).then(() => {
+                sleep(4000).then(() => {
                     that.goal = false;
                 });
             });

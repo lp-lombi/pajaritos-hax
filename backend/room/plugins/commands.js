@@ -764,11 +764,13 @@ module.exports = function (API, customData = {}) {
                                         msg.byId
                                     );
                                 } else if (args[0] === "preset") {
+                                    let customColor = "#5FEE26";
                                     switch (args[1]) {
                                         case "1":
-                                            powerShotPlugin.ballSpeed = 12;
+                                            powerShotPlugin.ballSpeed = 13;
                                             powerShotPlugin.swingGravity = 0.075;
-
+                                            powerShotPlugin.ballColor =
+                                                customColor;
                                             that.printchat(
                                                 "Fuerza: " +
                                                     13 +
@@ -778,21 +780,23 @@ module.exports = function (API, customData = {}) {
                                             );
                                             break;
                                         case "2":
-                                            powerShotPlugin.ballSpeed = 15;
-                                            powerShotPlugin.swingGravity = 0.08;
-
+                                            powerShotPlugin.ballSpeed = 14;
+                                            powerShotPlugin.swingGravity = 0.075;
+                                            powerShotPlugin.ballColor =
+                                                customColor;
                                             that.printchat(
                                                 "Fuerza: " +
-                                                    15 +
+                                                    14 +
                                                     " | Comba: " +
-                                                    0.08,
+                                                    0.075,
                                                 msg.byId
                                             );
                                             break;
                                         case "3":
-                                            powerShotPlugin.ballSpeed = 20;
+                                            powerShotPlugin.ballSpeed = 17;
                                             powerShotPlugin.swingGravity = 0.08;
-
+                                            powerShotPlugin.ballColor =
+                                                customColor;
                                             that.printchat(
                                                 "Fuerza: " +
                                                     20 +
@@ -801,6 +805,30 @@ module.exports = function (API, customData = {}) {
                                                 msg.byId
                                             );
                                             break;
+                                    }
+                                } else if (args[0] === "color") {
+                                    if (!args[1] || args[1].length !== 6) {
+                                        that.printchat(
+                                            "Uso: ' !ps color FF00FF ' | formato hexadecimal",
+                                            msg.byId,
+                                            "error"
+                                        );
+                                    } else {
+                                        let color = parseInt(args[1], 16);
+                                        if (!isNaN(color)) {
+                                            powerShotPlugin.ballColor =
+                                                "#" + args[1];
+                                            that.printchat(
+                                                "Color cambiado a #" + args[1],
+                                                msg.byId
+                                            );
+                                        } else {
+                                            that.printchat(
+                                                "Color no válido",
+                                                msg.byId,
+                                                "error"
+                                            );
+                                        }
                                     }
                                 }
                             }
