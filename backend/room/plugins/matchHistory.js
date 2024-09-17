@@ -187,9 +187,11 @@ module.exports = function (API) {
         }
     }
 
-    function printPlayersDbStats(targetId, page = 0) {
+    function printPlayersDbStats(targetId, page = 1) {
         if (auth) {
-            const maxPlayers = 15;
+            const pageSize = 15;
+            let statsPages = [];
+
             auth.getAllUsersStats().then((data) => {
                 var stats = data.filter((s) => s.matches > 0);
                 stats.sort((a, b) => (a.rating > b.rating ? -1 : 1));
@@ -201,10 +203,29 @@ module.exports = function (API) {
                         "bold",
                         2
                     );
+                    return;
+                } else {
+                    for (let i = 0; i < stats.length; i += pageSize) {
+                        if (i + pageSize < stats.length) {
+                            statsPages.push(stats.slice(i, i + pageSize));
+                        } else {
+                            statsPages.push(stats.slice(i));
+                        }
+                    }
                 }
 
-                let rest = stats.splice(maxPlayers, stats.length);
-                let reversedStats = stats.slice().reverse();
+                let reversedStats = [];
+                if (statsPages[page - 1]) {
+                    reversedStats = statsPages[page - 1].slice().reverse();
+                } else {
+                    that.room.sendAnnouncement(
+                        "Página no válida.",
+                        targetId,
+                        commands.getColors().orange,
+                        "bold",
+                        2
+                    );
+                }
 
                 reversedStats.forEach((s) => {
                     var title = "";
@@ -241,7 +262,16 @@ module.exports = function (API) {
                             .then((s) => {
                                 isLogged = true;
 
-                                let str = `Tus stats: ${s.score} goles - ${s.assists} asistencias - Pj: ${s.matches} / Pg: ${s.wins} - (${s.rating})`;
+                                let str = "";
+
+                                if (
+                                    statsPages.length > 1 &&
+                                    statsPages[page - 1]
+                                ) {
+                                    str += `Página ${page} de ${statsPages.length} - !stats <pagina>\n`;
+                                }
+
+                                str += `Tus stats: ${s.score} goles - ${s.assists} asistencias - Pj: ${s.matches} / Pg: ${s.wins} - (${s.rating})`;
 
                                 that.room.sendAnnouncement(
                                     str,
@@ -260,8 +290,15 @@ module.exports = function (API) {
 
                 Promise.all(promises).then(() => {
                     if (!isLogged) {
+                        let str = "";
+                        if (statsPages.length > 1 && statsPages[page - 1]) {
+                            str += `Página ${page} de ${statsPages.length} - !stats <pagina>\n`;
+                        }
+                        str +=
+                            "Para guardar tus stats, registrate o inicia sesión.";
+
                         that.room.sendAnnouncement(
-                            "Para guardar tus stats, registrate o inicia sesión.",
+                            str,
                             targetId,
                             commands.getColors().lightOrange,
                             "small-bold",
@@ -318,19 +355,18 @@ module.exports = function (API) {
                 "stats",
                 (msg, args) => {
                     if (args.length === 0) {
-                        commands.printchat(
-                            "' !stats s ' - Stats de sesión de hoy\n' !stats db ' - Stats históricos (se guardan los de aquellos usuarios logueados) ",
-                            msg.byId
-                        );
+                        printPlayersDbStats(msg.byId);
                     } else if (args[0] === "db") {
                         printPlayersDbStats(msg.byId);
                     } else if (args[0] === "s") {
                         printPlayersSessionStats(msg.byId);
                     } else if (args[0] === "clear") {
                         clearPlayersSessionStats();
+                    } else if (!isNaN(args[0])) {
+                        printPlayersDbStats(msg.byId, parseInt(args[0]));
                     }
                 },
-                "Muestra los goles de cada jugador.",
+                "Muestra los goles y asistencias de cada jugador.",
                 false,
                 false
             );
