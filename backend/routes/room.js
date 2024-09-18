@@ -8,6 +8,26 @@ var stadiumsPath = "./room/stadiums/";
 
 const DEBUG = false;
 
+var sendStatusInterval = setInterval(() => {
+    if (global.room && global.room.players && global.room.password !== "") {
+        fetch(`${global.webApi.url}/rooms/add`, {
+            method: "POST",
+            headers: {
+                "x-api-key": global.webApi.key,
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                name: global.room.name,
+                link: global.room.link,
+                players: global.room.players.length,
+                maxPlayers: global.room.maxPlayerCount,
+            }),
+        }).catch((err) => {
+            console.log(err);
+        });
+    }
+}, 15000);
+
 room.post("/start", global.verifyToken, function (req, res) {
     if (!global.room) {
         var config = req.body;
@@ -39,6 +59,7 @@ room.post("/start", global.verifyToken, function (req, res) {
                 res.status(500).send(err.msg);
                 console.log(err);
             });
+
         DEBUGROOM = global.room;
     } else {
         res.send("Host already open");
