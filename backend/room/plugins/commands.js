@@ -118,7 +118,7 @@ module.exports = function (API, customData = {}) {
 
     async function handleKickBanPlayer(msg, force = false) {
         try {
-            let p = that.room.players.find((p) => p.id === msg.id);
+            let p = that.getPlayers().find((p) => p.id === msg.id);
             let allowed = new Promise((resolve, reject) => {
                 if (force) resolve(true);
                 if (p) {
@@ -214,7 +214,7 @@ module.exports = function (API, customData = {}) {
     }
 
     function isAdmin(id) {
-        var player = that.room.players.find((p) => p.id === id);
+        var player = that.getPlayers().find((p) => p.id === id);
         if (!player) return false;
         else return player.isAdmin;
     }
@@ -279,7 +279,7 @@ module.exports = function (API, customData = {}) {
                 );
                 break;
             case "chat":
-                let p = that.room.players.find((p) => p.id === targetId);
+                let p = that.getPlayers().find((p) => p.id === targetId);
                 if (p) {
                     // a veces se crashea si muchos idiotas spamean
                     let ballEmoji,
@@ -344,8 +344,8 @@ module.exports = function (API, customData = {}) {
                 }
                 break;
             case "pm":
-                let fromP = that.room.players.find((p) => p.id === byId);
-                let toP = that.room.players.find((p) => p.id === targetId);
+                let fromP = that.getPlayers().find((p) => p.id === byId);
+                let toP = that.getPlayers().find((p) => p.id === targetId);
                 if (fromP && toP) {
                     that.room.sendAnnouncement(
                         `[privado] ${fromP.name}: ${msg}`,
@@ -363,9 +363,9 @@ module.exports = function (API, customData = {}) {
                 }
                 break;
             case "tm":
-                let tMsgSender = that.room.players.find(
-                    (p) => p.id === targetId
-                );
+                let tMsgSender = that
+                    .getPlayers()
+                    .find((p) => p.id === targetId);
                 if (tMsgSender) {
                     let t = tMsgSender.team.id;
                     let tColor =
@@ -374,9 +374,9 @@ module.exports = function (API, customData = {}) {
                             : t === 1
                             ? parseInt("FF9898", 16)
                             : parseInt("9B98FF", 16);
-                    let teamPlayers = that.room.players.filter(
-                        (p) => p.team.id === t
-                    );
+                    let teamPlayers = that
+                        .getPlayers()
+                        .filter((p) => p.team.id === t);
                     teamPlayers.forEach((tp) => {
                         that.room.sendAnnouncement(
                             `[equipo] ${tMsgSender.name}: ${msg}`,
@@ -408,6 +408,14 @@ module.exports = function (API, customData = {}) {
 
     this.getDb = function () {
         return that.db;
+    };
+
+    this.getPlayers = function () {
+        if (that.room && that.room.players) {
+            return that.room.players;
+        } else {
+            return [];
+        }
     };
 
     this.getColors = function () {
@@ -548,9 +556,9 @@ module.exports = function (API, customData = {}) {
                             let name = args[0]
                                 .substring(1)
                                 .replaceAll("_", " ");
-                            let p = that.room.players.find(
-                                (p) => p.name === name
-                            );
+                            let p = that
+                                .getPlayers()
+                                .find((p) => p.name === name);
                             if (p) {
                                 let text = args.slice(1).join(" ");
                                 that.printchat(text, p.id, "pm", msg.byId);
@@ -569,9 +577,9 @@ module.exports = function (API, customData = {}) {
                     if (args.length < 1) {
                         that.printchat("Uso: !tm Hola!", msg.byId);
                     } else {
-                        let p = that.room.players.find(
-                            (p) => p.id === msg.byId
-                        );
+                        let p = that
+                            .getPlayers()
+                            .find((p) => p.id === msg.byId);
 
                         if (p) {
                             let text = args.join(" ");
@@ -949,9 +957,9 @@ module.exports = function (API, customData = {}) {
                             that.printchat("Comando desconocido.", msg.byId);
                         }
                     } else {
-                        let p = that.room.players.find(
-                            (p) => p.id === msg.byId
-                        );
+                        let p = that
+                            .getPlayers()
+                            .find((p) => p.id === msg.byId);
                         if (
                             msg.text.toUpperCase() === "MTM" ||
                             msg.text.toUpperCase() === "METEME"

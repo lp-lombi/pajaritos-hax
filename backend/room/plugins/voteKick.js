@@ -33,7 +33,7 @@ module.exports = function (API) {
     });
 
     var that = this;
-
+    var commands = null;
     this.active = true;
 
     this.voting = false;
@@ -47,7 +47,7 @@ module.exports = function (API) {
 
     function awaitVote(id) {
         if (that.active) {
-            that.requiredVotes = Math.round(that.room.players.length * 0.6);
+            that.requiredVotes = Math.round(commands.getPlayers().length * 0.6);
             sleep(45 * 1000).then(() => {
                 if (that.voters.length >= that.requiredVotes) {
                     commands.printchat(
@@ -87,7 +87,7 @@ module.exports = function (API) {
                     if (args.length === 0) {
                         if (!that.voting) {
                             let str = "";
-                            that.room.players.forEach((p) => {
+                            commands.getPlayers().forEach((p) => {
                                 if (!p.isAdmin) {
                                     str += `[${p.id}] ${p.name}\n`;
                                 }
@@ -104,12 +104,12 @@ module.exports = function (API) {
                     } else if (!that.voting) {
                         if (!isNaN(args[0])) {
                             let id = parseInt(args[0]);
-                            that.room.players.forEach((p) => {
+                            commands.getPlayers().forEach((p) => {
                                 if (p.id === id) {
                                     that.voting = true;
-                                    let kicker = that.room.players.find(
-                                        (p) => p.id === msg.byId
-                                    );
+                                    let kicker = commands
+                                        .getPlayers()
+                                        .find((p) => p.id === msg.byId);
                                     if (kicker && id !== 0) {
                                         that.toKickName = p.name;
                                         commands.printchat(
@@ -123,9 +123,9 @@ module.exports = function (API) {
                             });
                         }
                     } else if (that.voting) {
-                        let voter = that.room.players.find(
-                            (p) => p.id === msg.byId
-                        );
+                        let voter = commands
+                            .getPlayers()
+                            .find((p) => p.id === msg.byId);
                         if (voter) {
                             if (args[0] === "si" || args[0] === "no") {
                                 if (that.voters.indexOf(voter.auth) === -1) {

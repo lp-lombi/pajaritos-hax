@@ -117,7 +117,7 @@ module.exports = function (API) {
 
     this.getLoggedPlayers = function () {
         let loggedPlayers = [];
-        that.room.players.forEach((p) => {
+        commands.getPlayers().forEach((p) => {
             if (p && p.isLoggedIn) {
                 loggedPlayers.push(p);
             }
@@ -126,12 +126,12 @@ module.exports = function (API) {
     };
 
     this.getPlayerSubscription = function (playerId) {
-        let p = that.room.players.find((p) => p.id === playerId);
+        let p = commands.getPlayers().find((p) => p.id === playerId);
         return p.subscription ? p.subscription : null;
     };
 
     this.isPlayerLogged = function (playerId) {
-        let p = that.room.players.find((p) => p.id === playerId);
+        let p = commands.getPlayers().find((p) => p.id === playerId);
         if (p && p.isLoggedIn) {
             return true;
         }
@@ -139,7 +139,7 @@ module.exports = function (API) {
     };
 
     this.isPlayerSubscribed = function (playerId) {
-        let p = that.room.players.find((p) => p.id === playerId);
+        let p = commands.getPlayers().find((p) => p.id === playerId);
         if (p && p.subscription && p.subscription.tier >= 1) {
             return true;
         }
@@ -179,9 +179,9 @@ module.exports = function (API) {
                             );
                         } else {
                             if (args[0] === args[1]) {
-                                let player = that.room.players.find(
-                                    (p) => p.id === msg.byId
-                                );
+                                let player = commands
+                                    .getPlayers()
+                                    .find((p) => p.id === msg.byId);
                                 if (player) {
                                     fetch(
                                         commands.data.webApi.url +
@@ -248,9 +248,9 @@ module.exports = function (API) {
                             "error"
                         );
                     } else {
-                        let player = that.room.players.find(
-                            (p) => p.id === msg.byId
-                        );
+                        let player = commands
+                            .getPlayers()
+                            .find((p) => p.id === msg.byId);
                         if (player) {
                             if (that.getLoggedPlayers().includes(player)) {
                                 commands.printchat(
@@ -316,9 +316,9 @@ module.exports = function (API) {
                 commands.onPlayerJoinQueue.push((msg) => {
                     setTimeout(() => {
                         try {
-                            let player = that.room.players.find(
-                                (p) => p.id === msg.V
-                            );
+                            let player = commands
+                                .getPlayers()
+                                .find((p) => p.id === msg.V);
                             if (player) {
                                 player.isLoggedIn = false;
                             }

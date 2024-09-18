@@ -81,7 +81,10 @@ module.exports = function (API) {
 
     function handleSumDBScore(player, sumScore) {
         if (auth) {
-            if (auth.getLoggedPlayers().includes(player)) {
+            if (
+                auth.getLoggedPlayers().includes(player) &&
+                commands.getPlayers().length > 6
+            ) {
                 auth.sumUserStats(player.name, sumScore, 0, 0, 0);
             }
         }
@@ -89,7 +92,10 @@ module.exports = function (API) {
 
     function handleSumDBAssists(player, sumAssists) {
         if (auth) {
-            if (auth.getLoggedPlayers().includes(player)) {
+            if (
+                auth.getLoggedPlayers().includes(player) &&
+                commands.getPlayers().length > 6
+            ) {
                 auth.sumUserStats(player.name, 0, sumAssists, 0, 0);
             }
         }
@@ -97,7 +103,10 @@ module.exports = function (API) {
 
     function handleSumDBWin(player, sumWins) {
         if (auth) {
-            if (auth.getLoggedPlayers().includes(player)) {
+            if (
+                auth.getLoggedPlayers().includes(player) &&
+                commands.getPlayers().length > 6
+            ) {
                 auth.sumUserStats(player.name, 0, 0, sumWins, 0);
             }
         }
@@ -105,7 +114,10 @@ module.exports = function (API) {
 
     function handleSumDBMatch(player, sumMatch) {
         if (auth) {
-            if (auth.getLoggedPlayers().includes(player)) {
+            if (
+                auth.getLoggedPlayers().includes(player) &&
+                commands.getPlayers().length > 6
+            ) {
                 auth.sumUserStats(player.name, 0, 0, 0, sumMatch);
             }
         }
@@ -312,7 +324,7 @@ module.exports = function (API) {
 
     this.getPlayersSessionStats = function () {
         let stats = [];
-        that.room.players.forEach((p) => {
+        commands.getPlayers().forEach((p) => {
             if (
                 p.sessionStats &&
                 (p.sessionStats.score > 0 || p.sessionStats.assists > 0)
@@ -372,10 +384,11 @@ module.exports = function (API) {
             );
 
             that.room.onPlayerBallKick = (playerId) => {
-                lastPlayerKickedBall = lastPlayerInteractedBall =
-                    that.room.players.find((p) => p.id === playerId);
+                lastPlayerKickedBall = lastPlayerInteractedBall = commands
+                    .getPlayers()
+                    .find((p) => p.id === playerId);
                 addPlayerBallInteraction(
-                    that.room.players.find((p) => p.id === playerId),
+                    commands.getPlayers().find((p) => p.id === playerId),
                     "kick"
                 );
             };
@@ -398,10 +411,13 @@ module.exports = function (API) {
                 if (ballCollided) {
                     if (discPlayerId1 || discPlayerId2) {
                         playerCollided = true;
-                        player = that.room.players.find(
-                            (p) =>
-                                p.id === discPlayerId1 || p.id === discPlayerId2
-                        );
+                        player = commands
+                            .getPlayers()
+                            .find(
+                                (p) =>
+                                    p.id === discPlayerId1 ||
+                                    p.id === discPlayerId2
+                            );
                         lastPlayerTouchedBall = lastPlayerInteractedBall =
                             player;
                         addPlayerBallInteraction(player, "touch");
@@ -469,9 +485,9 @@ module.exports = function (API) {
                     } else if (lastPlayerKickedBall) {
                         if (lastPlayerKickedBall.team.id !== teamId) {
                             // Para que el gol sea computado negativo, sólo cuenta si fue el último en patearla.
-                            let player = that.room.players.find(
-                                (p) => p.id === lastPlayerKickedBall.id
-                            );
+                            let player = commands
+                                .getPlayers()
+                                .find((p) => p.id === lastPlayerKickedBall.id);
                             if (!player) return;
                             player.sessionStats.score -= 1;
                             handleSumDBScore(player, -1);
@@ -490,7 +506,9 @@ module.exports = function (API) {
 
             commands.onPlayerJoinQueue.push((pObj) => {
                 setTimeout(() => {
-                    let player = that.room.players.find((p) => pObj.V == p.id);
+                    let player = commands
+                        .getPlayers()
+                        .find((p) => pObj.V == p.id);
                     if (player) {
                         player.sessionStats = {
                             score: 0,

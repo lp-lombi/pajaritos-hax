@@ -40,7 +40,7 @@ module.exports = function (API) {
         let spects = [];
         let rTeam = [];
         let bTeam = [];
-        that.room.players.forEach((p) => {
+        commands.getPlayers().forEach((p) => {
             if (p.id !== 0) {
                 switch (p.team.id) {
                     case 0:
@@ -71,7 +71,7 @@ module.exports = function (API) {
 
     this.checkAfk = function () {
         this.inactivePlayersIds = [];
-        that.room.players.forEach((p) => {
+        commands.getPlayers().forEach((p) => {
             if (p.team.id !== 0) {
                 p.id > 0 ? this.inactivePlayersIds.push(p.id) : null;
             }
@@ -295,11 +295,11 @@ module.exports = function (API) {
             );
 
             commands.onGameStartQueue.push((byId, customData = null) => {
-                that.replaceablePlayers = that.room.players;
+                that.replaceablePlayers = commands.getPlayers();
                 // A la mitad del partido se determina los jugadores elegibles para salir
                 sleep(that.room.timeLimit * 60000 * 0.6).then(() => {
                     that.replaceablePlayers = [];
-                    that.room.players.forEach((p) => {
+                    commands.getPlayers().forEach((p) => {
                         if (
                             p.id !== 0 &&
                             (p.team.id === 1 || p.team.id === 2)
@@ -328,7 +328,7 @@ module.exports = function (API) {
                     });
 
                     // Recién luego se mueve a los especatdores al juego
-                    that.room.players.forEach((p) => {
+                    commands.getPlayers().forEach((p) => {
                         if (p.id !== 0) {
                             if (p.team.id === 0) {
                                 spectPlayersIds.push(p.id);
@@ -338,7 +338,7 @@ module.exports = function (API) {
                     for (let i = 0; i < that.teamSize; i++)
                         if (spectPlayersIds[i]) {
                             let currentTeamSize = 0;
-                            that.room.players.forEach((p) => {
+                            commands.getPlayers().forEach((p) => {
                                 if (p.team.id === loserTeamId)
                                     currentTeamSize++;
                             });
