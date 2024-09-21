@@ -3,6 +3,7 @@ const API = require("node-haxball")();
 // PLUGINS
 const powerShot = require("./plugins/powerShot");
 const commands = require("./plugins/commands");
+const comba = require("./plugins/comba");
 const matchHistory = require("./plugins/matchHistory");
 const auth = require("./plugins/auth");
 const autobot = require("./plugins/autobot");
@@ -33,8 +34,9 @@ async function run(config, DEV = false) {
 
         var client = API.Room.create(createParams, {
             plugins: [
-                new powerShot(API),
+                //new powerShot(API),
                 new commands(API, { webApi: config.webApi }),
+                new comba(API),
                 new matchHistory(API),
                 new auth(API),
                 new autobot(API),
