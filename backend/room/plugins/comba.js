@@ -98,8 +98,6 @@ module.exports = function (API) {
             });
             that.combaShooting = true;
             player.holdTicks = 0;
-
-            console.log("Comba!");
         });
     };
 
@@ -182,6 +180,12 @@ module.exports = function (API) {
 
     this.onPlayerBallKick = (playerId) => {
         if (that.room && that.combaActive) {
+            // primero se desacelera al igual que en una colisión, por si no había previamente sido activada la comba
+            that.decelerateGravity(
+                0,
+                that.combaGravityCollisionDecelerationFactor
+            );
+            // luego, la comba
             let player = that.room.players.find((p) => p.id === playerId);
             let ball = that.room.getBall();
             if (player && ball && player.holdTicks >= that.minHoldTicks) {
