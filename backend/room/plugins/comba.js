@@ -103,6 +103,17 @@ module.exports = function (API) {
         });
     };
 
+    this.decelerateGravity = (discId, factor) => {
+        let ball = that.room.gameState.physicsState.discs[0];
+        if (ball) {
+            Utils.runAfterGameTick(() => {
+                that.room.setDiscProperties(discId, {
+                    ygravity: ball.gravity.y * factor,
+                });
+            });
+        }
+    };
+
     this.onGameTick = () => {
         if (that.combaActive) {
             if (that.room && that.room.players) {
@@ -179,23 +190,26 @@ module.exports = function (API) {
         }
     };
 
-    this.onCollisionDiscVsPlane = this.onCollisionDiscVsSegment = (
-        discId,
-        discPlayerId,
-        planeId,
-        customData
-    ) => {
+    this.onCollisionDiscVsPlane = this.onCollisionDiscVsSegment = (discId) => {
         if (that.room && that.combaActive && discId === 0) {
-            let ball = that.room.gameState.physicsState.discs[0];
-            if (ball) {
-                Utils.runAfterGameTick(() => {
-                    that.room.setDiscProperties(discId, {
-                        ygravity:
-                            ball.gravity.y *
-                            that.combaGravityCollisionDecelerationFactor,
-                    });
-                });
-            }
+            that.decelerateGravity(
+                discId,
+                that.combaGravityCollisionDecelerationFactor
+            );
+        }
+    };
+
+    this.onCollisionDiscVsDisc = (
+        discId1,
+        discPlayerId1,
+        discId2,
+        discPlayerId2
+    ) => {
+        if (that.room && that.combaActive && (discId1 === 0 || discId2 === 0)) {
+            that.decelerateGravity(
+                discId1 === 0 ? discId1 : discId2,
+                that.combaGravityCollisionDecelerationFactor
+            );
         }
     };
 

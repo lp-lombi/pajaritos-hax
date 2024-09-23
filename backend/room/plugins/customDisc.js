@@ -41,6 +41,10 @@ module.exports = function (API) {
         return discs;
     };
 
+    this.onGameTick = () => {
+        console.log("x");
+    };
+
     this.initialize = function () {
         commands = that.room.plugins.find((p) => p.name === "lmbCommands");
         authPlugin = that.room.plugins.find((p) => p.name === "lmbAuth");
