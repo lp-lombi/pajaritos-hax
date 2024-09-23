@@ -95,7 +95,6 @@ module.exports = function (API) {
                                                     .indexOf(d);
                                             }
                                         });
-                                        console.log(discId);
                                         if (discId !== null) {
                                             that.room.setDiscProperties(
                                                 discId,
