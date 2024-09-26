@@ -28,13 +28,16 @@ module.exports = function (API) {
     Plugin.call(this, "lmbComba", true, {
         version: "0.1",
         author: "lombi",
-        description: `Plugin de comba y powershot.`,
+        description: `Plugin de comba y powershot, inspirado en el plugin powershot de ABC`,
         allowFlags: AllowFlags.CreateRoom,
     });
 
     var that = this;
 
+    var commands;
+
     this.combaActive = true;
+    this.combaCasting = false;
     this.combaShooting = false;
     this.isAnyPlayerInHoldingBall = false;
     this.holdDistance = 10;
@@ -42,6 +45,7 @@ module.exports = function (API) {
     this.combaShotTicks = 100;
     this.combaStrengthMultiplier = 1.75;
     this.combaGravityMultiplier = 1.75;
+    this.targetCombaMultiplier = 0;
     this.combaGravityDecelerationFactor = 0.9875;
     this.combaGravityCollisionDecelerationFactor = 0.35;
     this.combaColor = parseInt("ff0000", 16);
@@ -50,10 +54,16 @@ module.exports = function (API) {
     this.chromaCombaColor = chroma(that.combaColor.toString(16));
     this.chromaBallColor = chroma("FFFFFF");
 
+    this.defaultStadiumKickStrength = 5;
+
     this.calcDistance = function (disc1, disc2) {
         let dx = disc1.pos.x - disc2.pos.x;
         let dy = disc1.pos.y - disc2.pos.y;
         return Math.sqrt(dx * dx + dy * dy) - disc1.radius - disc2.radius;
+    };
+
+    this.calcVelocity = (x, y) => {
+        return Math.sqrt(x * x + y * y);
     };
 
     this.getValue = (string) => {
@@ -63,39 +73,53 @@ module.exports = function (API) {
         return parseFloat(n);
     };
 
-    this.allowComba = () => {
-        if (that.room) {
-            let ball = that.room.getBall();
-            if (ball) {
-                that.room.setDiscProperties(0, {
-                    color: that.combaColor,
+    this.castComba = () => {
+        if (that.targetCombaMultiplier < 1) {
+            if (that.room) {
+                let player = null;
+                commands.getPlayers().forEach((p) => {
+                    if (p.holdTicks) {
+                        if (!player || p.holdTicks > player.holdTicks)
+                            player = p;
+                    }
                 });
+                if (player) {
+                    that.targetCombaMultiplier += 0.01;
+                }
             }
         }
     };
 
     this.disableComba = () => {
         if (that.room) {
-            let ball = that.room.getBall();
-            if (ball) {
-                that.room.setDiscProperties(0, {
-                    color: that.room.stadium.discs[0].color,
-                });
-            }
+            that.targetCombaMultiplier = 0;
         }
     };
 
     this.combaShot = (player, ball) => {
         Utils.runAfterGameTick(() => {
-            that.room.setDiscProperties(0, {
-                xspeed: ball.speed.x * that.combaStrengthMultiplier,
-                yspeed: ball.speed.y * that.combaStrengthMultiplier,
-                ygravity:
-                    Math.sign(ball.speed.y) *
-                    -0.075 *
-                    that.combaGravityMultiplier,
-                color: that.combaColor,
-            });
+            let obj = {};
+            let targetXSpeed =
+                ball.speed.x *
+                that.combaStrengthMultiplier *
+                that.targetCombaMultiplier;
+            let targetYSpeed =
+                ball.speed.y *
+                that.combaStrengthMultiplier *
+                that.targetCombaMultiplier;
+            let targetVelocity = that.calcVelocity(targetXSpeed, targetYSpeed);
+            let currentVelocity = that.calcVelocity(ball.speed.x, ball.speed.y);
+            if (targetVelocity > currentVelocity) {
+                obj.xspeed = targetXSpeed;
+                obj.yspeed = targetYSpeed;
+            }
+            obj.ygravity =
+                Math.sign(ball.speed.y) *
+                -0.075 *
+                that.combaGravityMultiplier *
+                that.targetCombaMultiplier;
+            that.room.setDiscProperties(0, obj);
+
             that.combaShooting = true;
             player.holdTicks = 0;
         });
@@ -139,7 +163,7 @@ module.exports = function (API) {
                 });
 
                 if (that.isAnyPlayerInHoldingBall) {
-                    that.allowComba();
+                    that.castComba();
                 } else if (!that.combaShooting) {
                     that.disableComba();
                 }
@@ -147,30 +171,32 @@ module.exports = function (API) {
                 Utils.runAfterGameTick(() => {
                     let newGravity =
                         ball.gravity.y * that.combaGravityDecelerationFactor;
-                    if (newGravity !== 0) {
-                        let obj = {
-                            ygravity:
-                                Math.abs(ball.gravity.y) > 0.01
-                                    ? newGravity
-                                    : 0,
-                        };
-                        if (!that.isAnyPlayerInHoldingBall) {
-                            var newColor = parseInt(
-                                chroma
-                                    .mix(
-                                        that.chromaBallColor,
-                                        that.chromaCombaColor,
-                                        Math.abs(ball.gravity.y) / 0.08
-                                    )
-                                    .hex()
-                                    .substring(1),
-                                16
-                            );
-                            obj.color = newColor;
-                        }
+                    let obj = {
+                        ygravity:
+                            Math.abs(ball.gravity.y) > 0.01 ? newGravity : 0,
+                    };
 
-                        that.room.setDiscProperties(0, obj);
-                    } else {
+                    // el color depende de si se está casteando o si se está tirando
+                    let newColor = parseInt(
+                        chroma
+                            .mix(
+                                that.chromaBallColor,
+                                that.chromaCombaColor,
+                                Math.abs(
+                                    that.isAnyPlayerInHoldingBall
+                                        ? that.targetCombaMultiplier * 0.08
+                                        : newGravity
+                                ) / 0.08
+                            )
+                            .hex()
+                            .substring(1),
+                        16
+                    );
+                    obj.color = newColor;
+
+                    that.room.setDiscProperties(0, obj);
+
+                    if (newGravity === 0) {
                         that.combaShooting = false;
                     }
                 });
@@ -223,6 +249,8 @@ module.exports = function (API) {
             if (ball) {
                 that.chromaBallColor = chroma(ball.color.toString(16));
             }
+            that.defaultStadiumKickStrength =
+                that.room.stadium.playerPhysics.kickStrength;
         }
     };
 
