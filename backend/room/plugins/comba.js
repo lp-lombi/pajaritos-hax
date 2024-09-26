@@ -26,7 +26,7 @@ module.exports = function (API) {
 
     Object.setPrototypeOf(this, Plugin.prototype);
     Plugin.call(this, "lmbComba", true, {
-        version: "0.1",
+        version: "0.2",
         author: "lombi",
         description: `Plugin de comba y powershot, inspirado en el plugin powershot de ABC`,
         allowFlags: AllowFlags.CreateRoom,
