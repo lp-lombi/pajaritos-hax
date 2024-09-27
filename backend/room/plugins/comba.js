@@ -84,7 +84,7 @@ module.exports = function (API) {
                     }
                 });
                 if (player) {
-                    that.targetCombaMultiplier += 0.01;
+                    that.targetCombaMultiplier += 0.02;
                 }
             }
         }
