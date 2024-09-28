@@ -44,7 +44,7 @@ module.exports = function (API) {
     this.minHoldTicks = 40;
     this.combaShotTicks = 100;
     this.combaStrengthMultiplier = 1.75;
-    this.combaGravityMultiplier = 0.75;
+    this.combaGravityMultiplier = 0.7;
     this.castStrengthMultiplier = 0;
     this.combaGravityDecelerationFactor = 0.9875;
     this.combaGravityCollisionDecelerationFactor = 0.35;
@@ -311,7 +311,7 @@ module.exports = function (API) {
                             switch (args[1]) {
                                 case "1":
                                     that.combaStrengthMultiplier = 1.25;
-                                    that.combaGravityMultiplier = 0.6;
+                                    that.combaGravityMultiplier = 0.7;
                                     commands.printchat(
                                         "Fuerza: " +
                                             that.combaStrengthMultiplier +
@@ -322,7 +322,7 @@ module.exports = function (API) {
                                     break;
                                 case "2":
                                     that.combaStrengthMultiplier = 1.75;
-                                    that.combaGravityMultiplier = 0.6;
+                                    that.combaGravityMultiplier = 0.7;
                                     commands.printchat(
                                         "Fuerza: " +
                                             that.combaStrengthMultiplier +
@@ -333,7 +333,7 @@ module.exports = function (API) {
                                     break;
                                 case "3":
                                     that.combaStrengthMultiplier = 2;
-                                    that.combaGravityMultiplier = 0.6;
+                                    that.combaGravityMultiplier = 0.7;
                                     commands.printchat(
                                         "Fuerza: " +
                                             that.combaStrengthMultiplier +
@@ -344,7 +344,7 @@ module.exports = function (API) {
                                     break;
                                 case "4":
                                     that.combaStrengthMultiplier = 2.5;
-                                    that.combaGravityMultiplier = 0.6;
+                                    that.combaGravityMultiplier = 0.7;
                                     commands.printchat(
                                         "Fuerza: " +
                                             that.combaStrengthMultiplier +
