@@ -44,8 +44,8 @@ module.exports = function (API) {
     this.minHoldTicks = 40;
     this.combaShotTicks = 100;
     this.combaStrengthMultiplier = 1.75;
-    this.combaGravityMultiplier = 1.75;
-    this.targetCombaMultiplier = 0;
+    this.combaGravityMultiplier = 0.75;
+    this.castStrengthMultiplier = 0;
     this.combaGravityDecelerationFactor = 0.9875;
     this.combaGravityCollisionDecelerationFactor = 0.35;
     this.combaColor = parseInt("ff0000", 16);
@@ -66,6 +66,15 @@ module.exports = function (API) {
         return Math.sqrt(x * x + y * y);
     };
 
+    this.calcVelocityBasedGravity = (velocity, ball) => {
+        return (
+            Math.sign(ball.speed.y) * // dirección
+            -0.075 * // valor base
+            (velocity / 6) * // multiplicador por velocidad, un tiro normal suele ser 6
+            that.combaGravityMultiplier // multiplicador constante
+        );
+    };
+
     this.getValue = (string) => {
         const regex = /((?:\d+\.\d*)|(?:\d*\.?\d+))/g;
         let n = string.match(regex);
@@ -74,7 +83,7 @@ module.exports = function (API) {
     };
 
     this.castComba = () => {
-        if (that.targetCombaMultiplier < 1) {
+        if (that.castStrengthMultiplier < 1) {
             if (that.room) {
                 let player = null;
                 commands.getPlayers().forEach((p) => {
@@ -84,7 +93,7 @@ module.exports = function (API) {
                     }
                 });
                 if (player) {
-                    that.targetCombaMultiplier += 0.02;
+                    that.castStrengthMultiplier += 0.02;
                 }
             }
         }
@@ -92,7 +101,7 @@ module.exports = function (API) {
 
     this.disableComba = () => {
         if (that.room) {
-            that.targetCombaMultiplier = 0;
+            that.castStrengthMultiplier = 0;
         }
     };
 
@@ -102,22 +111,23 @@ module.exports = function (API) {
             let targetXSpeed =
                 ball.speed.x *
                 that.combaStrengthMultiplier *
-                that.targetCombaMultiplier;
+                that.castStrengthMultiplier;
             let targetYSpeed =
                 ball.speed.y *
                 that.combaStrengthMultiplier *
-                that.targetCombaMultiplier;
+                that.castStrengthMultiplier;
+
             let targetVelocity = that.calcVelocity(targetXSpeed, targetYSpeed);
             let currentVelocity = that.calcVelocity(ball.speed.x, ball.speed.y);
+            let finalVelocity = currentVelocity;
+
             if (targetVelocity > currentVelocity) {
+                finalVelocity = targetVelocity;
                 obj.xspeed = targetXSpeed;
                 obj.yspeed = targetYSpeed;
             }
-            obj.ygravity =
-                Math.sign(ball.speed.y) *
-                -0.075 *
-                that.combaGravityMultiplier *
-                that.targetCombaMultiplier;
+            obj.ygravity = that.calcVelocityBasedGravity(finalVelocity, ball);
+
             that.room.setDiscProperties(0, obj);
 
             that.combaShooting = true;
@@ -171,6 +181,16 @@ module.exports = function (API) {
                 Utils.runAfterGameTick(() => {
                     let newGravity =
                         ball.gravity.y * that.combaGravityDecelerationFactor;
+                    let velocityBasedGravity = that.calcVelocityBasedGravity(
+                        that.calcVelocity(ball.speed.x, ball.speed.y),
+                        ball
+                    );
+
+                    // siempre debe tender a descender la gravedad
+                    if (Math.abs(newGravity) > Math.abs(velocityBasedGravity)) {
+                        newGravity = velocityBasedGravity;
+                    }
+
                     let obj = {
                         ygravity:
                             Math.abs(ball.gravity.y) > 0.01 ? newGravity : 0,
@@ -184,7 +204,7 @@ module.exports = function (API) {
                                 that.chromaCombaColor,
                                 Math.abs(
                                     that.isAnyPlayerInHoldingBall
-                                        ? that.targetCombaMultiplier * 0.08
+                                        ? that.castStrengthMultiplier * 0.08
                                         : newGravity
                                 ) / 0.08
                             )
@@ -291,7 +311,7 @@ module.exports = function (API) {
                             switch (args[1]) {
                                 case "1":
                                     that.combaStrengthMultiplier = 1.25;
-                                    that.combaGravityMultiplier = 1.25;
+                                    that.combaGravityMultiplier = 0.6;
                                     commands.printchat(
                                         "Fuerza: " +
                                             that.combaStrengthMultiplier +
@@ -302,7 +322,7 @@ module.exports = function (API) {
                                     break;
                                 case "2":
                                     that.combaStrengthMultiplier = 1.75;
-                                    that.combaGravityMultiplier = 1.75;
+                                    that.combaGravityMultiplier = 0.6;
                                     commands.printchat(
                                         "Fuerza: " +
                                             that.combaStrengthMultiplier +
@@ -313,7 +333,7 @@ module.exports = function (API) {
                                     break;
                                 case "3":
                                     that.combaStrengthMultiplier = 2;
-                                    that.combaGravityMultiplier = 2;
+                                    that.combaGravityMultiplier = 0.6;
                                     commands.printchat(
                                         "Fuerza: " +
                                             that.combaStrengthMultiplier +
@@ -324,7 +344,7 @@ module.exports = function (API) {
                                     break;
                                 case "4":
                                     that.combaStrengthMultiplier = 2.5;
-                                    that.combaGravityMultiplier = 2.5;
+                                    that.combaGravityMultiplier = 0.6;
                                     commands.printchat(
                                         "Fuerza: " +
                                             that.combaStrengthMultiplier +
