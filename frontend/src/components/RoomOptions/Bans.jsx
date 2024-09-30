@@ -28,9 +28,13 @@ export const Bans = () => {
                                         <div className="col50">
                                             {" "}
                                             <div>
-                                                {ban.value.ips.map((ip) => (
-                                                    <span key={ip}>{ip} </span>
-                                                ))}
+                                                {ban.value.ips[0] ? (
+                                                    <span
+                                                        key={ban.value.ips[0]}
+                                                    >
+                                                        {ban.value.ips[0]} 
+                                                    </span>
+                                                ) : null}
                                             </div>
                                         </div>
                                         <div className="col50">
