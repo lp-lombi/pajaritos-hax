@@ -7,10 +7,12 @@ export default defineConfig({
     server: {
         port: 8001,
         proxy: {
-            "/game": "http://38.54.45.173:42925",
-            "/room": "http://38.54.45.173:42925",
-            "/players": "http://38.54.45.173:42925",
-            "/login": "http://38.54.45.173:42925",
+            // 38.54.45.173
+            "/service": "http://localhost:42925",
+            "/game": "http://localhost:42925",
+            "/room": "http://localhost:42925",
+            "/players": "http://localhost:42925",
+            "/login": "http://localhost:42925",
         },
     },
 });

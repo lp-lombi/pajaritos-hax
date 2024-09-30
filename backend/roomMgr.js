@@ -68,6 +68,7 @@ global.verifyToken = (req, res, next) => {
     });
 };
 
+const service = require("./routes/service");
 const login = require("./routes/login");
 const room = require("./routes/room");
 const game = require("./routes/game");
@@ -77,6 +78,7 @@ app.use(express.json());
 app.use(cors());
 app.use(express.static("views/dist"));
 
+app.use("/service", service);
 app.use("/login", login);
 app.use("/room", room);
 app.use("/game", game);

@@ -13,6 +13,7 @@ export const ApiService = ({ children }) => {
     const [gameData, setGameData] = useState(null);
     const [players, setPlayers] = useState([]);
     const [chatLog, setChatLog] = useState("");
+    const [permaBans, setPermaBans] = useState([]);
 
     const login = (username, password) => {
         fetch("/login", {
@@ -123,6 +124,20 @@ export const ApiService = ({ children }) => {
                 }
             });
         });
+    };
+
+    const fetchPermaBans = () => {
+        fetch(`/service/bans/perma/all`, {
+            headers: {
+                token: apiToken,
+            },
+        })
+            .then((res) => {
+                if (!res.ok) throw new Error("Error al obtener bans");
+                return res.json();
+            })
+            .then((data) => setPermaBans(data))
+            .catch((err) => console.log(err));
     };
 
     const startRoom = async (config) => {
@@ -264,6 +279,7 @@ export const ApiService = ({ children }) => {
         });
     };
 
+    // debería de unir permabans a servicios
     const permaBanPlayer = (name, ip, auth) => {
         fetch(`/room/kick/permaban`, {
             method: "POST",
@@ -278,6 +294,21 @@ export const ApiService = ({ children }) => {
             }),
         }).then((res) => {
             console.log(res);
+        });
+    };
+
+    const deletePermaBan = (id) => {
+        fetch(`/service/bans/perma/${id}`, {
+            method: "DELETE",
+            headers: {
+                token: apiToken,
+            },
+        }).then((res) => {
+            if (!res.ok) {
+                console.log(res);
+                return;
+            }
+            fetchPermaBans();
         });
     };
 
@@ -360,6 +391,7 @@ export const ApiService = ({ children }) => {
             fetchRoomData();
             fetchChat();
             fetchGameData();
+            fetchPermaBans();
         }, 1000);
     }, [players]);
 
@@ -388,7 +420,9 @@ export const ApiService = ({ children }) => {
                 saveStadium,
 
                 kickPlayer,
+                permaBans,
                 permaBanPlayer,
+                deletePermaBan,
                 unbanPlayer,
 
                 sendMsg,

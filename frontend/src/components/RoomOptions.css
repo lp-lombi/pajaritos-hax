@@ -322,6 +322,17 @@
     height: 50px;
 }
 
+.bans .title {
+    height: 50px;
+    font-size: 26px;
+    background-color: var(--contrast);
+}
+
+.bans .permaBan {
+    border-radius: 1rem;
+    background-color: rgba(255, 0, 0, 0.26);
+}
+
 .bans .bottom .col50 {
     flex-direction: row;
     gap: 1rem;
