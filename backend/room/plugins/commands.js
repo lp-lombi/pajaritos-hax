@@ -1,3 +1,8 @@
+const NodeHaxball = require("node-haxball")();
+/**
+ * @param {NodeHaxball} API
+ * @param {Object} customData
+ */
 module.exports = function (API, customData = {}) {
     const {
         OperationType,
@@ -32,8 +37,21 @@ module.exports = function (API, customData = {}) {
         allowFlags: AllowFlags.CreateRoom,
     });
 
-    var commands,
-        kits = [],
+    /**
+     * @typedef {Object} Comando
+     * @property {string} prefix
+     * @property {string} desc
+     * @property {Boolean} admin
+     * @property {Boolean} hidden
+     * @property {Function} exec
+     */
+
+    /**
+     * @type {Comando[]}
+     */
+    var commands = [];
+
+    var kits = [],
         kickBanAllowed = false,
         that = this;
 
@@ -46,8 +64,6 @@ module.exports = function (API, customData = {}) {
     };
 
     this.utils = Utils;
-
-    this.chatLog = [];
 
     this.initQueue = [];
     this.onPlayerJoinQueue = [];
@@ -76,29 +92,27 @@ module.exports = function (API, customData = {}) {
     const sqlite3 = require("sqlite3");
     const chroma = require("chroma-js");
 
-    // db
     this.db = null;
     const dbPath = path.join(__dirname, "res/cmd.db");
-    if (fs.existsSync(dbPath)) {
-        that.db = new sqlite3.Database(dbPath);
-    } else {
-        const createFromSchema = require(path.join(
-            __dirname,
-            "res/cmdschema.js"
-        ));
-        createFromSchema(dbPath)
-            .then((db) => {
-                that.db = db;
-                console.log("commands: Base de datos creada.");
-            })
-            .catch((err) => {
-                throw err;
-            });
+    function initDb() {
+        if (fs.existsSync(dbPath)) {
+            that.db = new sqlite3.Database(dbPath);
+        } else {
+            const createFromSchema = require(path.join(
+                __dirname,
+                "res/cmdschema.js"
+            ));
+            createFromSchema(dbPath)
+                .then((db) => {
+                    that.db = db;
+                    console.log("commands: Base de datos creada.");
+                })
+                .catch((err) => {
+                    throw err;
+                });
+        }
     }
 
-    var lockPowerShot = false;
-
-    // FUNCIONES
     function sleep(ms) {
         return new Promise((r) => setTimeout(r, ms));
     }
@@ -182,8 +196,6 @@ module.exports = function (API, customData = {}) {
                 }
             });
 
-            class Hola {}
-
             if (!kickBanAllowed) {
                 // Este código es ejecutado solo una vez, a diferencia del de OperationType el cual
                 // se ejecuta al menos dos veces ya que se lo llama recursivamente
@@ -206,20 +218,18 @@ module.exports = function (API, customData = {}) {
         }
     }
 
-    function getValue(string) {
-        const regex = /((?:\d+\.\d*)|(?:\d*\.?\d+))/g;
-        let n = string.match(regex);
-        n = n.join("");
-        return parseFloat(n);
-    }
-
     function isAdmin(id) {
         var player = that.getPlayers().find((p) => p.id === id);
-        if (!player) return false;
-        else return player.isAdmin;
+        return !player ? false : player.isAdmin ? true : false;
     }
 
-    // METODOS
+    /**
+     * Escribe algo en el chat con estilos predeterminados
+     * @param {string} msg Texto del mensaje
+     * @param {Number | null} targetId Id del destinatario o null para todos
+     * @param {"info" | "alert" | "error" | "announcement" | "announcement-mute" | "hint" | "chat" | "pm" | "tm" | "stat" | null} type Estilo del mensaje
+     * @param {Number | null} byId Si el mensaje fue emitido por alguien
+     */
     this.printchat = function (
         msg,
         targetId = null,
@@ -406,6 +416,10 @@ module.exports = function (API, customData = {}) {
         }
     };
 
+    /**
+     *
+     * @returns {sqlite3.Database}
+     */
     this.getDb = function () {
         return that.db;
     };
@@ -424,16 +438,6 @@ module.exports = function (API, customData = {}) {
 
     this.getCommands = function () {
         return commands;
-    };
-
-    this.log = function (text, color, style) {
-        let maxLines = 50;
-
-        that.chatLog.push({ text, color, style });
-
-        maxLines > that.chatLog.length
-            ? null
-            : that.chatLog.splice(0, that.chatLog.length - maxLines);
     };
 
     this.registerCommand = function (
@@ -496,7 +500,7 @@ module.exports = function (API, customData = {}) {
 
         fetchKits();
         that.processBans();
-        // fs.writeFileSync(path.join(__dirname, "res/log.txt"), ""); // Se limpia el log del chat
+        initDb();
         sleep(1000).then(() => {
             that.initQueue.forEach((action) => action());
         });
@@ -882,4 +886,6 @@ module.exports = function (API, customData = {}) {
             }
         };
     };
+
+    return that;
 };

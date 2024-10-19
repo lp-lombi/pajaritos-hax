@@ -34,6 +34,12 @@ module.exports = function (API) {
 
     var that = this;
 
+    const Commands = require("./commands")();
+    /**
+     * @type {Commands}
+     */
+    var commands;
+
     this.anims = {
         grow: (player) => {
             let discs = that.room.getDiscs() ? that.room.getDiscs() : [];
