@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "backend": "node roomMgr.js"
+    "backend": "node --watch roomMgr.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",

@@ -9,6 +9,7 @@
                 "<node_internals>/**"
             ],
             "program": "roomMgr.js",
+            "runtimeArgs": ["--watch"],
             "cwd": "${workspaceFolder}\\backend"
         }
     ]

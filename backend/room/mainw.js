@@ -3,6 +3,7 @@ const API = require("node-haxball")();
 // PLUGINS
 const commands = require("./plugins/commands");
 const comba = require("./plugins/comba");
+const kits = require("./plugins/kits");
 const matchHistory = require("./plugins/matchHistory");
 const auth = require("./plugins/auth");
 const autobot = require("./plugins/autobot");
@@ -35,6 +36,7 @@ async function run(config, DEV = false) {
             plugins: [
                 new commands(API, { webApi: config.webApi }),
                 new comba(API),
+                new kits(API),
                 new matchHistory(API),
                 new auth(API),
                 new autobot(API),

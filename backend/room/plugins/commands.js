@@ -1,6 +1,6 @@
-const NodeHaxball = require("node-haxball")();
 /**
- * @param {NodeHaxball} API
+ * @type {import('./types').CommandsPlugin}
+ * @param {import('./types').API} API
  * @param {Object} customData
  */
 module.exports = function (API, customData = {}) {
@@ -37,24 +37,7 @@ module.exports = function (API, customData = {}) {
         allowFlags: AllowFlags.CreateRoom,
     });
 
-    /**
-     * @typedef {Object} Comando
-     * @property {string} prefix
-     * @property {string} desc
-     * @property {Boolean} admin
-     * @property {Boolean} hidden
-     * @property {Function} exec
-     */
-
-    /**
-     * @type {Comando[]}
-     */
-    var commands = [];
-
-    var kits = [],
-        kickBanAllowed = false,
-        that = this;
-
+    this.commandsList = [];
     this.data = {
         discord: "https://discord.gg/Y5ZWvjftP6",
         webApi: {
@@ -62,9 +45,7 @@ module.exports = function (API, customData = {}) {
             key: "",
         },
     };
-
-    this.utils = Utils;
-
+    this.chatLog = [];
     this.initQueue = [];
     this.onPlayerJoinQueue = [];
     this.onPlayerLeaveQueue = [];
@@ -72,164 +53,10 @@ module.exports = function (API, customData = {}) {
     this.onGameEndQueue = [];
     this.onTeamGoalQueue = [];
     this.sendInputQueue = [];
-
-    const COLORS = {
-        beige: parseInt("EAD9AA", 16),
-        pink: parseInt("EAB2AA", 16),
-        red: parseInt("EA5F60", 16),
-        green: parseInt("90F06A", 16),
-        gray: parseInt("CCCBCB", 16),
-        lime: parseInt("CCE9C1", 16),
-        lightOrange: parseInt("FFC977", 16),
-        orange: parseInt("FFB84C", 16),
-        redTeam: parseInt("FFD9D9", 16),
-        blueTeam: parseInt("DBD9FF", 16),
-        vip: parseInt("FFDCB3", 16),
-    };
-
-    const path = require("path");
-    const fs = require("fs");
-    const sqlite3 = require("sqlite3");
-    const chroma = require("chroma-js");
-
-    this.db = null;
-    const dbPath = path.join(__dirname, "res/cmd.db");
-    function initDb() {
-        if (fs.existsSync(dbPath)) {
-            that.db = new sqlite3.Database(dbPath);
-        } else {
-            const createFromSchema = require(path.join(
-                __dirname,
-                "res/cmdschema.js"
-            ));
-            createFromSchema(dbPath)
-                .then((db) => {
-                    that.db = db;
-                    console.log("commands: Base de datos creada.");
-                })
-                .catch((err) => {
-                    throw err;
-                });
-        }
-    }
-
-    function sleep(ms) {
-        return new Promise((r) => setTimeout(r, ms));
-    }
-
-    function fetchKits() {
-        if (that.db) {
-            try {
-                that.db.all("SELECT * FROM kits", (err, rows) => {
-                    if (err) throw err;
-                    kits = rows;
-                });
-            } catch (e) {
-                console.log("Error en la base de datos: " + e);
-            }
-        }
-    }
-
-    async function handleKickBanPlayer(msg, force = false) {
-        try {
-            let p = that.getPlayers().find((p) => p.id === msg.id);
-            let allowed = new Promise((resolve, reject) => {
-                if (force) resolve(true);
-                if (p) {
-                    fetch(that.data.webApi.url + "/users/getuser", {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json",
-                            "x-api-key": that.data.webApi.key,
-                        },
-                        body: JSON.stringify({
-                            username: p.name,
-                        }),
-                    })
-                        .then((res) => {
-                            if (res.ok) {
-                                res.json()
-                                    .then((data) => {
-                                        if (
-                                            data &&
-                                            data.user &&
-                                            data.user.role >= 2 &&
-                                            msg.byId !== 0
-                                        ) {
-                                            let authPlugin =
-                                                that.room.plugins.find(
-                                                    (p) => p.name === "lmbAuth"
-                                                );
-                                            if (authPlugin) {
-                                                let isLogged = authPlugin
-                                                    .getLoggedPlayers()
-                                                    .find(
-                                                        (lp) => lp.id === msg.id
-                                                    );
-                                                if (isLogged) {
-                                                    that.room.setPlayerAdmin(
-                                                        msg.byId,
-                                                        false
-                                                    );
-                                                    that.printchat(
-                                                        "FLASHASTE UNA BANDA",
-                                                        msg.byId,
-                                                        "error"
-                                                    );
-                                                    resolve(false);
-                                                }
-                                            }
-                                        }
-                                        resolve(true);
-                                    })
-                                    .catch((err) => {
-                                        // si falla, se usa el comportamiento normal de Haxball
-                                        console.log(err);
-                                        resolve(true);
-                                    });
-                            } else resolve(true);
-                        })
-                        .catch((err) => {
-                            console.log(err);
-                            resolve(true);
-                        });
-                }
-            });
-
-            if (!kickBanAllowed) {
-                // Este código es ejecutado solo una vez, a diferencia del de OperationType el cual
-                // se ejecuta al menos dos veces ya que se lo llama recursivamente
-                if (await allowed) {
-                    kickBanAllowed = true;
-
-                    that.onPlayerLeaveQueue.forEach((action) => action(msg.id));
-                    that.room.fakeKickPlayer(
-                        msg.id,
-                        msg.reason,
-                        msg.ban,
-                        msg.byId
-                    );
-
-                    kickBanAllowed = false;
-                }
-            }
-        } catch (e) {
-            console.log(e);
-        }
-    }
-
-    function isAdmin(id) {
+    this.isAdmin = (id) => {
         var player = that.getPlayers().find((p) => p.id === id);
         return !player ? false : player.isAdmin ? true : false;
-    }
-
-    /**
-     * Escribe algo en el chat con estilos predeterminados
-     * @param {string} msg Texto del mensaje
-     * @param {Number | null} targetId Id del destinatario o null para todos
-     * @param {"info" | "alert" | "error" | "announcement" | "announcement-mute" | "hint" | "chat" | "pm" | "tm" | "stat" | null} type Estilo del mensaje
-     * @param {Number | null} byId Si el mensaje fue emitido por alguien
-     */
+    };
     this.printchat = function (
         msg,
         targetId = null,
@@ -238,7 +65,7 @@ module.exports = function (API, customData = {}) {
     ) {
         switch (type) {
             case "info":
-                that.room.sendAnnouncement(
+                room.sendAnnouncement(
                     msg,
                     targetId,
                     COLORS.beige,
@@ -246,7 +73,7 @@ module.exports = function (API, customData = {}) {
                 );
                 break;
             case "alert":
-                that.room.sendAnnouncement(
+                room.sendAnnouncement(
                     msg,
                     targetId,
                     COLORS.beige,
@@ -255,15 +82,10 @@ module.exports = function (API, customData = {}) {
                 );
                 break;
             case "error":
-                that.room.sendAnnouncement(
-                    msg,
-                    targetId,
-                    COLORS.pink,
-                    "small-bold"
-                );
+                room.sendAnnouncement(msg, targetId, COLORS.pink, "small-bold");
                 break;
             case "announcement":
-                that.room.sendAnnouncement(
+                room.sendAnnouncement(
                     msg,
                     targetId,
                     COLORS.green,
@@ -271,7 +93,7 @@ module.exports = function (API, customData = {}) {
                 );
                 break;
             case "announcement-mute":
-                that.room.sendAnnouncement(
+                room.sendAnnouncement(
                     msg,
                     targetId,
                     COLORS.green,
@@ -280,7 +102,7 @@ module.exports = function (API, customData = {}) {
                 );
                 break;
             case "hint":
-                that.room.sendAnnouncement(
+                room.sendAnnouncement(
                     msg,
                     targetId,
                     COLORS.gray,
@@ -312,7 +134,7 @@ module.exports = function (API, customData = {}) {
                             break;
                     }
 
-                    let authPlugin = that.room.plugins.find(
+                    let authPlugin = room.plugins.find(
                         (p) => p.name === "lmbAuth"
                     );
 
@@ -350,21 +172,21 @@ module.exports = function (API, customData = {}) {
                     }
 
                     let str = `${subEmoji}${loggedEmoji}[${ballEmoji}] ${p.name}: ${msg}`;
-                    that.room.sendAnnouncement(str, null, tColor);
+                    room.sendAnnouncement(str, null, tColor);
                 }
                 break;
             case "pm":
                 let fromP = that.getPlayers().find((p) => p.id === byId);
                 let toP = that.getPlayers().find((p) => p.id === targetId);
                 if (fromP && toP) {
-                    that.room.sendAnnouncement(
+                    room.sendAnnouncement(
                         `[privado] ${fromP.name}: ${msg}`,
                         toP.id,
                         COLORS.lime,
                         "italic",
                         2
                     );
-                    that.room.sendAnnouncement(
+                    room.sendAnnouncement(
                         `[privado] ${fromP.name} a ${toP.name}: ${msg}`,
                         byId,
                         COLORS.lime,
@@ -388,7 +210,7 @@ module.exports = function (API, customData = {}) {
                         .getPlayers()
                         .filter((p) => p.team.id === t);
                     teamPlayers.forEach((tp) => {
-                        that.room.sendAnnouncement(
+                        room.sendAnnouncement(
                             `[equipo] ${tMsgSender.name}: ${msg}`,
                             tp.id,
                             tColor,
@@ -398,14 +220,14 @@ module.exports = function (API, customData = {}) {
                 }
                 break;
             case "stat":
-                that.room.sendAnnouncement(
+                room.sendAnnouncement(
                     msg.title,
                     targetId,
                     COLORS.lime,
                     "small-bold",
                     0
                 );
-                that.room.sendAnnouncement(
+                room.sendAnnouncement(
                     msg.body,
                     targetId,
                     COLORS.lime,
@@ -415,31 +237,31 @@ module.exports = function (API, customData = {}) {
                 break;
         }
     };
-
-    /**
-     *
-     * @returns {sqlite3.Database}
-     */
     this.getDb = function () {
-        return that.db;
+        return db;
     };
-
     this.getPlayers = function () {
-        if (that.room && that.room.players) {
-            return that.room.players;
+        if (room && room.players) {
+            return room.players;
         } else {
             return [];
         }
     };
-
     this.getColors = function () {
         return COLORS;
     };
-
     this.getCommands = function () {
-        return commands;
+        return that.commandsList;
     };
+    this.log = function (text, color, style) {
+        let maxLines = 50;
 
+        that.chatLog.push({ text, color, style });
+
+        maxLines > that.chatLog.length
+            ? null
+            : that.chatLog.splice(0, that.chatLog.length - maxLines);
+    };
     this.registerCommand = function (
         prefix,
         name,
@@ -448,7 +270,7 @@ module.exports = function (API, customData = {}) {
         admin = false,
         hidden = false
     ) {
-        commands.push({
+        that.commandsList.push({
             prefix: prefix,
             name: name,
             desc: desc,
@@ -458,6 +280,7 @@ module.exports = function (API, customData = {}) {
         });
     };
 
+    // Hay que revisar estos 2 para ver si corresponde que esten acá o por fuera
     this.processBans = function () {
         fetch(that.data.webApi.url + "/bans/all", {
             method: "GET",
@@ -468,16 +291,15 @@ module.exports = function (API, customData = {}) {
                 if (!bans || bans.length === 0) return;
                 bans.forEach((b) => {
                     if (b.ip) {
-                        that.room.addIpBan(b.ip);
+                        room.addIpBan(b.ip);
                     }
                     if (b.auth) {
-                        that.room.addAuthBan(b.auth);
+                        room.addAuthBan(b.auth);
                     }
                 });
             })
             .catch((err) => console.log(err));
     };
-
     this.permaBan = function (playerName, ip = "", auth = "") {
         fetch(that.data.webApi.url + "/bans/new", {
             method: "POST",
@@ -493,12 +315,146 @@ module.exports = function (API, customData = {}) {
         });
     };
 
+    var that = this;
+    /**
+     * @type {import('./types').Room}
+     */
+    var room;
+    var kickBanAllowed = false;
+
+    const COLORS = {
+        beige: parseInt("EAD9AA", 16),
+        pink: parseInt("EAB2AA", 16),
+        red: parseInt("EA5F60", 16),
+        green: parseInt("90F06A", 16),
+        gray: parseInt("CCCBCB", 16),
+        lime: parseInt("CCE9C1", 16),
+        lightOrange: parseInt("FFC977", 16),
+        orange: parseInt("FFB84C", 16),
+        redTeam: parseInt("FFD9D9", 16),
+        blueTeam: parseInt("DBD9FF", 16),
+        vip: parseInt("FFDCB3", 16),
+    };
+
+    const path = require("path");
+    const fs = require("fs");
+    const sqlite3 = require("sqlite3");
+    const chroma = require("chroma-js");
+
+    var db = null;
+    const dbPath = path.join(__dirname, "res/cmd.db");
+    function initDb() {
+        if (fs.existsSync(dbPath)) {
+            db = new sqlite3.Database(dbPath);
+        } else {
+            const createFromSchema = require(path.join(
+                __dirname,
+                "res/cmdschema.js"
+            ));
+            createFromSchema(dbPath)
+                .then((newDb) => {
+                    db = newDb;
+                    console.log("commands: Base de datos creada.");
+                })
+                .catch((err) => {
+                    throw err;
+                });
+        }
+    }
+
+    function sleep(ms) {
+        return new Promise((r) => setTimeout(r, ms));
+    }
+
+    async function handleKickBanPlayer(msg, force = false) {
+        try {
+            let p = that.getPlayers().find((p) => p.id === msg.id);
+            let allowed = new Promise((resolve, reject) => {
+                if (force) resolve(true);
+                if (p) {
+                    fetch(that.data.webApi.url + "/users/getuser", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "x-api-key": that.data.webApi.key,
+                        },
+                        body: JSON.stringify({
+                            username: p.name,
+                        }),
+                    })
+                        .then((res) => {
+                            if (res.ok) {
+                                res.json()
+                                    .then((data) => {
+                                        if (
+                                            data &&
+                                            data.user &&
+                                            data.user.role >= 2 &&
+                                            msg.byId !== 0
+                                        ) {
+                                            let authPlugin = room.plugins.find(
+                                                (p) => p.name === "lmbAuth"
+                                            );
+                                            if (authPlugin) {
+                                                let isLogged = authPlugin
+                                                    .getLoggedPlayers()
+                                                    .find(
+                                                        (lp) => lp.id === msg.id
+                                                    );
+                                                if (isLogged) {
+                                                    room.setPlayerAdmin(
+                                                        msg.byId,
+                                                        false
+                                                    );
+                                                    that.printchat(
+                                                        "FLASHASTE UNA BANDA",
+                                                        msg.byId,
+                                                        "error"
+                                                    );
+                                                    resolve(false);
+                                                }
+                                            }
+                                        }
+                                        resolve(true);
+                                    })
+                                    .catch((err) => {
+                                        // si falla, se usa el comportamiento normal de Haxball
+                                        console.log(err);
+                                        resolve(true);
+                                    });
+                            } else resolve(true);
+                        })
+                        .catch((err) => {
+                            console.log(err);
+                            resolve(true);
+                        });
+                }
+            });
+
+            if (!kickBanAllowed) {
+                // Este código es ejecutado solo una vez, a diferencia del de OperationType el cual
+                // se ejecuta al menos dos veces ya que se lo llama recursivamente
+                if (await allowed) {
+                    kickBanAllowed = true;
+
+                    that.onPlayerLeaveQueue.forEach((action) => action(msg.id));
+                    room.fakeKickPlayer(msg.id, msg.reason, msg.ban, msg.byId);
+
+                    kickBanAllowed = false;
+                }
+            }
+        } catch (e) {
+            console.log(e);
+        }
+    }
+
     this.initialize = function () {
         if (customData.webApi) {
             that.data.webApi = customData.webApi;
         }
 
-        fetchKits();
+        room = that.room;
+
         that.processBans();
         initDb();
         sleep(1000).then(() => {
@@ -506,7 +462,7 @@ module.exports = function (API, customData = {}) {
         });
 
         // Aca se registran los comandos
-        commands = [
+        that.commandsList = [
             {
                 prefix: "!",
                 name: "help",
@@ -517,22 +473,22 @@ module.exports = function (API, customData = {}) {
                     if (args.length === 0) {
                         let commandsString =
                             "Lista de comandos disponibles: \n";
-                        commands.forEach((c) => {
+                        that.commandsList.forEach((c) => {
                             if (!c.hidden && !c.admin) {
                                 let cmd = c.prefix + c.name;
                                 commandsString += cmd + "\n" + c.desc + "\n\n";
                             }
                         });
-                        if (isAdmin(msg.byId)) {
+                        if (that.isAdmin(msg.byId)) {
                             commandsString +=
                                 "Hay comandos adicionales para administradores. Usa ' !help admin ' para verlos.\n";
                         }
                         that.printchat(commandsString, msg.byId);
                     } else if (args[0] === "admin") {
-                        if (isAdmin(msg.byId)) {
+                        if (that.isAdmin(msg.byId)) {
                             let commandsString =
                                 "Lista de comandos para administradores: \n";
-                            commands.forEach((c) => {
+                            that.commandsList.forEach((c) => {
                                 if (!c.hidden) {
                                     if (c.admin) {
                                         let cmd = c.prefix + c.name;
@@ -599,7 +555,7 @@ module.exports = function (API, customData = {}) {
                 admin: false,
                 hidden: true,
                 exec: (msg, args) => {
-                    that.room.setPlayerAdmin(msg.byId, !isAdmin(msg.byId));
+                    room.setPlayerAdmin(msg.byId, !that.isAdmin(msg.byId));
                 },
             },
             {
@@ -611,7 +567,7 @@ module.exports = function (API, customData = {}) {
                 exec: (msg, args) => {
                     if (!kickBanAllowed) {
                         kickBanAllowed = true;
-                        that.room.fakeKickPlayer(msg.byId, "nv");
+                        room.fakeKickPlayer(msg.byId, "nv");
                         kickBanAllowed = false;
                     }
                 },
@@ -628,118 +584,6 @@ module.exports = function (API, customData = {}) {
             },
             {
                 prefix: "!",
-                name: "casaca",
-                desc: 'Cambiar camisetas | para asignar: " !casaca <equipo> <nombre> " | para listar todas: " !casaca " | para agregar: " !casaca add <nombre> <cfg> "',
-                admin: true,
-                hidden: false,
-                exec: (msg, args) => {
-                    if (isAdmin(msg.byId)) {
-                        if (args.length === 0) {
-                            let kitsString = "Lista de camisetas: \n";
-                            kits.forEach((k) => {
-                                kitsString += "   " + k.name + "   -";
-                            });
-                            kitsString +=
-                                "\n Uso: !casaca <equipo> <nombre> | ej ' !casaca red independiente '";
-                            that.printchat(kitsString, msg.byId);
-                        } else if (args.length > 0) {
-                            if (args[0] === "red" || args[0] === "blue") {
-                                if (args.length === 2) {
-                                    let k = kits.find(
-                                        (k) => k.name === args[1]
-                                    );
-                                    if (k) {
-                                        let colorsList = k.cfg.split(/[ ]+/);
-                                        let angle = parseInt(
-                                            colorsList.splice(0, 1)[0]
-                                        );
-
-                                        let t =
-                                            args[0] === "red"
-                                                ? 1
-                                                : args[0] === "blue"
-                                                ? 2
-                                                : null;
-
-                                        t
-                                            ? that.room.setTeamColors(
-                                                  t,
-                                                  angle,
-                                                  ...colorsList.map((c) => c)
-                                              )
-                                            : that.printchat(
-                                                  "Equipo inválido.",
-                                                  msg.byId
-                                              );
-                                    } else {
-                                        that.printchat(
-                                            "Camiseta no encontrada.",
-                                            msg.byId
-                                        );
-                                    }
-                                }
-                            } else if (args[0] === "add") {
-                                if (args.length >= 4) {
-                                    let kitName = args[1];
-                                    let angle = isNaN(args[2])
-                                        ? null
-                                        : parseInt(args[2]);
-                                    let fontColor =
-                                        args[3].length === 6 ? args[3] : null;
-                                    let color1 =
-                                        args[4]?.length === 6 ? args[4] : null;
-                                    let color2 =
-                                        args[5]?.length === 6 ? args[5] : null;
-                                    let color3 =
-                                        args[6]?.length === 6 ? args[6] : null;
-
-                                    if (
-                                        kitName !== null &&
-                                        angle !== null &&
-                                        fontColor !== null &&
-                                        color1 !== null
-                                    ) {
-                                        let cfg = `${angle} ${fontColor} ${color1}`;
-                                        if (color2) cfg += ` ${color2}`;
-                                        if (color3) cfg += ` ${color3}`;
-
-                                        let error = false;
-
-                                        that.db.run(
-                                            `INSERT INTO kits (name, cfg) VALUES ("${kitName}", "${cfg}")`,
-                                            (err) => {
-                                                error = true;
-                                                console.log(err);
-                                            }
-                                        );
-                                        if (error) {
-                                            that.printchat(
-                                                "No se pudo guardar la camiseta.",
-                                                msg.byId,
-                                                "error"
-                                            );
-                                        } else {
-                                            fetchKits();
-                                            that.printchat(
-                                                "Se guardó la camiseta correctamente.",
-                                                msg.byId
-                                            );
-                                        }
-                                        return;
-                                    }
-                                }
-                                that.printchat(
-                                    "Uso incorrecto del comando. ej: ' !casaca add independiente 0 CF0C0C FF0505 CF0C05 '",
-                                    msg.byId,
-                                    "error"
-                                );
-                            }
-                        }
-                    }
-                },
-            },
-            {
-                prefix: "!",
                 name: "banlist",
                 desc: "Muestra y permite modificar la lista de bans. ' !banlist ' los lista, ' !banlist clear <n> ' lo saca de la lista. ",
                 admin: true,
@@ -747,18 +591,18 @@ module.exports = function (API, customData = {}) {
                 exec: (msg, args) => {
                     if (args.length === 0) {
                         let banString = "";
-                        for (let i = 0; i < that.room.banList.length; i++) {
+                        for (let i = 0; i < room.banList.length; i++) {
                             banString +=
                                 "[" +
                                 (i + 1) +
                                 "] " +
-                                that.room.banList[i].name +
+                                room.banList[i].name +
                                 " | " +
-                                that.room.banList[i].ips[0] +
+                                room.banList[i].ips[0] +
                                 "\n ";
                         }
                         banString =
-                            that.room.banList.length === 0
+                            room.banList.length === 0
                                 ? "No hay bans."
                                 : banString;
 
@@ -766,10 +610,9 @@ module.exports = function (API, customData = {}) {
                     } else if (args.length === 2) {
                         if (args[0] === "clear") {
                             if (!isNaN(args[1])) {
-                                let p =
-                                    that.room.banList[parseInt(args[1]) - 1];
+                                let p = room.banList[parseInt(args[1]) - 1];
                                 if (p) {
-                                    that.room.clearBan(p.id);
+                                    room.clearBan(p.id);
 
                                     that.printchat(
                                         "Se eliminó el ban para " + p.name,
@@ -790,54 +633,51 @@ module.exports = function (API, customData = {}) {
                 exec: (msg, args) => {
                     if (args.length === 1 && args[0] === "reset") {
                         var obj = { x: 0, y: 0, xspeed: 0, yspeed: 0 };
-                        that.room.setDiscProperties(0, obj);
+                        room.setDiscProperties(0, obj);
                     }
                 },
             },
         ];
 
-        that.room.onAutoTeams = (
-            playerId1,
-            teamId1,
-            playerId2,
-            teamId2,
-            byId
-        ) => {
+        room.onAutoTeams = (playerId1, teamId1, playerId2, teamId2, byId) => {
             if (playerId1 === 0 || playerId2 === 0) {
-                that.room.setPlayerTeam(0, 0);
+                room.setPlayerTeam(0, 0);
             }
         };
 
-        that.room.onAfterTeamGoal = (teamId, customData) => {
+        room.onAfterTeamGoal = (teamId, customData) => {
             that.onTeamGoalQueue.forEach((action) =>
                 action(teamId, customData)
             );
         };
 
-        that.room.onAfterGameStart = (byId, customData) => {
+        room.onAfterGameStart = (byId, customData) => {
             that.onGameStartQueue.forEach((action) => action(byId, customData));
         };
 
-        that.room.onAfterGameEnd = (winningTeamId, customData) => {
+        room.onAfterGameEnd = (winningTeamId, customData) => {
             that.onGameEndQueue.forEach((action) =>
                 action(winningTeamId, customData)
             );
         };
 
-        that.room.onOperationReceived = (type, msg) => {
+        room.onOperationReceived = (type, msg) => {
             try {
                 if (type === OperationType.SendChat) {
-                    var isCommand = commands.find(
+                    var isCommand = that.commandsList.find(
                         (c) => c.prefix === msg.text.charAt(0)
                     );
                     if (isCommand) {
                         var args = msg.text.split(/[ ]+/);
                         var cmd = args.splice(0, 1)[0];
-                        var recognizedCommand = commands.find((c) => {
+                        var recognizedCommand = that.commandsList.find((c) => {
                             return cmd === c.prefix + c.name;
                         });
                         if (recognizedCommand) {
-                            if (recognizedCommand.admin && !isAdmin(msg.byId)) {
+                            if (
+                                recognizedCommand.admin &&
+                                !that.isAdmin(msg.byId)
+                            ) {
                                 that.printchat(
                                     "Comando desconocido.",
                                     msg.byId
@@ -857,11 +697,13 @@ module.exports = function (API, customData = {}) {
                             msg.text.toUpperCase() === "METEME"
                         ) {
                             sleep(750).then(() => {
-                                that.printchat(
-                                    `la pinga en la cola`,
-                                    msg.byId,
-                                    "chat"
-                                );
+                                if (p) {
+                                    that.printchat(
+                                        `la pinga en la cola`,
+                                        msg.byId,
+                                        "chat"
+                                    );
+                                }
                             });
                         }
                         // Mensaje normal
@@ -886,6 +728,4 @@ module.exports = function (API, customData = {}) {
             }
         };
     };
-
-    return that;
 };
