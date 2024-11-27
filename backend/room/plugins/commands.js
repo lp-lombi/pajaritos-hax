@@ -1,5 +1,4 @@
 /**
- * @type {import('./types').CommandsPlugin}
  * @param {import('./types').API} API
  * @param {Object} customData
  */
@@ -57,58 +56,25 @@ module.exports = function (API, customData = {}) {
         var player = that.getPlayers().find((p) => p.id === id);
         return !player ? false : player.isAdmin ? true : false;
     };
-    this.printchat = function (
-        msg,
-        targetId = null,
-        type = "info",
-        byId = null
-    ) {
+    this.printchat = function (msg, targetId = null, type = "info", byId = null) {
         switch (type) {
             case "info":
-                room.sendAnnouncement(
-                    msg,
-                    targetId,
-                    COLORS.beige,
-                    "small-bold"
-                );
+                room.sendAnnouncement(msg, targetId, COLORS.beige, "small-bold");
                 break;
             case "alert":
-                room.sendAnnouncement(
-                    msg,
-                    targetId,
-                    COLORS.beige,
-                    "small-bold",
-                    2
-                );
+                room.sendAnnouncement(msg, targetId, COLORS.beige, "small-bold", 2);
                 break;
             case "error":
                 room.sendAnnouncement(msg, targetId, COLORS.pink, "small-bold");
                 break;
             case "announcement":
-                room.sendAnnouncement(
-                    msg,
-                    targetId,
-                    COLORS.green,
-                    "small-bold"
-                );
+                room.sendAnnouncement(msg, targetId, COLORS.green, "small-bold");
                 break;
             case "announcement-mute":
-                room.sendAnnouncement(
-                    msg,
-                    targetId,
-                    COLORS.green,
-                    "small-bold",
-                    0
-                );
+                room.sendAnnouncement(msg, targetId, COLORS.green, "small-bold", 0);
                 break;
             case "hint":
-                room.sendAnnouncement(
-                    msg,
-                    targetId,
-                    COLORS.gray,
-                    "small-bold",
-                    0
-                );
+                room.sendAnnouncement(msg, targetId, COLORS.gray, "small-bold", 0);
                 break;
             case "chat":
                 let p = that.getPlayers().find((p) => p.id === targetId);
@@ -134,35 +100,18 @@ module.exports = function (API, customData = {}) {
                             break;
                     }
 
-                    let authPlugin = room.plugins.find(
-                        (p) => p.name === "lmbAuth"
-                    );
+                    let authPlugin = room.plugins.find((p) => p.name === "lmbAuth");
 
                     if (authPlugin) {
                         if (authPlugin.isPlayerLogged(p.id)) {
                             loggedEmoji = "✔️ ";
                         }
                         if (authPlugin.isPlayerSubscribed(p.id)) {
-                            let subscription = authPlugin.getPlayerSubscription(
-                                p.id
-                            );
-                            if (
-                                subscription &&
-                                subscription &&
-                                subscription.tier >= 1
-                            ) {
+                            let subscription = authPlugin.getPlayerSubscription(p.id);
+                            if (subscription && subscription && subscription.tier >= 1) {
                                 if (tColor) {
-                                    let color = chroma(
-                                        tColor.toString(16).padStart(6, "0")
-                                    );
-                                    tColor = parseInt(
-                                        color
-                                            .saturate(3)
-                                            .brighten(0.2)
-                                            .hex()
-                                            .substring(1),
-                                        16
-                                    );
+                                    let color = chroma(tColor.toString(16).padStart(6, "0"));
+                                    tColor = parseInt(color.saturate(3).brighten(0.2).hex().substring(1), 16);
                                 } else {
                                     tColor = COLORS.vip;
                                 }
@@ -179,62 +128,27 @@ module.exports = function (API, customData = {}) {
                 let fromP = that.getPlayers().find((p) => p.id === byId);
                 let toP = that.getPlayers().find((p) => p.id === targetId);
                 if (fromP && toP) {
-                    room.sendAnnouncement(
-                        `[privado] ${fromP.name}: ${msg}`,
-                        toP.id,
-                        COLORS.lime,
-                        "italic",
-                        2
-                    );
-                    room.sendAnnouncement(
-                        `[privado] ${fromP.name} a ${toP.name}: ${msg}`,
-                        byId,
-                        COLORS.lime,
-                        "italic"
-                    );
+                    room.sendAnnouncement(`[privado] ${fromP.name}: ${msg}`, toP.id, COLORS.lime, "italic", 2);
+                    room.sendAnnouncement(`[privado] ${fromP.name} a ${toP.name}: ${msg}`, byId, COLORS.lime, "italic");
                 }
                 break;
             case "tm":
-                let tMsgSender = that
-                    .getPlayers()
-                    .find((p) => p.id === targetId);
+                let tMsgSender = that.getPlayers().find((p) => p.id === targetId);
                 if (tMsgSender) {
                     let t = tMsgSender.team.id;
-                    let tColor =
-                        t === 0
-                            ? null
-                            : t === 1
-                            ? parseInt("FF9898", 16)
-                            : parseInt("9B98FF", 16);
-                    let teamPlayers = that
-                        .getPlayers()
-                        .filter((p) => p.team.id === t);
+                    let tColor = t === 0 ? null : t === 1 ? parseInt("FF9898", 16) : parseInt("9B98FF", 16);
+                    let teamPlayers = that.getPlayers().filter((p) => p.team.id === t);
                     teamPlayers.forEach((tp) => {
-                        room.sendAnnouncement(
-                            `[equipo] ${tMsgSender.name}: ${msg}`,
-                            tp.id,
-                            tColor,
-                            "italic"
-                        );
+                        room.sendAnnouncement(`[equipo] ${tMsgSender.name}: ${msg}`, tp.id, tColor, "italic");
                     });
                 }
                 break;
             case "stat":
-                room.sendAnnouncement(
-                    msg.title,
-                    targetId,
-                    COLORS.lime,
-                    "small-bold",
-                    0
-                );
-                room.sendAnnouncement(
-                    msg.body,
-                    targetId,
-                    COLORS.lime,
-                    "small-bold",
-                    0
-                );
+                room.sendAnnouncement(msg.title, targetId, COLORS.lime, "small-bold", 0);
+                room.sendAnnouncement(msg.body, targetId, COLORS.lime, "small-bold", 0);
                 break;
+            case "vip-message":
+                room.sendAnnouncement(msg, targetId, COLORS.lightOrange, "bold", 2);
         }
     };
     this.getDb = function () {
@@ -258,18 +172,9 @@ module.exports = function (API, customData = {}) {
 
         that.chatLog.push({ text, color, style });
 
-        maxLines > that.chatLog.length
-            ? null
-            : that.chatLog.splice(0, that.chatLog.length - maxLines);
+        maxLines > that.chatLog.length ? null : that.chatLog.splice(0, that.chatLog.length - maxLines);
     };
-    this.registerCommand = function (
-        prefix,
-        name,
-        callback,
-        desc = "",
-        admin = false,
-        hidden = false
-    ) {
+    this.registerCommand = function (prefix, name, callback, desc = "", admin = false, hidden = false) {
         that.commandsList.push({
             prefix: prefix,
             name: name,
@@ -315,7 +220,11 @@ module.exports = function (API, customData = {}) {
         });
     };
 
+    /**
+     * @type {import('./types').CommandsPlugin}
+     */
     var that = this;
+
     /**
      * @type {import('./types').Room}
      */
@@ -347,10 +256,7 @@ module.exports = function (API, customData = {}) {
         if (fs.existsSync(dbPath)) {
             db = new sqlite3.Database(dbPath);
         } else {
-            const createFromSchema = require(path.join(
-                __dirname,
-                "res/cmdschema.js"
-            ));
+            const createFromSchema = require(path.join(__dirname, "res/cmdschema.js"));
             createFromSchema(dbPath)
                 .then((newDb) => {
                     db = newDb;
@@ -386,31 +292,15 @@ module.exports = function (API, customData = {}) {
                             if (res.ok) {
                                 res.json()
                                     .then((data) => {
-                                        if (
-                                            data &&
-                                            data.user &&
-                                            data.user.role >= 2 &&
-                                            msg.byId !== 0
-                                        ) {
-                                            let authPlugin = room.plugins.find(
-                                                (p) => p.name === "lmbAuth"
-                                            );
+                                        if (data && data.user && data.user.role >= 2 && msg.byId !== 0) {
+                                            let authPlugin = room.plugins.find((p) => p.name === "lmbAuth");
                                             if (authPlugin) {
                                                 let isLogged = authPlugin
                                                     .getLoggedPlayers()
-                                                    .find(
-                                                        (lp) => lp.id === msg.id
-                                                    );
+                                                    .find((lp) => lp.id === msg.id);
                                                 if (isLogged) {
-                                                    room.setPlayerAdmin(
-                                                        msg.byId,
-                                                        false
-                                                    );
-                                                    that.printchat(
-                                                        "FLASHASTE UNA BANDA",
-                                                        msg.byId,
-                                                        "error"
-                                                    );
+                                                    room.setPlayerAdmin(msg.byId, false);
+                                                    that.printchat("FLASHASTE UNA BANDA", msg.byId, "error");
                                                     resolve(false);
                                                 }
                                             }
@@ -471,8 +361,7 @@ module.exports = function (API, customData = {}) {
                 hidden: false,
                 exec: (msg, args) => {
                     if (args.length === 0) {
-                        let commandsString =
-                            "Lista de comandos disponibles: \n";
+                        let commandsString = "Lista de comandos disponibles: \n";
                         that.commandsList.forEach((c) => {
                             if (!c.hidden && !c.admin) {
                                 let cmd = c.prefix + c.name;
@@ -486,14 +375,12 @@ module.exports = function (API, customData = {}) {
                         that.printchat(commandsString, msg.byId);
                     } else if (args[0] === "admin") {
                         if (that.isAdmin(msg.byId)) {
-                            let commandsString =
-                                "Lista de comandos para administradores: \n";
+                            let commandsString = "Lista de comandos para administradores: \n";
                             that.commandsList.forEach((c) => {
                                 if (!c.hidden) {
                                     if (c.admin) {
                                         let cmd = c.prefix + c.name;
-                                        commandsString +=
-                                            cmd + "\n" + c.desc + "\n\n";
+                                        commandsString += cmd + "\n" + c.desc + "\n\n";
                                     }
                                 }
                             });
@@ -513,12 +400,8 @@ module.exports = function (API, customData = {}) {
                         that.printchat("Uso: !pm @nombre Hola!", msg.byId);
                     } else {
                         if (args[0].startsWith("@")) {
-                            let name = args[0]
-                                .substring(1)
-                                .replaceAll("_", " ");
-                            let p = that
-                                .getPlayers()
-                                .find((p) => p.name === name);
+                            let name = args[0].substring(1).replaceAll("_", " ");
+                            let p = that.getPlayers().find((p) => p.name === name);
                             if (p) {
                                 let text = args.slice(1).join(" ");
                                 that.printchat(text, p.id, "pm", msg.byId);
@@ -537,9 +420,7 @@ module.exports = function (API, customData = {}) {
                     if (args.length < 1) {
                         that.printchat("Uso: !tm Hola!", msg.byId);
                     } else {
-                        let p = that
-                            .getPlayers()
-                            .find((p) => p.id === msg.byId);
+                        let p = that.getPlayers().find((p) => p.id === msg.byId);
 
                         if (p) {
                             let text = args.join(" ");
@@ -593,18 +474,9 @@ module.exports = function (API, customData = {}) {
                         let banString = "";
                         for (let i = 0; i < room.banList.length; i++) {
                             banString +=
-                                "[" +
-                                (i + 1) +
-                                "] " +
-                                room.banList[i].name +
-                                " | " +
-                                room.banList[i].ips[0] +
-                                "\n ";
+                                "[" + (i + 1) + "] " + room.banList[i].name + " | " + room.banList[i].ips[0] + "\n ";
                         }
-                        banString =
-                            room.banList.length === 0
-                                ? "No hay bans."
-                                : banString;
+                        banString = room.banList.length === 0 ? "No hay bans." : banString;
 
                         that.printchat("Baneados: \n" + banString, msg.byId);
                     } else if (args.length === 2) {
@@ -614,10 +486,7 @@ module.exports = function (API, customData = {}) {
                                 if (p) {
                                     room.clearBan(p.id);
 
-                                    that.printchat(
-                                        "Se eliminó el ban para " + p.name,
-                                        msg.byId
-                                    );
+                                    that.printchat("Se eliminó el ban para " + p.name, msg.byId);
                                 }
                             }
                         }
@@ -646,9 +515,7 @@ module.exports = function (API, customData = {}) {
         };
 
         room.onAfterTeamGoal = (teamId, customData) => {
-            that.onTeamGoalQueue.forEach((action) =>
-                action(teamId, customData)
-            );
+            that.onTeamGoalQueue.forEach((action) => action(teamId, customData));
         };
 
         room.onAfterGameStart = (byId, customData) => {
@@ -656,17 +523,13 @@ module.exports = function (API, customData = {}) {
         };
 
         room.onAfterGameEnd = (winningTeamId, customData) => {
-            that.onGameEndQueue.forEach((action) =>
-                action(winningTeamId, customData)
-            );
+            that.onGameEndQueue.forEach((action) => action(winningTeamId, customData));
         };
 
         room.onOperationReceived = (type, msg) => {
             try {
                 if (type === OperationType.SendChat) {
-                    var isCommand = that.commandsList.find(
-                        (c) => c.prefix === msg.text.charAt(0)
-                    );
+                    var isCommand = that.commandsList.find((c) => c.prefix === msg.text.charAt(0));
                     if (isCommand) {
                         var args = msg.text.split(/[ ]+/);
                         var cmd = args.splice(0, 1)[0];
@@ -674,35 +537,18 @@ module.exports = function (API, customData = {}) {
                             return cmd === c.prefix + c.name;
                         });
                         if (recognizedCommand) {
-                            if (
-                                recognizedCommand.admin &&
-                                !that.isAdmin(msg.byId)
-                            ) {
-                                that.printchat(
-                                    "Comando desconocido.",
-                                    msg.byId
-                                );
+                            if ((recognizedCommand.admin && that.isAdmin(msg.byId)) || !recognizedCommand.admin) {
+                                recognizedCommand.exec(msg, args);
                                 return false;
                             }
-                            recognizedCommand.exec(msg, args);
-                        } else {
-                            that.printchat("Comando desconocido.", msg.byId);
                         }
+                        that.printchat("Comando desconocido.", msg.byId);
                     } else {
-                        let p = that
-                            .getPlayers()
-                            .find((p) => p.id === msg.byId);
-                        if (
-                            msg.text.toUpperCase() === "MTM" ||
-                            msg.text.toUpperCase() === "METEME"
-                        ) {
+                        let p = that.getPlayers().find((p) => p.id === msg.byId);
+                        if (msg.text.toUpperCase() === "MTM" || msg.text.toUpperCase() === "METEME") {
                             sleep(750).then(() => {
                                 if (p) {
-                                    that.printchat(
-                                        `la pinga en la cola`,
-                                        msg.byId,
-                                        "chat"
-                                    );
+                                    that.printchat(`la pinga en la cola`, msg.byId, "chat");
                                 }
                             });
                         }

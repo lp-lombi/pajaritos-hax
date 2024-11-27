@@ -79,16 +79,29 @@ module.exports = function (API) {
         },
     };
 
+    this.onTeamGoal = function (teamId) {
+        setTimeout(() => {
+            let player = matchHistory.scorer;
+            if (player && player.subscription) {
+                switch (player.subscription.scoreAnimId) {
+                    case 1:
+                        that.anims.grow(player);
+                    case 2:
+                        that.anims.shrink(player);
+                }
+                if (player.subscription.scoreMessage) {
+                    commands.printchat(player.subscription.scoreMessage, null, "vip-message");
+                }
+            }
+        }, 100);
+    };
+
     this.initialize = function () {
         commands = that.room.plugins.find((p) => p.name === "lmbCommands");
         authPlugin = that.room.plugins.find((p) => p.name === "lmbAuth");
-        matchHistory = that.room.plugins.find(
-            (p) => p.name === "lmbMatchHistory"
-        );
+        matchHistory = that.room.plugins.find((p) => p.name === "lmbMatchHistory");
         if (!commands || !authPlugin || !matchHistory) {
-            console.log(
-                "El plugin de subs requiere de los plugins: commands, auth, matchHistory."
-            );
+            console.log("El plugin de subs requiere de los plugins: commands, auth, matchHistory.");
         } else {
             commands.registerCommand(
                 "!",
@@ -110,19 +123,13 @@ module.exports = function (API) {
                             let player = that.room.getPlayer(msg.byId);
                             if (player) {
                                 if (args[0] === "0") {
-                                    player.celebration = 0;
+                                    player.scoreAnimId = 0;
                                 } else if (args[0] === "1") {
-                                    player.celebration = 1;
-                                    commands.printchat(
-                                        "Tu nuevo festejo de gol es Agrandarse!",
-                                        msg.byId
-                                    );
+                                    player.scoreAnimId = 1;
+                                    commands.printchat("Tu nuevo festejo de gol es Agrandarse!", msg.byId);
                                 } else if (args[0] === "2") {
-                                    player.celebration = 2;
-                                    commands.printchat(
-                                        "Tu nuevo festejo de gol es Encogerse!!",
-                                        msg.byId
-                                    );
+                                    player.scoreAnimId = 2;
+                                    commands.printchat("Tu nuevo festejo de gol es Encogerse!", msg.byId);
                                 }
                             }
                         }
@@ -130,22 +137,43 @@ module.exports = function (API) {
                 },
                 "⭐ [VIP] Cambia la animación del festejo ante goles."
             );
-            commands.onTeamGoalQueue.push((teamId) => {
-                setTimeout(() => {
-                    let player = matchHistory.scorer;
-                    if (
-                        player &&
-                        authPlugin.isPlayerSubscribed(player.id) &&
-                        player.celebration
-                    ) {
-                        if (player.celebration === 1) {
-                            that.anims.grow(player);
-                        } else if (player.celebration === 2) {
-                            that.anims.shrink(player);
+            commands.registerCommand(
+                "!",
+                "mensajegol",
+                (msg, args) => {
+                    if (!authPlugin.isPlayerSubscribed(msg.byId)) {
+                        commands.printchat(
+                            "🙁 Comando exclusivo para VIPs. Entrá a nuestro discord para conocer más!",
+                            msg.byId,
+                            "error"
+                        );
+                    } else {
+                        if (args.length === 0) {
+                            commands.printchat(
+                                "Uso: '!mensajegol Este es mi mensaje!', o '!mensajegol 0' para desactivarlo.",
+                                msg.byId
+                            );
+                        } else {
+                            let player = that.room.getPlayer(msg.byId);
+                            if (player) {
+                                if (args[0] === "0") {
+                                    authPlugin.updatePlayerSubscriptionData(player.id, {
+                                        scoreMessage: null,
+                                    });
+                                    player.scoreMessage = null;
+                                } else {
+                                    const message = args.join(" ");
+                                    authPlugin.updatePlayerSubscriptionData(player.id, {
+                                        scoreMessage: message,
+                                    });
+                                    player.subscription.scoreMessage = message;
+                                }
+                            }
                         }
                     }
-                }, 100);
-            });
+                },
+                "⭐ [VIP] Cambia el mensaje de festejo ante goles."
+            );
         }
     };
 };

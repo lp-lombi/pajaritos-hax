@@ -1,3 +1,6 @@
+/**
+ * @param {import("./types").API} API
+ */
 module.exports = function (API) {
     const {
         OperationType,
@@ -33,6 +36,9 @@ module.exports = function (API) {
     });
 
     var that = this;
+    /**
+     * @type {import("./types").CommandsPlugin}
+     */
     var commands = null;
     this.active = true;
 

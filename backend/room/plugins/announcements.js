@@ -1,5 +1,6 @@
-const commands = require("./commands");
-
+/**
+ * @param {import("./types").API} API
+ */
 module.exports = function (API) {
     const {
         OperationType,
@@ -34,8 +35,11 @@ module.exports = function (API) {
         allowFlags: AllowFlags.CreateRoom,
     });
 
-    var commands,
-        that = this;
+    /**
+     * @type {import("./types").CommandsPlugin}
+     */
+    var commands;
+    var that = this;
 
     this.active = true;
 
@@ -74,9 +78,7 @@ module.exports = function (API) {
         let defaultAnnouncements = ["Discord: " + commands.data.discord];
         that.announcements = [];
 
-        defaultAnnouncements.forEach((c) =>
-            that.announcements.push({ text: c })
-        );
+        defaultAnnouncements.forEach((c) => that.announcements.push({ text: c }));
 
         if (commands.getDb()) {
             commands.getDb().all("SELECT * FROM announcements", (err, rows) => {
@@ -105,11 +107,7 @@ module.exports = function (API) {
                 that.subsPlayersIds.forEach((id) => {
                     try {
                         commands.printchat(`🕊️ ${an.text}`, id, "announcement");
-                        commands.printchat(
-                            `(!mute para silenciar estas alertas)`,
-                            id,
-                            "hint"
-                        );
+                        commands.printchat(`(!mute para silenciar estas alertas)`, id, "hint");
                     } catch (e) {
                         // console.log(e);
                     }
@@ -122,9 +120,7 @@ module.exports = function (API) {
     this.initialize = function () {
         commands = that.room.plugins.find((p) => p.name === "lmbCommands");
         if (!commands) {
-            console.log(
-                "El plugin de anuncios requiere del plugin de comandos."
-            );
+            console.log("El plugin de anuncios requiere del plugin de comandos.");
         } else {
             that.saludo = `╔═══════════════════════════════════════════════════════╗
 ║   PAJARITOS HAX   ║ !pm !hist !stats !login !discord !help !bb ║
@@ -142,10 +138,7 @@ module.exports = function (API) {
                 "!",
                 "mute",
                 (msg, args) => {
-                    that.subsPlayersIds.splice(
-                        that.subsPlayersIds.indexOf(msg.byId),
-                        1
-                    );
+                    that.subsPlayersIds.splice(that.subsPlayersIds.indexOf(msg.byId), 1);
                     commands.printchat("Avisos desactivados", msg.byId);
                 },
                 "Desactiva los anuncios",
@@ -172,87 +165,54 @@ module.exports = function (API) {
                             if (!isNaN(args[1])) {
                                 let fact = parseFloat(args[1]);
                                 setAnnouncementsCycleMinutes(fact);
-                                commands.printchat(
-                                    `Ciclo de anuncios cambiado a ${fact} minutos`,
-                                    msg.byId
-                                );
+                                commands.printchat(`Ciclo de anuncios cambiado a ${fact} minutos`, msg.byId);
                                 return;
                             }
-                            commands.printchat(
-                                `Uso: !anuncios ciclo <minutos>`,
-                                msg.byId
-                            );
+                            commands.printchat(`Uso: !anuncios ciclo <minutos>`, msg.byId);
                         } else if (args[0] === "nuevo") {
                             if (args[1]) {
-                                let newAnnouncement = args
-                                    .slice(1)
-                                    .join(" ")
-                                    .replaceAll('"', '\\"');
+                                let newAnnouncement = args.slice(1).join(" ").replaceAll('"', '\\"');
                                 console.log(newAnnouncement);
                                 commands
                                     .getDb()
-                                    .run(
-                                        `INSERT INTO announcements (text) VALUES ("${newAnnouncement}")`,
-                                        (err) => {
-                                            if (err) {
-                                                console.log(err);
-                                                return;
-                                            } else {
-                                                that.fetchAnnouncements();
-                                                commands.printchat(
-                                                    `Nuevo anuncio creado: ${newAnnouncement}`,
-                                                    msg.byId
-                                                );
-                                            }
+                                    .run(`INSERT INTO announcements (text) VALUES ("${newAnnouncement}")`, (err) => {
+                                        if (err) {
+                                            console.log(err);
+                                            return;
+                                        } else {
+                                            that.fetchAnnouncements();
+                                            commands.printchat(`Nuevo anuncio creado: ${newAnnouncement}`, msg.byId);
                                         }
-                                    );
+                                    });
                             } else {
-                                commands.printchat(
-                                    "Uso: !anuncios nuevo <texto del nuevo anuncio> ",
-                                    msg.byId
-                                );
+                                commands.printchat("Uso: !anuncios nuevo <texto del nuevo anuncio> ", msg.byId);
                             }
                         } else if (args[0] === "borrar") {
                             if (!args[1]) {
                                 let str = "";
                                 that.announcements.forEach((a) => {
                                     if (a.id) {
-                                        let txt =
-                                            a.text.length < 75
-                                                ? a.text
-                                                : a.text.slice(0, 75) + "...";
+                                        let txt = a.text.length < 75 ? a.text : a.text.slice(0, 75) + "...";
                                         str += `[${a.id}] ${txt}\n`;
                                     }
                                 });
-                                str +=
-                                    "\n' !anuncio borrar <numero> ' para borrarlo.";
+                                str += "\n' !anuncio borrar <numero> ' para borrarlo.";
                                 commands.printchat(str, msg.byId);
                             } else if (!isNaN(args[1])) {
                                 let id = parseInt(args[1]);
-                                commands
-                                    .getDb()
-                                    .run(
-                                        `DELETE FROM announcements WHERE id=${id}`,
-                                        (err) => {
-                                            if (err) {
-                                                console.log(err);
-                                                return;
-                                            } else {
-                                                that.fetchAnnouncements();
-                                                commands.printchat(
-                                                    `Anuncio ${id} borrado`,
-                                                    msg.byId
-                                                );
-                                            }
-                                        }
-                                    );
+                                commands.getDb().run(`DELETE FROM announcements WHERE id=${id}`, (err) => {
+                                    if (err) {
+                                        console.log(err);
+                                        return;
+                                    } else {
+                                        that.fetchAnnouncements();
+                                        commands.printchat(`Anuncio ${id} borrado`, msg.byId);
+                                    }
+                                });
                             }
                         } else if (args[0] === "fetch") {
                             that.fetchAnnouncements();
-                            commands.printchat(
-                                `Se actualizaron los anuncios de la sala.`,
-                                msg.byId
-                            );
+                            commands.printchat(`Se actualizaron los anuncios de la sala.`, msg.byId);
                         }
                     }
                 },
