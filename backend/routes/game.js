@@ -1,7 +1,5 @@
 const express = require("express");
 const game = express.Router();
-const { Utils } = require("node-haxball")();
-
 var stadiumsPath = "./room/stadiums/";
 
 game.get("/start", global.verifyToken, function (req, res) {
@@ -70,7 +68,7 @@ game.post("/stadium/load", global.verifyToken, function (req, res) {
                     let c = global.room.plugins.find((p) => p.name === "lmbCommands");
                     if (c) {
                         let err = null;
-                        let stadium = Utils.parseStadium(data, () => {
+                        let stadium = c.Utils.parseStadium(data, () => {
                             err = true;
                             res.status(400).send("Stadium parse error");
                         });
@@ -95,7 +93,7 @@ game.post("/stadium/save", global.verifyToken, function (req, res) {
         try {
             let c = global.room.plugins.find((p) => p.name === "lmbCommands");
             if (c) {
-                let stadiumData = Utils.exportStadium(global.room.stadium);
+                let stadiumData = c.Utils.exportStadium(global.room.stadium);
                 if (stadiumData) {
                     require("fs").writeFile(stadiumsPath + req.body.stadiumName + ".hbs", stadiumData, (err) => {
                         if (err) {

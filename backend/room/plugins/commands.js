@@ -36,6 +36,8 @@ module.exports = function (API, customData = {}) {
         allowFlags: AllowFlags.CreateRoom,
     });
 
+    this.Utils = Utils;
+
     this.commandsList = [];
     this.data = {
         discord: "https://discord.gg/Y5ZWvjftP6",
@@ -205,6 +207,7 @@ module.exports = function (API, customData = {}) {
             })
             .catch((err) => console.log(err));
     };
+
     this.permaBan = function (playerName, ip = "", auth = "") {
         fetch(that.data.webApi.url + "/bans/new", {
             method: "POST",

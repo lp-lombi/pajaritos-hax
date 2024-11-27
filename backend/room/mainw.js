@@ -52,9 +52,7 @@ async function run(config, DEV = false) {
             onSuccess: (room) => {
                 r = room;
 
-                commandsPlugin = room.plugins.find(
-                    (p) => p.name === "lmbCommands"
-                );
+                commandsPlugin = room.plugins.find((p) => p.name === "lmbCommands");
 
                 console.log("\nPlugins activos: ");
                 room.plugins.forEach((p) => {
