@@ -195,7 +195,7 @@ module.exports = function (API, customData = {}) {
         })
             .then((res) => res.json())
             .then((bans) => {
-                if (!bans || bans.length === 0) return;
+                if (!bans || bans.length === 0 || bans.constructor !== Array) return;
                 bans.forEach((b) => {
                     if (b.ip) {
                         room.addIpBan(b.ip);
