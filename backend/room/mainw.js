@@ -11,6 +11,7 @@ const announcements = require("./plugins/announcements");
 const voteKick = require("./plugins/voteKick");
 const customDisc = require("./plugins/customDisc");
 const subsFeatures = require("./plugins/subsFeatures");
+const adminFeatures = require("./plugins/adminFeatures");
 
 // ROOM
 async function run(config, DEV = false) {
@@ -44,6 +45,7 @@ async function run(config, DEV = false) {
                 new voteKick(API),
                 new customDisc(API),
                 new subsFeatures(API),
+                new adminFeatures(API),
             ],
             storage: {
                 player_name: config.botName,

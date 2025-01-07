@@ -2,9 +2,9 @@ import MainReturnType from "../../node_modules/node-haxball/src/index";
 export const API = MainReturnType();
 import sqlite3 from "sqlite3";
 
-export class Room extends API["Room"] {}
-export class Plugin extends API["Plugin"] {}
-export class Player extends API["Player"] {}
+export class Room extends API["Room"] { }
+export class Plugin extends API["Plugin"] { }
+export class Player extends API["Player"] { }
 
 export class CommandsPlugin extends API["Plugin"] {
     commandsList: Command[];
@@ -46,6 +46,7 @@ export class CommandsPlugin extends API["Plugin"] {
             | "tm"
             | "stat"
             | "vip-message"
+            | "warn"
             | null,
         byId: number
     ): void;
@@ -56,19 +57,21 @@ export class CommandsPlugin extends API["Plugin"] {
     log(text: string, color: number, style: string): void;
     /**
      * @param prefix Caracter de inicio del comando
+     * @param name Nombre del comando
+     * @param callback La función callback a ejecutar
      * @param desc Descripción del comando
      * @param admin Si el comando solo puede ser ejecutado por administradores
      * @param hidden Si el comando se lista en !help
-     * @param exec La función callback a ejecutar
      *
      * Permite registrar un comando personalizado con una acción la cual es llamada cuando sea escrito en el chat
      */
     registerCommand(
         prefix: string,
+        name: string,
+        callback: (msg: Object, args: string[]) => any | void,
         desc: string,
         admin: boolean,
         hidden: boolean,
-        exec: (msg: Object, args: string[]) => any | void
     ): void;
 }
 

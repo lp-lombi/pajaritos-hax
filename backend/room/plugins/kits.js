@@ -122,8 +122,7 @@ module.exports = function (API) {
                                             .run(
                                                 `INSERT INTO kits (name, cfg) VALUES ("${kitName}", "${cfg}")`,
                                                 (err) => {
-                                                    error = true;
-                                                    console.log(err);
+                                                    if (err) console.log(err);
                                                 }
                                             );
                                         if (error) {
