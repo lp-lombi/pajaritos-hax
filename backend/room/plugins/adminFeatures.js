@@ -68,7 +68,21 @@ module.exports = function (API) {
                 true,
                 false
             );
-
+            commands.registerCommand(
+                "!",
+                "an",
+                (msg, args) => {
+                    if (args.length < 1) {
+                        commands.printchat("Uso: !an Este es un anuncio", msg.byId);
+                    } else {
+                        let text = "[📢] " + args.join(" ");
+                        commands.printchat(text, null, "announcement");
+                    }
+                },
+                "Envía un anuncio a todos los jugadores con un mensaje. '!an Este es un anuncio'",
+                true,
+                false
+            );
         }
     };
 };
