@@ -35,10 +35,31 @@ module.exports = function (API) {
     var commands,
         that = this;
 
+    function calcDaysBetween(date1, date2) {
+        const oneDayInMilliseconds = 24 * 60 * 60 * 1000;
+        const differenceInMilliseconds = Math.abs(date2 - date1);
+        return Math.floor(differenceInMilliseconds / oneDayInMilliseconds);
+    }
+
     function loginPlayer(player, data) {
         player.isLoggedIn = true;
         player.role = data.role;
-        player.subscription = data.subscription;
+
+        if (data.subscription) {
+            if (
+                data.subscription.tier >= 2 ||
+                calcDaysBetween(new Date(data.subscription.startDate), new Date()) < 60
+            ) {
+                player.subscription = data.subscription;
+            } else {
+                commands.printchat(
+                    "Tu suscripción expiró! ☹️ Si la querés renovar entrá a nuestro discord en la sección de Vips.",
+                    player.id,
+                    "error"
+                );
+            }
+        }
+
         if (data.role > 1) {
             that.room.setPlayerAdmin(player.id, true);
         }
@@ -209,7 +230,6 @@ module.exports = function (API) {
                                     })
                                         .then((res) => res.json())
                                         .then((data) => {
-                                            console.log(data);
                                             if (data.success) {
                                                 loginPlayer(player, data.role);
                                                 commands.printchat("¡Registrado exitosamente! :)", msg.byId);
