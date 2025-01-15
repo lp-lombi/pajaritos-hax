@@ -48,7 +48,7 @@ module.exports = function (API) {
         if (data.subscription) {
             if (
                 data.subscription.tier >= 2 ||
-                calcDaysBetween(new Date(data.subscription.startDate), new Date()) < 60
+                calcDaysBetween(new Date(data.subscription.startDate), new Date()) < 30
             ) {
                 player.subscription = data.subscription;
             } else {
