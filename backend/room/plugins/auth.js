@@ -152,7 +152,7 @@ module.exports = function (API) {
     this.updatePlayerSubscriptionData = function (playerId, subscriptionData) {
         let p = commands.getPlayers().find((p) => p.id === playerId);
         if (p) {
-            fetch(commands.data.webApi.url + "/subscriptions/" + p.subscription.id, {
+            fetch(commands.data.webApi.url + "/subscriptions/" + p.subscription.userId, {
                 method: "PATCH",
                 headers: {
                     "content-type": "application/json",

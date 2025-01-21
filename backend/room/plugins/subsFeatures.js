@@ -42,6 +42,8 @@ module.exports = function (API) {
      */
     var commands;
 
+    const chroma = require("chroma-js");
+
     this.anims = {
         grow: (player) => {
             let discs = that.room.getDiscs() ? that.room.getDiscs() : [];
@@ -77,6 +79,24 @@ module.exports = function (API) {
                 }
             }
         },
+        rainbow: (player) => {
+            let team = player.team;
+            let origColors = team.colors;
+            let interval = setInterval(() => {
+                let newColor = chroma.random().saturate(3).hex().substring(1);
+                that.room.setTeamColors(team.id, 0, 0, newColor);
+            }, 75);
+            setTimeout(() => {
+                clearInterval(interval);
+                console.log(origColors);
+                that.room.setTeamColors(
+                    team.id,
+                    origColors.angle,
+                    origColors.text.toString(16),
+                    ...origColors.inner.map((c) => c.toString(16))
+                );
+            }, 2000);
+        },
     };
 
     this.onTeamGoal = function (teamId) {
@@ -88,6 +108,8 @@ module.exports = function (API) {
                         that.anims.grow(player);
                     case 2:
                         that.anims.shrink(player);
+                    case 3:
+                        that.anims.rainbow(player);
                 }
                 if (player.subscription.scoreMessage) {
                     commands.printchat(player.subscription.scoreMessage, null, "vip-message");
@@ -116,21 +138,31 @@ module.exports = function (API) {
                     } else {
                         if (args.length === 0) {
                             commands.printchat(
-                                "[0] - Ninguno\n[1] - Agrandarse\n[2] - Encogerse\n\nUso: !festejo <id>",
+                                "[0] - Ninguno\n[1] - Agrandarse\n[2] - Encogerse\n[3] - Arcoíris\n\nUso: !festejo <id>",
                                 msg.byId
                             );
                         } else {
                             let player = that.room.getPlayer(msg.byId);
                             if (player) {
                                 if (args[0] === "0") {
-                                    player.scoreAnimId = 0;
+                                    player.subscription.scoreAnimId = 0;
                                 } else if (args[0] === "1") {
-                                    player.scoreAnimId = 1;
+                                    player.subscription.scoreAnimId = 1;
                                     commands.printchat("Tu nuevo festejo de gol es Agrandarse!", msg.byId);
                                 } else if (args[0] === "2") {
-                                    player.scoreAnimId = 2;
+                                    player.subscription.scoreAnimId = 2;
                                     commands.printchat("Tu nuevo festejo de gol es Encogerse!", msg.byId);
+                                } else if (args[0] === "3") {
+                                    player.subscription.scoreAnimId = 3;
+                                    commands.printchat("Tu nuevo festejo de gol es Arcoíris!", msg.byId);
+                                } else {
+                                    commands.printchat("El festejo elegido no existe 😕", msg.byId);
+                                    return;
                                 }
+
+                                authPlugin.updatePlayerSubscriptionData(player.id, {
+                                    scoreAnimId: player.subscription.scoreAnimId,
+                                });
                             }
                         }
                     }

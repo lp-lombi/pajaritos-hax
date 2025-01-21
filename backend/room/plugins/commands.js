@@ -139,8 +139,18 @@ module.exports = function (API, customData = {}) {
                 let toU = that.getPlayers().find((p) => p.id === targetId);
                 if (fromA && toU) {
                     room.sendAnnouncement(`⚠️ [ADVERTENCIA DE ${fromA.name}] ${msg} ⚠️`, toU.id, COLORS.red, "bold", 2);
-                    room.sendAnnouncement(`⚠️ [ADVERTENCIA DE ${fromA.name} A ${toU.name}] ${msg} ⚠️`, byId, COLORS.red, "bold");
-                    room.sendAnnouncement(`El jugador " ${toU.name} " fue advertido por un administrador`, null, COLORS.orange, "bold");
+                    room.sendAnnouncement(
+                        `⚠️ [ADVERTENCIA DE ${fromA.name} A ${toU.name}] ${msg} ⚠️`,
+                        byId,
+                        COLORS.red,
+                        "bold"
+                    );
+                    room.sendAnnouncement(
+                        `El jugador " ${toU.name} " fue advertido por un administrador`,
+                        null,
+                        COLORS.orange,
+                        "bold"
+                    );
                 }
                 break;
             case "tm":
