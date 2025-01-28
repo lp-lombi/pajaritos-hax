@@ -32,6 +32,9 @@ module.exports = function (API) {
         allowFlags: AllowFlags.CreateRoom,
     });
 
+    /**
+     * @type {import("./types").CommandsPlugin}
+     */
     var commands,
         auth,
         matchHistory = [],
@@ -44,7 +47,12 @@ module.exports = function (API) {
     this.scorer = null;
     this.assister = null;
 
-    this.matchStatsData = {}; // TODO recién al finalizar el partido se guardan los stats
+    this.matchStatsData = {
+        players: [],
+        goals: [],
+        assists: [],
+        disconnectedPlayers: [],
+    }; // TODO recién al finalizar el partido se guardan los stats
 
     function printHistory(playerId) {
         var str = "";
@@ -142,7 +150,6 @@ module.exports = function (API) {
     }
 
     function printPlayersSessionStats(targetId) {
-        var str = "";
         if (that.getPlayersSessionStats().length === 0) {
             that.room.sendAnnouncement("No hay registros.", targetId, commands.getColors().orange, "bold", 2);
         } else {
@@ -264,6 +271,109 @@ module.exports = function (API) {
         return stats;
     };
 
+    this.onGameStart = () => {
+        that.matchStatsData.players = commands.getPlayers().filter((p) => p.team.id > 0);
+        that.matchStatsData.goals = [];
+        that.matchStatsData.assists = [];
+        that.matchStatsData.disconnectedPlayers = [];
+    };
+
+    this.onGameEnd = (winningTeamId) => {
+        let stats = [];
+
+        that.matchStatsData.players.forEach((p) => {
+            let plStat = {
+                id: p.id,
+                username: p.name,
+                score: 0,
+                assists: 0,
+                wins: p.team.id === winningTeamId ? 1 : 0,
+                matches: 1,
+            };
+            stats.push(plStat);
+        });
+        that.matchStatsData.goals.forEach((g) => {
+            stats.forEach((ps) => {
+                if (g.player?.id === ps.id) {
+                    ps.score += g.value;
+                }
+            });
+        });
+        that.matchStatsData.assists.forEach((a) => {
+            stats.forEach((ps) => {
+                if (a.player?.id === ps.id) {
+                    ps.score += a.value;
+                }
+            });
+        });
+
+        that.matchStatsData.disconnectedPlayers.forEach((p) => {
+            stats.push({
+                id: p.id,
+                username: p.name,
+                score: 0,
+                assists: 0,
+                wins: 0,
+                matches: 1,
+            });
+        });
+
+        stats.forEach((s) => {
+            auth.sumUserStats(s.username, s.score, s.assists, s.wins, s.matches);
+        });
+    };
+
+    this.onPlayerTeamChange = (playerId, teamId, byId) => {
+        let player = commands.getPlayers().find((p) => p.id === playerId);
+        if (player) {
+            if (teamId > 0) {
+                // primero se lo elimina si es que ya existe para evitar ser duplicado
+                that.matchStatsData.players = that.matchStatsData.players.filter((p) => p.id !== playerId);
+                that.matchStatsData.players.push(player);
+            } else {
+                that.matchStatsData.players = that.matchStatsData.players.filter((p) => p.id !== playerId);
+            }
+        }
+    };
+
+    this.onPlayerLeave = (playerObj) => {
+        let disconnectedPlayer = that.matchStatsData.players.find((p) => p.id === playerObj.id);
+        if (disconnectedPlayer) {
+            that.matchStatsData.disconnectedPlayers.push(disconnectedPlayer);
+        }
+
+        that.matchStatsData.players = that.matchStatsData.players.filter((p) => p.id !== playerObj.id);
+    };
+
+    this.onPlayerBallKick = (playerId) => {
+        lastPlayerKickedBall = lastPlayerInteractedBall = commands.getPlayers().find((p) => p.id === playerId);
+        addPlayerBallInteraction(
+            commands.getPlayers().find((p) => p.id === playerId),
+            "kick"
+        );
+    };
+
+    this.onCollisionDiscVsDisc = (discId1, discPlayerId1, discId2, discPlayerId2) => {
+        let ball = that.room.gameState.physicsState.discs[0];
+        let ballCollided = false;
+        let player = null;
+
+        if (that.room.getBall(discId1) === ball) {
+            ballCollided = true;
+        } else if (that.room.getBall(discId2) === ball) {
+            ballCollided = true;
+        }
+
+        if (ballCollided) {
+            if (discPlayerId1 || discPlayerId2) {
+                playerCollided = true;
+                player = commands.getPlayers().find((p) => p.id === discPlayerId1 || p.id === discPlayerId2);
+                lastPlayerTouchedBall = lastPlayerInteractedBall = player;
+                addPlayerBallInteraction(player, "touch");
+            }
+        }
+    };
+
     this.initialize = function () {
         commands = that.room.plugins.find((p) => p.name === "lmbCommands");
         auth = that.room.plugins.find((p) => p.name === "lmbAuth");
@@ -307,34 +417,6 @@ module.exports = function (API) {
                 false
             );
 
-            that.room.onPlayerBallKick = (playerId) => {
-                lastPlayerKickedBall = lastPlayerInteractedBall = commands.getPlayers().find((p) => p.id === playerId);
-                addPlayerBallInteraction(
-                    commands.getPlayers().find((p) => p.id === playerId),
-                    "kick"
-                );
-            };
-            that.room.onCollisionDiscVsDisc = (discId1, discPlayerId1, discId2, discPlayerId2) => {
-                let ball = that.room.gameState.physicsState.discs[0];
-                let ballCollided = false;
-                let player = null;
-
-                if (that.room.getBall(discId1) === ball) {
-                    ballCollided = true;
-                } else if (that.room.getBall(discId2) === ball) {
-                    ballCollided = true;
-                }
-
-                if (ballCollided) {
-                    if (discPlayerId1 || discPlayerId2) {
-                        playerCollided = true;
-                        player = commands.getPlayers().find((p) => p.id === discPlayerId1 || p.id === discPlayerId2);
-                        lastPlayerTouchedBall = lastPlayerInteractedBall = player;
-                        addPlayerBallInteraction(player, "touch");
-                    }
-                }
-            };
-
             commands.onGameEndQueue.push((winningTeamId) => {
                 matchHistory.push({
                     winner: winningTeamId,
@@ -365,7 +447,10 @@ module.exports = function (API) {
                     // con la pelota, ya sea pateando o tocandola.
                     if (lastPlayerInteractedBall && lastPlayerInteractedBall.team.id === teamId) {
                         lastPlayerInteractedBall.sessionStats.score += 1;
-                        handleSumDBScore(lastPlayerInteractedBall, 1);
+                        that.matchStatsData.goals.push({
+                            player: lastPlayerInteractedBall,
+                            value: 1,
+                        });
                         that.scorer = lastPlayerInteractedBall;
                         setTimeout(() => {
                             that.scorer = null;
@@ -382,7 +467,10 @@ module.exports = function (API) {
                                 penultimate.reason === "kick"
                             ) {
                                 penultimate.player.sessionStats.assists += 1;
-                                handleSumDBAssists(penultimate.player, 1);
+                                that.matchStatsData.assists.push({
+                                    player: lastPlayerInteractedBall,
+                                    value: 1,
+                                });
                                 that.assister = penultimate.player;
                                 setTimeout(() => {
                                     that.assister = null;
@@ -395,7 +483,10 @@ module.exports = function (API) {
                             let player = commands.getPlayers().find((p) => p.id === lastPlayerKickedBall.id);
                             if (!player) return;
                             player.sessionStats.score -= 1;
-                            handleSumDBScore(player, -1);
+                            that.matchStatsData.goals.push({
+                                player: lastPlayerInteractedBall,
+                                value: -1,
+                            });
                         }
                     }
 

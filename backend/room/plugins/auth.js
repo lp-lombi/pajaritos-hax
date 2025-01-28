@@ -45,6 +45,11 @@ module.exports = function (API) {
         player.isLoggedIn = true;
         player.role = data.role;
 
+        player.user = {
+            id: data.id,
+            role: data.role,
+        };
+
         if (data.subscription) {
             if (
                 data.subscription.tier >= 2 ||
@@ -231,7 +236,7 @@ module.exports = function (API) {
                                         .then((res) => res.json())
                                         .then((data) => {
                                             if (data.success) {
-                                                loginPlayer(player, data.role);
+                                                loginPlayer(player, data);
                                                 commands.printchat("¡Registrado exitosamente! :)", msg.byId);
                                             } else {
                                                 if (data.reason === "registered") {
