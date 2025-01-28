@@ -89,38 +89,6 @@ module.exports = function (API) {
         commands.printchat("Historial:\n" + str, playerId);
     }
 
-    function handleSumDBScore(player, sumScore) {
-        if (auth) {
-            if (auth.getLoggedPlayers().includes(player) && commands.getPlayers().length > 6) {
-                auth.sumUserStats(player.name, sumScore, 0, 0, 0);
-            }
-        }
-    }
-
-    function handleSumDBAssists(player, sumAssists) {
-        if (auth) {
-            if (auth.getLoggedPlayers().includes(player) && commands.getPlayers().length > 6) {
-                auth.sumUserStats(player.name, 0, sumAssists, 0, 0);
-            }
-        }
-    }
-
-    function handleSumDBWin(player, sumWins) {
-        if (auth) {
-            if (auth.getLoggedPlayers().includes(player) && commands.getPlayers().length > 6) {
-                auth.sumUserStats(player.name, 0, 0, sumWins, 0);
-            }
-        }
-    }
-
-    function handleSumDBMatch(player, sumMatch) {
-        if (auth) {
-            if (auth.getLoggedPlayers().includes(player) && commands.getPlayers().length > 6) {
-                auth.sumUserStats(player.name, 0, 0, 0, sumMatch);
-            }
-        }
-    }
-
     function addPlayerBallInteraction(player, reason) {
         let obj = {
             reason: reason,
@@ -279,6 +247,16 @@ module.exports = function (API) {
     };
 
     this.onGameEnd = (winningTeamId) => {
+        matchHistory.push({
+            winner: winningTeamId,
+            redScore: that.room.redScore,
+            blueScore: that.room.blueScore,
+            time: new Date().getTime(),
+        });
+        if (matchHistory.length > 30) {
+            matchHistory.splice(0, 1);
+        }
+
         let stats = [];
 
         that.matchStatsData.players.forEach((p) => {
@@ -416,30 +394,6 @@ module.exports = function (API) {
                 false,
                 false
             );
-
-            commands.onGameEndQueue.push((winningTeamId) => {
-                matchHistory.push({
-                    winner: winningTeamId,
-                    redScore: that.room.redScore,
-                    blueScore: that.room.blueScore,
-                    time: new Date().getTime(),
-                });
-                if (matchHistory.length > 30) {
-                    matchHistory.splice(0, 1);
-                }
-
-                //
-                if (auth) {
-                    auth.getLoggedPlayers().forEach((p) => {
-                        if (p.team.id === winningTeamId) {
-                            handleSumDBWin(p, 1);
-                        }
-                        if (p.team.id !== 0) {
-                            handleSumDBMatch(p, 1);
-                        }
-                    });
-                }
-            });
 
             commands.onTeamGoalQueue.push((teamId, customData) => {
                 try {
