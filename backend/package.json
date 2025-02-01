@@ -1,17 +1,17 @@
 {
-  "scripts": {
-    "backend": "node --watch roomMgr.js"
-  },
-  "dependencies": {
-    "bcryptjs": "^2.4.3",
-    "body-parser": "^1.20.2",
-    "chroma-js": "^3.1.1",
-    "cors": "^2.8.5",
-    "express": "^4.19.2",
-    "jsonwebtoken": "^9.0.2",
-    "minimalist": "^1.0.0",
-    "node-haxball": "^1.1.0",
-    "rollup": "^4.19.0",
-    "sqlite3": "^5.1.7"
-  }
+    "scripts": {
+        "backend": "node --watch roomMgr.js"
+    },
+    "dependencies": {
+        "bcryptjs": "^2.4.3",
+        "body-parser": "^1.20.2",
+        "chroma-js": "^3.1.1",
+        "cors": "^2.8.5",
+        "express": "^4.19.2",
+        "jsonwebtoken": "^9.0.2",
+        "minimalist": "^1.0.0",
+        "node-haxball": "^1.1.0",
+        "rollup": "^4.19.0",
+        "sqlite3": "^5.1.7"
+    }
 }

@@ -42,16 +42,12 @@ room.post("/start", global.verifyToken, function (req, res) {
 
                     // se guarda la configuracion
                     setTimeout(() => {
-                        fs.writeFileSync(
-                            "./room/config.json",
-                            JSON.stringify(config),
-                            function (err) {
-                                if (err) {
-                                    console.log(err);
-                                    return;
-                                }
+                        fs.writeFileSync("./room/config.json", JSON.stringify(config), function (err) {
+                            if (err) {
+                                console.log(err);
+                                return;
                             }
-                        );
+                        });
                     }, 500);
                 }
             })
@@ -104,9 +100,7 @@ room.get("/", global.verifyToken, function (req, res) {
         });
 
         try {
-            roomData.stadiums = fs
-                .readdirSync(stadiumsPath)
-                .filter((s) => s.toUpperCase().endsWith(".HBS"));
+            roomData.stadiums = fs.readdirSync(stadiumsPath).filter((s) => s.toUpperCase().endsWith(".HBS"));
         } catch (e) {
             console.log(e);
         }
@@ -159,9 +153,7 @@ room.post("/setting", global.verifyToken, function (req, res) {
         } else {
             let plugin = global.room.plugins.find((p) => p.name === pluginName);
             if (plugin) {
-                let setting = plugin.settings.find(
-                    (s) => s.name === settingName
-                );
+                let setting = plugin.settings.find((s) => s.name === settingName);
                 if (setting) {
                     setting.exec(value);
                 }
@@ -174,9 +166,7 @@ room.post("/setting", global.verifyToken, function (req, res) {
 
 room.get("/chat", global.verifyToken, function (req, res) {
     if (global.room) {
-        let commands = global.room.plugins.find(
-            (p) => p.name === "lmbCommands"
-        );
+        let commands = global.room.plugins.find((p) => p.name === "lmbCommands");
         if (commands) {
             // let chat = commands.chatLog.join("\n");
             res.send(JSON.stringify({ chat: commands.chatLog }));
@@ -236,9 +226,7 @@ room.post("/kick/permaban", global.verifyToken, function (req, res) {
                 return;
             }
 
-            let commands = global.room.plugins.find(
-                (p) => p.name === "lmbCommands"
-            );
+            let commands = global.room.plugins.find((p) => p.name === "lmbCommands");
             if (commands) {
                 commands.permaBan(name, ip, auth);
                 res.send("Player banned permanently");
