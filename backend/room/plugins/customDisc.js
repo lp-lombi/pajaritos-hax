@@ -62,13 +62,10 @@ module.exports = function (API) {
                             let str = "[0] Pelota\n";
                             discs.forEach((d) => {
                                 if (d.playerId !== null) {
-                                    str += `[${d.playerId}] - ${
-                                        that.room.getPlayer(d.playerId).name
-                                    }\n`;
+                                    str += `[${d.playerId}] - ${that.room.getPlayer(d.playerId).name}\n`;
                                 }
                             });
-                            str +=
-                                "\nUso: !dm <id> <opcion> <valor>\n\nOpciones:\nr -> radio | v -> velocidad";
+                            str += "\nUso: !dm <id> <opcion> <valor>\n\nOpciones:\nr -> radio | v -> velocidad";
                             commands.printchat(str, msg.byId);
                         }
                     } else {
@@ -80,28 +77,19 @@ module.exports = function (API) {
                                     });
                                 }
                             } else if (!isNaN(args[0])) {
-                                let player = that.room.getPlayer(
-                                    parseInt(args[0])
-                                );
+                                let player = that.room.getPlayer(parseInt(args[0]));
                                 if (player && player.disc) {
                                     if (args[1] === "r" && !isNaN(args[2])) {
                                         let discId = null;
                                         that.getAllDiscs().forEach((d) => {
-                                            if (
-                                                d.playerId === parseInt(args[0])
-                                            ) {
-                                                discId = that
-                                                    .getAllDiscs()
-                                                    .indexOf(d);
+                                            if (d.playerId === parseInt(args[0])) {
+                                                discId = that.getAllDiscs().indexOf(d);
                                             }
                                         });
                                         if (discId !== null) {
-                                            that.room.setDiscProperties(
-                                                discId,
-                                                {
-                                                    radius: parseInt(args[2]),
-                                                }
-                                            );
+                                            that.room.setDiscProperties(discId, {
+                                                radius: parseInt(args[2]),
+                                            });
                                         }
                                     }
                                 }
@@ -110,19 +98,7 @@ module.exports = function (API) {
                     }
                 },
                 "Modifica los discos.",
-                true,
-                false
-            );
-            commands.registerCommand(
-                "!",
-                "agrandar",
-                (msg, args) => {
-                    if (authPlugin && authPlugin.isPlayerSub(msg.byId)) {
-                    }
-                },
-                "Modifica los discos.",
-                true,
-                false
+                2
             );
         }
     };

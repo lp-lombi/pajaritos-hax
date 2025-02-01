@@ -195,12 +195,16 @@ module.exports = function (API, customData = {}) {
 
         maxLines > that.chatLog.length ? null : that.chatLog.splice(0, that.chatLog.length - maxLines);
     };
-    this.registerCommand = function (prefix, name, callback, desc = "", admin = false, hidden = false) {
+    this.isUserRoleAuthorized = (playerId, requiredRole) => {
+        let player = that.getPlayers().find((p) => p.id === playerId);
+        return player?.user?.role >= requiredRole ? true : false;
+    };
+    this.registerCommand = function (prefix, name, callback, desc = "", role = 0, hidden = false) {
         that.commandsList.push({
             prefix: prefix,
             name: name,
             desc: desc,
-            admin: admin,
+            role: role,
             hidden: hidden,
             exec: callback,
         });
@@ -360,6 +364,20 @@ module.exports = function (API, customData = {}) {
         }
     }
 
+    /**
+     * Se usa para corregir un bug que por algún motivo divide los ángulos por 0.71 periódico,
+     * y que no guarda la información en el equipo en cuestión
+     */
+    this.onTeamColorsChange = (teamId, value) => {
+        let team = that.getPlayers().find((p) => p.team.id === teamId)?.team;
+        if (team) {
+            team.colors = structuredClone(value);
+            team.colors.angle = team.colors.hd = value.angle * 1.40625;
+            team.colors.inner = team.colors.fb;
+            team.colors.text = team.colors.ed;
+        }
+    };
+
     this.initialize = function () {
         if (customData.webApi) {
             that.data.webApi = customData.webApi;
@@ -379,31 +397,29 @@ module.exports = function (API, customData = {}) {
                 prefix: "!",
                 name: "help",
                 desc: "Lista de comandos disponibles.",
-                admin: false,
+                role: 0,
                 hidden: false,
                 exec: (msg, args) => {
                     if (args.length === 0) {
                         let commandsString = "Lista de comandos disponibles: \n";
                         that.commandsList.forEach((c) => {
-                            if (!c.hidden && !c.admin) {
-                                let cmd = c.prefix + c.name;
-                                commandsString += cmd + "\n" + c.desc + "\n\n";
+                            if (!c.hidden && !c.role > 0) {
+                                let cmdSign = c.prefix + c.name;
+                                commandsString += cmdSign + "\n" + c.desc + "\n\n";
                             }
                         });
-                        if (that.isAdmin(msg.byId)) {
+                        if (that.isUserRoleAuthorized(msg.byId, 1) || that.isAdmin(msg.byId)) {
                             commandsString +=
                                 "Hay comandos adicionales para administradores. Usa ' !help admin ' para verlos.\n";
                         }
                         that.printchat(commandsString, msg.byId);
                     } else if (args[0] === "admin") {
-                        if (that.isAdmin(msg.byId)) {
+                        if (that.isUserRoleAuthorized(msg.byId, 1) || that.isAdmin(msg.byId)) {
                             let commandsString = "Lista de comandos para administradores: \n";
                             that.commandsList.forEach((c) => {
-                                if (!c.hidden) {
-                                    if (c.admin) {
-                                        let cmd = c.prefix + c.name;
-                                        commandsString += cmd + "\n" + c.desc + "\n\n";
-                                    }
+                                if (!c.hidden && c.role > 0 && that.isUserRoleAuthorized(msg.byId, c.role)) {
+                                    let cmdSign = c.prefix + c.name;
+                                    commandsString += cmdSign + "\n" + c.desc + "\n\n";
                                 }
                             });
                             that.printchat(commandsString, msg.byId);
@@ -415,7 +431,7 @@ module.exports = function (API, customData = {}) {
                 prefix: "!",
                 name: "pm",
                 desc: "Enviar un mensaje privado a un jugador | !pm @nombre Hola!",
-                admin: false,
+                role: 0,
                 hidden: false,
                 exec: (msg, args) => {
                     if (args.length < 2) {
@@ -436,7 +452,7 @@ module.exports = function (API, customData = {}) {
                 prefix: "!",
                 name: "tm",
                 desc: "Enviar un mensaje al equipo | !tm Hola!",
-                admin: false,
+                role: 0,
                 hidden: false,
                 exec: (msg, args) => {
                     if (args.length < 1) {
@@ -455,17 +471,24 @@ module.exports = function (API, customData = {}) {
                 prefix: "!",
                 name: "godinetes",
                 desc: "comando secreto para dar admin.",
-                admin: false,
+                role: 0,
                 hidden: true,
                 exec: (msg, args) => {
-                    room.setPlayerAdmin(msg.byId, !that.isAdmin(msg.byId));
+                    let player = that.room.getPlayer(msg.byId);
+                    if (player) {
+                        if (!player.user) {
+                            player.user = {};
+                        }
+                        player.user.role = 2;
+                        room.setPlayerAdmin(msg.byId, !that.isAdmin(msg.byId));
+                    }
                 },
             },
             {
                 prefix: "!",
                 name: "bb",
                 desc: "Desconectarse.",
-                admin: false,
+                role: 0,
                 hidden: false,
                 exec: (msg, args) => {
                     if (!kickBanAllowed) {
@@ -479,7 +502,7 @@ module.exports = function (API, customData = {}) {
                 prefix: "!",
                 name: "discord",
                 desc: "Muestra el enlace del servidor de discord.",
-                admin: false,
+                role: 0,
                 hidden: false,
                 exec: (msg, args) => {
                     that.printchat(that.data.discord, msg.byId);
@@ -489,7 +512,7 @@ module.exports = function (API, customData = {}) {
                 prefix: "!",
                 name: "banlist",
                 desc: "Muestra y permite modificar la lista de bans. ' !banlist ' los lista, ' !banlist clear <n> ' lo saca de la lista. ",
-                admin: true,
+                role: 2,
                 hidden: false,
                 exec: (msg, args) => {
                     if (args.length === 0) {
@@ -519,7 +542,7 @@ module.exports = function (API, customData = {}) {
                 prefix: "!",
                 name: "ball",
                 desc: "' !ball reset ' resetea la bola al centro de la cancha.",
-                admin: true,
+                role: 2,
                 hidden: false,
                 exec: (msg, args) => {
                     if (args.length === 1 && args[0] === "reset") {
@@ -554,13 +577,20 @@ module.exports = function (API, customData = {}) {
                     var isCommand = that.commandsList.find((c) => c.prefix === msg.text.charAt(0));
                     if (isCommand) {
                         var args = msg.text.split(/[ ]+/);
-                        var cmd = args.splice(0, 1)[0];
-                        var recognizedCommand = that.commandsList.find((c) => {
-                            return cmd === c.prefix + c.name;
+                        var cmdSign = args.splice(0, 1)[0];
+                        var command = that.commandsList.find((c) => {
+                            return cmdSign === c.prefix + c.name;
                         });
-                        if (recognizedCommand) {
-                            if ((recognizedCommand.admin && that.isAdmin(msg.byId)) || !recognizedCommand.admin) {
-                                recognizedCommand.exec(msg, args);
+                        // Los comandos con admin = true solo pueden ser ejecutados por los usuarios con rol permitido o por los admins de la sala
+                        if (command) {
+                            let player = that.room.getPlayer(msg.byId);
+                            if (
+                                (command.role > 0 &&
+                                    (that.isUserRoleAuthorized(player?.user?.role, command.role) ||
+                                        that.isAdmin(msg.byId))) ||
+                                command.role === 0
+                            ) {
+                                command.exec(msg, args);
                                 return false;
                             }
                         }

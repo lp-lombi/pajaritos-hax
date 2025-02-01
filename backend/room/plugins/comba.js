@@ -94,8 +94,7 @@ module.exports = function (API) {
                 let player = null;
                 commands.getPlayers().forEach((p) => {
                     if (p.holdTicks) {
-                        if (!player || p.holdTicks > player.holdTicks)
-                            player = p;
+                        if (!player || p.holdTicks > player.holdTicks) player = p;
                     }
                 });
                 if (player) {
@@ -114,14 +113,8 @@ module.exports = function (API) {
     this.combaShot = (player, ball) => {
         Utils.runAfterGameTick(() => {
             let obj = {};
-            let targetXSpeed =
-                ball.speed.x *
-                that.combaStrengthMultiplier *
-                that.castStrengthMultiplier;
-            let targetYSpeed =
-                ball.speed.y *
-                that.combaStrengthMultiplier *
-                that.castStrengthMultiplier;
+            let targetXSpeed = ball.speed.x * that.combaStrengthMultiplier * that.castStrengthMultiplier;
+            let targetYSpeed = ball.speed.y * that.combaStrengthMultiplier * that.castStrengthMultiplier;
 
             let targetVelocity = that.calcVelocity(targetXSpeed, targetYSpeed);
             let currentVelocity = that.calcVelocity(ball.speed.x, ball.speed.y);
@@ -159,8 +152,7 @@ module.exports = function (API) {
                 that.isAnyPlayerInHoldingBall = false;
                 that.room.players.forEach((p) => {
                     if (p && p.disc) {
-                        let allow =
-                            that.calcDistance(p.disc, ball) < that.holdDistance;
+                        let allow = that.calcDistance(p.disc, ball) < that.holdDistance;
                         if (allow) {
                             if (p.holdTicks === undefined) {
                                 p.holdTicks = 0;
@@ -185,8 +177,7 @@ module.exports = function (API) {
                 }
 
                 Utils.runAfterGameTick(() => {
-                    let newGravity =
-                        ball.gravity.y * that.combaGravityDecelerationFactor;
+                    let newGravity = ball.gravity.y * that.combaGravityDecelerationFactor;
                     let velocityBasedGravity = that.calcVelocityBasedGravity(
                         that.calcVelocity(ball.speed.x, ball.speed.y),
                         ball
@@ -198,8 +189,7 @@ module.exports = function (API) {
                     }
 
                     let obj = {
-                        ygravity:
-                            Math.abs(ball.gravity.y) > 0.01 ? newGravity : 0,
+                        ygravity: Math.abs(ball.gravity.y) > 0.01 ? newGravity : 0,
                     };
 
                     // el color depende de si se está casteando o si se está tirando
@@ -209,9 +199,7 @@ module.exports = function (API) {
                                 that.chromaBallColor,
                                 that.chromaCombaColor,
                                 Math.abs(
-                                    that.isAnyPlayerInHoldingBall
-                                        ? that.castStrengthMultiplier * 0.08
-                                        : newGravity
+                                    that.isAnyPlayerInHoldingBall ? that.castStrengthMultiplier * 0.08 : newGravity
                                 ) / 0.08
                             )
                             .hex()
@@ -233,10 +221,7 @@ module.exports = function (API) {
     this.onPlayerBallKick = (playerId) => {
         if (that.room && that.combaActive) {
             // primero se desacelera al igual que en una colisión, por si no había previamente sido activada la comba
-            that.decelerateGravity(
-                0,
-                that.combaGravityCollisionDecelerationFactor
-            );
+            that.decelerateGravity(0, that.combaGravityCollisionDecelerationFactor);
             // luego, la comba
             let player = that.room.players.find((p) => p.id === playerId);
             let ball = that.room.getBall();
@@ -248,24 +233,13 @@ module.exports = function (API) {
 
     this.onCollisionDiscVsPlane = this.onCollisionDiscVsSegment = (discId) => {
         if (that.room && that.combaActive && discId === 0) {
-            that.decelerateGravity(
-                discId,
-                that.combaGravityCollisionDecelerationFactor
-            );
+            that.decelerateGravity(discId, that.combaGravityCollisionDecelerationFactor);
         }
     };
 
-    this.onCollisionDiscVsDisc = (
-        discId1,
-        discPlayerId1,
-        discId2,
-        discPlayerId2
-    ) => {
+    this.onCollisionDiscVsDisc = (discId1, discPlayerId1, discId2, discPlayerId2) => {
         if (that.room && that.combaActive && (discId1 === 0 || discId2 === 0)) {
-            that.decelerateGravity(
-                discId1 === 0 ? discId1 : discId2,
-                that.combaGravityCollisionDecelerationFactor
-            );
+            that.decelerateGravity(discId1 === 0 ? discId1 : discId2, that.combaGravityCollisionDecelerationFactor);
         }
     };
 
@@ -275,8 +249,7 @@ module.exports = function (API) {
             if (ball) {
                 that.chromaBallColor = chroma(ball.color.toString(16));
             }
-            that.defaultStadiumKickStrength =
-                that.room.stadium.playerPhysics.kickStrength;
+            that.defaultStadiumKickStrength = that.room.stadium.playerPhysics.kickStrength;
         }
     };
 
@@ -298,19 +271,13 @@ module.exports = function (API) {
                             let v = that.getValue(args[1]);
                             if (!isNaN(v)) {
                                 that.combaGravityMultiplier = v;
-                                commands.printchat(
-                                    "Cambiando la comba a " + v,
-                                    msg.byId
-                                );
+                                commands.printchat("Cambiando la comba a " + v, msg.byId);
                             }
                         } else if (args[0] === "f") {
                             let v = that.getValue(args[1]);
                             if (!isNaN(v)) {
                                 that.combaStrengthMultiplier = v;
-                                commands.printchat(
-                                    "Cambiando la fuerza a " + v,
-                                    msg.byId
-                                );
+                                commands.printchat("Cambiando la fuerza a " + v, msg.byId);
                             }
                         } else if (args[0] === "preset") {
                             //let customColor = "#5FEE26";
@@ -364,8 +331,7 @@ module.exports = function (API) {
                     }
                 },
                 "Configuración de la comba. ' !comba f <valor> ' cambia la fuerza | ' !comba c <valor> cambia la comba ' | ' !comba preset <valor> ' cambia el preset.",
-                true,
-                false
+                2
             );
         }
     };

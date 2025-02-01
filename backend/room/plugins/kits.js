@@ -76,75 +76,70 @@ module.exports = function (API) {
                 "!",
                 "casaca",
                 (msg, args) => {
-                    if (commands.isAdmin(msg.byId)) {
-                        if (args.length === 0) {
-                            let kitsString = "Lista de camisetas: \n";
-                            kits.forEach((k) => {
-                                kitsString += "   " + k.name + "   -";
-                            });
-                            kitsString += "\n Uso: !casaca <equipo> <nombre> | ej ' !casaca red independiente '";
-                            commands.printchat(kitsString, msg.byId);
-                        } else if (args.length > 0) {
-                            if (args[0] === "red" || args[0] === "blue") {
-                                if (args.length === 2) {
-                                    let k = kits.find((k) => k.name === args[1]);
-                                    if (k) {
-                                        let colorsList = k.cfg.split(/[ ]+/);
-                                        let angle = parseInt(colorsList.splice(0, 1)[0]);
+                    if (args.length === 0) {
+                        let kitsString = "Lista de camisetas: \n";
+                        kits.forEach((k) => {
+                            kitsString += "   " + k.name + "   -";
+                        });
+                        kitsString += "\n Uso: !casaca <equipo> <nombre> | ej ' !casaca red independiente '";
+                        commands.printchat(kitsString, msg.byId);
+                    } else if (args.length > 0) {
+                        if (args[0] === "red" || args[0] === "blue") {
+                            if (args.length === 2) {
+                                let k = kits.find((k) => k.name === args[1]);
+                                if (k) {
+                                    let colorsList = k.cfg.split(/[ ]+/);
+                                    let angle = parseInt(colorsList.splice(0, 1)[0]);
 
-                                        let t = args[0] === "red" ? 1 : args[0] === "blue" ? 2 : null;
+                                    let t = args[0] === "red" ? 1 : args[0] === "blue" ? 2 : null;
 
-                                        t
-                                            ? that.room.setTeamColors(t, angle, ...colorsList.map((c) => c))
-                                            : commands.printchat("Equipo inválido.", msg.byId);
-                                    } else {
-                                        commands.printchat("Camiseta no encontrada.", msg.byId);
-                                    }
+                                    t
+                                        ? that.room.setTeamColors(t, angle, ...colorsList.map((c) => c))
+                                        : commands.printchat("Equipo inválido.", msg.byId);
+                                } else {
+                                    commands.printchat("Camiseta no encontrada.", msg.byId);
                                 }
-                            } else if (args[0] === "add") {
-                                if (args.length >= 4) {
-                                    let kitName = args[1];
-                                    let angle = isNaN(args[2]) ? null : parseInt(args[2]);
-                                    let fontColor = args[3].length === 6 ? args[3] : null;
-                                    let color1 = args[4]?.length === 6 ? args[4] : null;
-                                    let color2 = args[5]?.length === 6 ? args[5] : null;
-                                    let color3 = args[6]?.length === 6 ? args[6] : null;
-
-                                    if (kitName !== null && angle !== null && fontColor !== null && color1 !== null) {
-                                        let cfg = `${angle} ${fontColor} ${color1}`;
-                                        if (color2) cfg += ` ${color2}`;
-                                        if (color3) cfg += ` ${color3}`;
-
-                                        let error = false;
-
-                                        commands
-                                            .getDb()
-                                            .run(
-                                                `INSERT INTO kits (name, cfg) VALUES ("${kitName}", "${cfg}")`,
-                                                (err) => {
-                                                    if (err) console.log(err);
-                                                }
-                                            );
-                                        if (error) {
-                                            commands.printchat("No se pudo guardar la camiseta.", msg.byId, "error");
-                                        } else {
-                                            fetchKits();
-                                            commands.printchat("Se guardó la camiseta correctamente.", msg.byId);
-                                        }
-                                        return;
-                                    }
-                                }
-                                commands.printchat(
-                                    "Uso incorrecto del comando. ej: ' !casaca add independiente 0 CF0C0C FF0505 CF0C05 '",
-                                    msg.byId,
-                                    "error"
-                                );
                             }
+                        } else if (args[0] === "add") {
+                            if (args.length >= 4) {
+                                let kitName = args[1];
+                                let angle = isNaN(args[2]) ? null : parseInt(args[2]);
+                                let fontColor = args[3].length === 6 ? args[3] : null;
+                                let color1 = args[4]?.length === 6 ? args[4] : null;
+                                let color2 = args[5]?.length === 6 ? args[5] : null;
+                                let color3 = args[6]?.length === 6 ? args[6] : null;
+
+                                if (kitName !== null && angle !== null && fontColor !== null && color1 !== null) {
+                                    let cfg = `${angle} ${fontColor} ${color1}`;
+                                    if (color2) cfg += ` ${color2}`;
+                                    if (color3) cfg += ` ${color3}`;
+
+                                    let error = false;
+
+                                    commands
+                                        .getDb()
+                                        .run(`INSERT INTO kits (name, cfg) VALUES ("${kitName}", "${cfg}")`, (err) => {
+                                            if (err) console.log(err);
+                                        });
+                                    if (error) {
+                                        commands.printchat("No se pudo guardar la camiseta.", msg.byId, "error");
+                                    } else {
+                                        fetchKits();
+                                        commands.printchat("Se guardó la camiseta correctamente.", msg.byId);
+                                    }
+                                    return;
+                                }
+                            }
+                            commands.printchat(
+                                "Uso incorrecto del comando. ej: ' !casaca add independiente 0 CF0C0C FF0505 CF0C05 '",
+                                msg.byId,
+                                "error"
+                            );
                         }
                     }
                 },
                 `"Cambiar camisetas | para asignar: " !casaca <equipo> <nombre> " | para listar todas: " !casaca " | para agregar: " !casaca add <nombre> <cfg> "`,
-                true
+                1
             );
         }
     };

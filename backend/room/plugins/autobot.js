@@ -83,10 +83,7 @@ module.exports = function (API) {
                     if (teams.spects.length > 0) {
                         for (let i = 0; i < teams.spects.length; i++) {
                             if (that.inactivePlayersIds[i]) {
-                                that.room.setPlayerTeam(
-                                    that.inactivePlayersIds[i],
-                                    0
-                                );
+                                that.room.setPlayerTeam(that.inactivePlayersIds[i], 0);
                             }
                         }
                     }
@@ -140,10 +137,7 @@ module.exports = function (API) {
                             if (ball.speed.x < -1) {
                                 modifyObj.xspeed = -ball.speed.x * 0.9;
                             }
-                        } else if (
-                            ball &&
-                            ball.pos.x - threshold > goals.right.top.x
-                        ) {
+                        } else if (ball && ball.pos.x - threshold > goals.right.top.x) {
                             modifyObj = {
                                 x: goals.right.top.x - 10,
                                 y: ball.pos.y,
@@ -179,42 +173,19 @@ module.exports = function (API) {
                     if (that.room.gameState && that.active) {
                         let teams = getTeams();
                         if (teams.spects.length > 0) {
-                            if (
-                                teams.rTeam.length < that.teamSize ||
-                                teams.bTeam.length < that.teamSize
-                            ) {
-                                let t =
-                                    teams.rTeam.length <= teams.bTeam.length
-                                        ? 1
-                                        : 2;
+                            if (teams.rTeam.length < that.teamSize || teams.bTeam.length < that.teamSize) {
+                                let t = teams.rTeam.length <= teams.bTeam.length ? 1 : 2;
                                 if (teams.spects[0]) {
-                                    that.room.setPlayerTeam(
-                                        teams.spects[0].id,
-                                        t
-                                    );
-                                    commands.printchat(
-                                        "Entrás al juego.",
-                                        teams.spects[0].id,
-                                        "alert"
-                                    );
+                                    that.room.setPlayerTeam(teams.spects[0].id, t);
+                                    commands.printchat("Entrás al juego.", teams.spects[0].id, "alert");
                                 }
                             }
                         } else {
-                            if (
-                                Math.abs(
-                                    teams.rTeam.length - teams.bTeam.length
-                                ) > 1
-                            ) {
+                            if (Math.abs(teams.rTeam.length - teams.bTeam.length) > 1) {
                                 if (teams.rTeam.length > teams.bTeam.length) {
-                                    that.room.setPlayerTeam(
-                                        teams.rTeam[0].id,
-                                        2
-                                    );
+                                    that.room.setPlayerTeam(teams.rTeam[0].id, 2);
                                 } else {
-                                    that.room.setPlayerTeam(
-                                        teams.bTeam[0].id,
-                                        1
-                                    );
+                                    that.room.setPlayerTeam(teams.bTeam[0].id, 1);
                                 }
                             }
                         }
@@ -228,9 +199,7 @@ module.exports = function (API) {
     this.initialize = function () {
         commands = that.room.plugins.find((p) => p.name === "lmbCommands");
         if (!commands) {
-            console.log(
-                "El plugin de autobot requiere del plugin de comandos."
-            );
+            console.log("El plugin de autobot requiere del plugin de comandos.");
         } else {
             that.checkTeams();
             that.checkAfk();
@@ -249,35 +218,24 @@ module.exports = function (API) {
                         switch (args[0]) {
                             case "on":
                                 that.active = true;
-                                commands.printchat(
-                                    "Se activó el autobot",
-                                    msg.byId
-                                );
+                                commands.printchat("Se activó el autobot", msg.byId);
                                 break;
                             case "off":
-                                commands.printchat(
-                                    "Se desactivó el autobot",
-                                    msg.byId
-                                );
+                                commands.printchat("Se desactivó el autobot", msg.byId);
                                 that.active = false;
                                 break;
                             case "equipos":
                                 if (args[1]) {
                                     if (!isNaN(parseInt(args[1]))) {
                                         that.teamSize = parseInt(args[1]);
-                                        commands.printchat(
-                                            "El tamaño de los equipos cambió a " +
-                                                args[1],
-                                            msg.byId
-                                        );
+                                        commands.printchat("El tamaño de los equipos cambió a " + args[1], msg.byId);
                                     }
                                 }
                                 break;
                             case "afk":
                                 if (args[1]) {
                                     if (!isNaN(parseInt(args[1]))) {
-                                        that.afkTimeMsecs =
-                                            parseInt(args[1]) * 1000;
+                                        that.afkTimeMsecs = parseInt(args[1]) * 1000;
                                         commands.printchat(
                                             "El tiempo de inactividad considerado AFK cambió a " +
                                                 args[1] +
@@ -291,7 +249,7 @@ module.exports = function (API) {
                     }
                 },
                 "Ajustes del autobot de la sala. ' !autobot on/off ' | !autobot equipos <tamaño>",
-                true
+                2
             );
 
             commands.onGameStartQueue.push((byId, customData = null) => {
@@ -300,10 +258,7 @@ module.exports = function (API) {
                 sleep(that.room.timeLimit * 60000 * 0.6).then(() => {
                     that.replaceablePlayers = [];
                     commands.getPlayers().forEach((p) => {
-                        if (
-                            p.id !== 0 &&
-                            (p.team.id === 1 || p.team.id === 2)
-                        ) {
+                        if (p.id !== 0 && (p.team.id === 1 || p.team.id === 2)) {
                             that.replaceablePlayers.push(p);
                         }
                     });
@@ -339,15 +294,11 @@ module.exports = function (API) {
                         if (spectPlayersIds[i]) {
                             let currentTeamSize = 0;
                             commands.getPlayers().forEach((p) => {
-                                if (p.team.id === loserTeamId)
-                                    currentTeamSize++;
+                                if (p.team.id === loserTeamId) currentTeamSize++;
                             });
 
                             if (currentTeamSize < that.teamSize) {
-                                that.room.setPlayerTeam(
-                                    spectPlayersIds[i],
-                                    loserTeamId
-                                );
+                                that.room.setPlayerTeam(spectPlayersIds[i], loserTeamId);
                             }
                         }
                     that.room.stopGame();
@@ -358,10 +309,7 @@ module.exports = function (API) {
             });
             commands.sendInputQueue.push((msg) => {
                 if (that.inactivePlayersIds.includes(msg.byId)) {
-                    that.inactivePlayersIds.splice(
-                        that.inactivePlayersIds.indexOf(msg.byId),
-                        1
-                    );
+                    that.inactivePlayersIds.splice(that.inactivePlayersIds.indexOf(msg.byId), 1);
                 }
             });
 

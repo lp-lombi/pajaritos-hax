@@ -142,7 +142,7 @@ module.exports = function (API) {
                     commands.printchat("Avisos desactivados", msg.byId);
                 },
                 "Desactiva los anuncios",
-                false,
+                0,
                 true
             );
             commands.registerCommand(
@@ -217,8 +217,7 @@ module.exports = function (API) {
                     }
                 },
                 "Ajustes de los anuncios. !anuncios on / off | !anuncios ciclo <minutos> | !anuncios nuevo <texto del nuevo anuncio> | !anuncios borrar | !anuncios fetch",
-                true,
-                false
+                2
             );
         }
     };

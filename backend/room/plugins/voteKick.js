@@ -56,20 +56,12 @@ module.exports = function (API) {
             that.requiredVotes = Math.round(commands.getPlayers().length * 0.6);
             sleep(45 * 1000).then(() => {
                 if (that.voters.length >= that.requiredVotes) {
-                    commands.printchat(
-                        `La gente decidió fusilar a ${that.toKickName}.`,
-                        null,
-                        "alert"
-                    );
+                    commands.printchat(`La gente decidió fusilar a ${that.toKickName}.`, null, "alert");
                     sleep(2000).then(() => {
                         that.room.kickPlayer(id, "Tomate el palo.");
                     });
                 } else {
-                    commands.printchat(
-                        `No se kickea a ${that.toKickName}.`,
-                        null,
-                        "alert"
-                    );
+                    commands.printchat(`No se kickea a ${that.toKickName}.`, null, "alert");
                 }
                 that.voters = [];
                 that.requiredVotes = 100;
@@ -82,9 +74,7 @@ module.exports = function (API) {
     this.initialize = function () {
         commands = that.room.plugins.find((p) => p.name === "lmbCommands");
         if (!commands) {
-            console.log(
-                "El plugin de votekick requiere del plugin de comandos."
-            );
+            console.log("El plugin de votekick requiere del plugin de comandos.");
         } else {
             commands.registerCommand(
                 "!",
@@ -98,14 +88,10 @@ module.exports = function (API) {
                                     str += `[${p.id}] ${p.name}\n`;
                                 }
                             });
-                            str +=
-                                "!votekick <id> : inicia la votación para kickear a dicho jugador. Ej: !votekick 2";
+                            str += "!votekick <id> : inicia la votación para kickear a dicho jugador. Ej: !votekick 2";
                             commands.printchat(str, msg.byId);
                         } else {
-                            commands.printchat(
-                                "Ya hay una votación en curso.",
-                                msg.byId
-                            );
+                            commands.printchat("Ya hay una votación en curso.", msg.byId);
                         }
                     } else if (!that.voting) {
                         if (!isNaN(args[0])) {
@@ -113,9 +99,7 @@ module.exports = function (API) {
                             commands.getPlayers().forEach((p) => {
                                 if (p.id === id) {
                                     that.voting = true;
-                                    let kicker = commands
-                                        .getPlayers()
-                                        .find((p) => p.id === msg.byId);
+                                    let kicker = commands.getPlayers().find((p) => p.id === msg.byId);
                                     if (kicker && id !== 0) {
                                         that.toKickName = p.name;
                                         commands.printchat(
@@ -129,9 +113,7 @@ module.exports = function (API) {
                             });
                         }
                     } else if (that.voting) {
-                        let voter = commands
-                            .getPlayers()
-                            .find((p) => p.id === msg.byId);
+                        let voter = commands.getPlayers().find((p) => p.id === msg.byId);
                         if (voter) {
                             if (args[0] === "si" || args[0] === "no") {
                                 if (that.voters.indexOf(voter.auth) === -1) {
@@ -139,14 +121,8 @@ module.exports = function (API) {
                                         that.voters.push(voter.auth);
 
                                         // si es sub, su voto vale doble
-                                        let authPlugin = that.room.plugins.find(
-                                            (p) => p.name === "lmbAuth"
-                                        );
-                                        let isSub =
-                                            authPlugin &&
-                                            authPlugin.isPlayerSubscribed(
-                                                msg.byId
-                                            );
+                                        let authPlugin = that.room.plugins.find((p) => p.name === "lmbAuth");
+                                        let isSub = authPlugin && authPlugin.isPlayerSubscribed(msg.byId);
                                         if (isSub) {
                                             that.voters.push(voter.auth);
                                         }
@@ -165,19 +141,14 @@ module.exports = function (API) {
                                             );
                                         }
                                     } else if (args[0] === "no") {
-                                        if (
-                                            that.voters.indexOf(msg.byId) === -1
-                                        ) {
+                                        if (that.voters.indexOf(msg.byId) === -1) {
                                             commands.printchat(
                                                 `${voter.name} votó NO a expulsar a >>> ${that.toKickName} <<< ( ${that.voters.length} / ${that.requiredVotes} )\n>>> !votekick si\n>>> !votekick no`,
                                                 null,
                                                 "alert"
                                             );
                                         } else {
-                                            commands.printchat(
-                                                `Ya votaste.`,
-                                                msg.byId
-                                            );
+                                            commands.printchat(`Ya votaste.`, msg.byId);
                                         }
                                     }
                                 } else {

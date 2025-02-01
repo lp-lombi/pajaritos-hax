@@ -370,9 +370,7 @@ module.exports = function (API) {
                         }
                     }
                 },
-                "Muestra el historial de partidos.",
-                false,
-                false
+                "Muestra el historial de partidos."
             );
             commands.registerCommand(
                 "!",
@@ -390,9 +388,7 @@ module.exports = function (API) {
                         printPlayersDbStats(msg.byId, parseInt(args[0]));
                     }
                 },
-                "Muestra los goles y asistencias de cada jugador.",
-                false,
-                false
+                "Muestra los goles y asistencias de cada jugador."
             );
 
             commands.onTeamGoalQueue.push((teamId, customData) => {

@@ -55,7 +55,7 @@ module.exports = function (API) {
                 data.subscription.tier >= 2 ||
                 calcDaysBetween(new Date(data.subscription.startDate), new Date()) < 30
             ) {
-                player.subscription = data.subscription;
+                player.user.subscription = data.subscription;
             } else {
                 commands.printchat(
                     "Tu suscripción expiró! ☹️ Si la querés renovar entrá a nuestro discord en la sección de Vips.",
@@ -151,13 +151,13 @@ module.exports = function (API) {
 
     this.getPlayerSubscription = function (playerId) {
         let p = commands.getPlayers().find((p) => p.id === playerId);
-        return p?.subscription ? p.subscription : null;
+        return p?.user?.subscription ? p.user.subscription : null;
     };
 
     this.updatePlayerSubscriptionData = function (playerId, subscriptionData) {
         let p = commands.getPlayers().find((p) => p.id === playerId);
         if (p) {
-            fetch(commands.data.webApi.url + "/subscriptions/" + p.subscription.userId, {
+            fetch(commands.data.webApi.url + "/subscriptions/" + p.user.subscription.userId, {
                 method: "PATCH",
                 headers: {
                     "content-type": "application/json",
@@ -186,7 +186,7 @@ module.exports = function (API) {
 
     this.isPlayerSubscribed = function (playerId) {
         let p = commands.getPlayers().find((p) => p.id === playerId);
-        if (p && p.subscription && p.subscription.tier >= 1) {
+        if (p && p.user?.subscription && p.user.subscription.tier >= 1) {
             return true;
         }
         return false;

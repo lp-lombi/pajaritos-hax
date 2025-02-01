@@ -65,8 +65,7 @@ module.exports = function (API) {
                     }
                 },
                 "Envía una advertencia a un jugador con un mensaje. '!warn @user esta es tu primera advertencia'",
-                true,
-                false
+                1
             );
             commands.registerCommand(
                 "!",
@@ -80,8 +79,7 @@ module.exports = function (API) {
                     }
                 },
                 "Envía un anuncio a todos los jugadores con un mensaje. '!an Este es un anuncio'",
-                true,
-                false
+                1
             );
         }
     };
