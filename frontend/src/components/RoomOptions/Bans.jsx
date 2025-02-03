@@ -4,14 +4,11 @@ import { usePopup } from "../../services/PopupService";
 
 export const Bans = () => {
     const [roomBans, setRoomBans] = useState([]);
-    const { roomData, permaBans, permaBanPlayer, deletePermaBan, unbanPlayer } =
-        useApi();
+    const { roomData, permaBans, permaBanPlayer, deletePermaBan, unbanPlayer } = useApi();
     const { popupConfirm } = usePopup();
 
     useEffect(() => {
-        setRoomBans(
-            roomData.bannedPlayers.filter((b) => b.type !== 1 && b.type !== 2)
-        );
+        setRoomBans(roomData.bannedPlayers.filter((b) => b.type !== 1 && b.type !== 2));
     }, [roomData]);
 
     return (
@@ -29,9 +26,7 @@ export const Bans = () => {
                             <li key={ban.value.pId}>
                                 <div className="top">
                                     <div>
-                                        <span className="name">
-                                            {ban.value.pName}
-                                        </span>
+                                        <span className="name">{ban.value.pName}</span>
                                     </div>
                                     <div>
                                         <span>ID: {ban.value.pId}</span>
@@ -41,26 +36,17 @@ export const Bans = () => {
                                     <div className="col50">
                                         <div>
                                             {ban.value.ips[0] ? (
-                                                <span key={ban.value.ips[0]}>
-                                                    {ban.value.ips[0]} 
-                                                </span>
+                                                <span key={ban.value.ips[0]}>{ban.value.ips[0]} </span>
                                             ) : null}
                                         </div>
                                     </div>
                                     <div className="col50">
-                                        <button
-                                            onClick={() =>
-                                                unbanPlayer(ban.value.pId)
-                                            }
-                                        >
-                                            Desbanear
-                                        </button>
+                                        <button onClick={() => unbanPlayer(ban.value.pId)}>Desbanear</button>
                                         <button
                                             onClick={() =>
                                                 popupConfirm(
                                                     "Banear permanentemente",
-                                                    "Se baneará permanentemente la IP del jugador " +
-                                                        ban.value.pName,
+                                                    "Se baneará permanentemente la IP del jugador " + ban.value.pName,
                                                     () => {
                                                         permaBanPlayer(
                                                             ban.value.pName,
@@ -95,9 +81,7 @@ export const Bans = () => {
                                 <span> {ban.ip}</span>
                             </div>
                             <div className="col50">
-                                <button onClick={() => deletePermaBan(ban.id)}>
-                                    Revocar
-                                </button>
+                                <button onClick={() => deletePermaBan(ban.id)}>Revocar</button>
                             </div>
                         </div>
                     </li>

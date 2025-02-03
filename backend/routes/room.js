@@ -83,8 +83,30 @@ room.get("/", global.verifyToken, function (req, res) {
             stadiumName: global.room.stadium.name,
             plugins: [],
             stadiums: [],
-            bannedPlayers: global.room.banList,
+            bannedPlayers: global.room.banList.map((b) => {
+                let banData = {
+                    id: b.id,
+                    type: b.type,
+                };
+                if (b.type === 0) {
+                    banData.value = {
+                        pId: b.value.pId,
+                        pName: b.value.pName,
+                        auth: b.value.auth,
+                        ips: b.value.ips,
+                    };
+                } else if (b.type === 1) {
+                    banData.value = {
+                        ip: b.value.ip,
+                        mask: b.value.mask,
+                    };
+                } else if (b.type === 2) {
+                    banData.value = banData.value;
+                }
+                return banData;
+            }),
         };
+
         global.room.plugins.forEach((pl) => {
             let settings = pl.publicSettings ? pl.publicSettings : null;
             if (settings) {

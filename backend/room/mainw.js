@@ -13,11 +13,13 @@ const customDisc = require("./plugins/customDisc");
 const subsFeatures = require("./plugins/subsFeatures");
 const adminFeatures = require("./plugins/adminFeatures");
 
+var roomObj;
+
 // ROOM
 async function run(config, DEV = false) {
     return new Promise((resolve, reject) => {
         var createParams = {
-            name: DEV ? "X" : config.roomName,
+            name: config.roomName,
             geo: {
                 lat: -36.310826904052284,
                 lon: -60.45336889643611,
@@ -31,7 +33,6 @@ async function run(config, DEV = false) {
                 console.log("Error: " + err);
             },
         };
-        DEV ? (createParams["password"] = "121") : null;
 
         var client = API.Room.create(createParams, {
             plugins: [
@@ -51,8 +52,8 @@ async function run(config, DEV = false) {
                 player_name: config.botName,
                 avatar: "",
             },
-            onSuccess: (room) => {
-                r = room;
+            onOpen: (room) => {
+                r = roomObj = room;
 
                 commandsPlugin = room.plugins.find((p) => p.name === "lmbCommands");
 
@@ -69,16 +70,19 @@ async function run(config, DEV = false) {
                     resolve(room);
                 };
             },
+            onClose: (msg) => {
+                if (msg?.code === 38) {
+                    console.log("Token expirado");
+                    client.cancel();
+                    reject({
+                        room: roomObj,
+                        msg: "Token expirado. Generá uno nuevo.",
+                    });
+                } else {
+                    //console.log("Sala cerrada: ", msg);
+                }
+            },
         });
-
-        client.onRequestRecaptcha = (token) => {
-            console.log("Token expirado");
-            client.room.leave();
-            reject({
-                room: client.room,
-                msg: "Token expirado. Generá uno nuevo.",
-            });
-        };
     });
 }
 

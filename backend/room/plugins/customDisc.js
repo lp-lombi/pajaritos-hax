@@ -65,7 +65,7 @@ module.exports = function (API) {
                                     str += `[${d.playerId}] - ${that.room.getPlayer(d.playerId).name}\n`;
                                 }
                             });
-                            str += "\nUso: !dm <id> <opcion> <valor>\n\nOpciones:\nr -> radio | v -> velocidad";
+                            str += "\nUso: !cd <id> <opcion> <valor>\n\nOpciones:\nr -> radio | v -> velocidad";
                             commands.printchat(str, msg.byId);
                         }
                     } else {

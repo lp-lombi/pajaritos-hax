@@ -117,6 +117,15 @@ module.exports = function (API) {
         });
     };
 
+    this.onPlayerJoin = (playerObj) => {
+        that.subsPlayersIds.push(playerObj.id);
+        Utils.runAfterGameTick(() => {
+            if (that.isSaludoActive) {
+                commands.printchat(that.saludo, playerObj.id, "announcement");
+            }
+        });
+    };
+
     this.initialize = function () {
         commands = that.room.plugins.find((p) => p.name === "lmbCommands");
         if (!commands) {
@@ -128,12 +137,7 @@ module.exports = function (API) {
             that.fetchAnnouncements();
 
             commands.initQueue.push(that.announcementLoop);
-            commands.onPlayerJoinQueue.push((msg) => {
-                that.subsPlayersIds.push(msg.id);
-                if (that.isSaludoActive) {
-                    commands.printchat(that.saludo, msg.id, "announcement");
-                }
-            });
+
             commands.registerCommand(
                 "!",
                 "mute",
@@ -172,7 +176,6 @@ module.exports = function (API) {
                         } else if (args[0] === "nuevo") {
                             if (args[1]) {
                                 let newAnnouncement = args.slice(1).join(" ").replaceAll('"', '\\"');
-                                console.log(newAnnouncement);
                                 commands
                                     .getDb()
                                     .run(`INSERT INTO announcements (text) VALUES ("${newAnnouncement}")`, (err) => {

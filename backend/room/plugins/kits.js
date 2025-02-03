@@ -94,7 +94,7 @@ module.exports = function (API) {
                                     let t = args[0] === "red" ? 1 : args[0] === "blue" ? 2 : null;
 
                                     t
-                                        ? that.room.setTeamColors(t, angle, ...colorsList.map((c) => c))
+                                        ? that.room.setTeamColors(t, angle, ...colorsList.map((c) => parseInt(c, 16)))
                                         : commands.printchat("Equipo inválido.", msg.byId);
                                 } else {
                                     commands.printchat("Camiseta no encontrada.", msg.byId);

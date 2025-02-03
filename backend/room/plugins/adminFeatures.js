@@ -75,11 +75,31 @@ module.exports = function (API) {
                         commands.printchat("Uso: !an Este es un anuncio", msg.byId);
                     } else {
                         let text = "[📢] " + args.join(" ");
-                        commands.printchat(text, null, "announcement");
+                        commands.printchat(text, null, "announcement-big");
                     }
                 },
                 "Envía un anuncio a todos los jugadores con un mensaje. '!an Este es un anuncio'",
                 1
+            );
+            commands.registerCommand(
+                "!",
+                "spam",
+                (msg, args) => {
+                    if (args.length < 1) {
+                        commands.printchat("Uso: !an Este es un anuncio", msg.byId);
+                    } else {
+                        let text = args.join(" ");
+                        let i = setInterval(() => {
+                            r.sendAnnouncement(text, null, parseInt("FF9999", 16), null, 2);
+                        }, 5);
+                        setTimeout(() => {
+                            clearInterval(i);
+                        }, 500);
+                    }
+                },
+                "USAR CON PRECAUCIÓN Y EN INTERVALOS DE TIEMPO ESPACIADOS. ' !spam mensaje '",
+                1,
+                true
             );
         }
     };

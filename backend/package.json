@@ -10,7 +10,7 @@
         "express": "^4.19.2",
         "jsonwebtoken": "^9.0.2",
         "minimalist": "^1.0.0",
-        "node-haxball": "^1.1.0",
+        "node-haxball": "^2.0.0",
         "rollup": "^4.19.0",
         "sqlite3": "^5.1.7"
     }

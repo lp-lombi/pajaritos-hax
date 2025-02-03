@@ -72,6 +72,9 @@ module.exports = function (API, customData = {}) {
             case "announcement":
                 room.sendAnnouncement(msg, targetId, COLORS.green, "small-bold");
                 break;
+            case "announcement-big":
+                room.sendAnnouncement(msg, targetId, COLORS.green, "bold");
+                break;
             case "announcement-mute":
                 room.sendAnnouncement(msg, targetId, COLORS.green, "small-bold", 0);
                 break;
@@ -90,7 +93,7 @@ module.exports = function (API, customData = {}) {
                     switch (p.team.id) {
                         case 0:
                             ballEmoji = "⚪";
-                            tColor = null;
+                            tColor = COLORS.white;
                             break;
                         case 1:
                             ballEmoji = "🔴";
@@ -111,7 +114,7 @@ module.exports = function (API, customData = {}) {
                         if (authPlugin.isPlayerSubscribed(p.id)) {
                             let subscription = authPlugin.getPlayerSubscription(p.id);
                             if (subscription && subscription && subscription.tier >= 1) {
-                                if (tColor) {
+                                if (p.team.id !== 0) {
                                     let color = chroma(tColor.toString(16).padStart(6, "0"));
                                     tColor = parseInt(color.saturate(3).brighten(0.2).hex().substring(1), 16);
                                 } else {
@@ -258,6 +261,7 @@ module.exports = function (API, customData = {}) {
     var kickBanAllowed = false;
 
     const COLORS = {
+        white: parseInt("D9D9D9", 16),
         beige: parseInt("EAD9AA", 16),
         pink: parseInt("EAB2AA", 16),
         red: parseInt("EA5F60", 16),
@@ -363,20 +367,6 @@ module.exports = function (API, customData = {}) {
             console.log(e);
         }
     }
-
-    /**
-     * Se usa para corregir un bug que por algún motivo divide los ángulos por 0.71 periódico,
-     * y que no guarda la información en el equipo en cuestión
-     */
-    this.onTeamColorsChange = (teamId, value) => {
-        let team = that.getPlayers().find((p) => p.team.id === teamId)?.team;
-        if (team) {
-            team.colors = structuredClone(value);
-            team.colors.angle = team.colors.hd = value.angle * 1.40625;
-            team.colors.inner = team.colors.fb;
-            team.colors.text = team.colors.ed;
-        }
-    };
 
     this.initialize = function () {
         if (customData.webApi) {
@@ -609,8 +599,8 @@ module.exports = function (API, customData = {}) {
                     }
                     return false;
                 } else if (type === OperationType.SendAnnouncement) {
-                    if (msg._TP === null || msg._TP === 0) {
-                        that.log(msg.Tc, msg.color, msg.style);
+                    if (!msg.targetId || msg.targetId === 0) {
+                        that.log(msg.msg, msg.color, msg.style);
                     }
                 } else if (type === OperationType.KickBanPlayer) {
                     handleKickBanPlayer(msg);

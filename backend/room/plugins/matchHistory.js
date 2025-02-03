@@ -449,7 +449,7 @@ module.exports = function (API) {
 
             commands.onPlayerJoinQueue.push((pObj) => {
                 setTimeout(() => {
-                    let player = commands.getPlayers().find((p) => pObj.V == p.id);
+                    let player = commands.getPlayers().find((p) => pObj.id == p.id);
                     if (player) {
                         player.sessionStats = {
                             score: 0,

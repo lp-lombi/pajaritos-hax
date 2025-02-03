@@ -65,7 +65,7 @@ module.exports = function (API) {
     this.goal = false;
     this.newStadium = true;
     this.teamSize = 4;
-    this.afkTimeMsecs = 25000;
+    this.afkTimeMsecs = 15000;
     this.inactivePlayersIds = [];
     this.replaceablePlayers = [];
 

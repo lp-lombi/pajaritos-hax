@@ -79,22 +79,28 @@ module.exports = function (API) {
                 }
             }
         },
+        /**
+         * Esta función al reestablecer los colores originales corrige un bug que por algún motivo
+         * divide los ángulos por 0.71 periódico, por lo cual lo multiplicamos por 1.40625
+         */
         rainbow: (player) => {
-            let team = player.team;
-            let origTeamColors = team.colors;
-            let interval = setInterval(() => {
-                let newColor = chroma.random().saturate(3).hex().substring(1);
-                that.room.setTeamColors(team.id, 0, 0, newColor);
-            }, 75);
-            setTimeout(() => {
-                clearInterval(interval);
-                that.room.setTeamColors(
-                    team.id,
-                    origTeamColors.angle,
-                    origTeamColors.text.toString(16),
-                    ...origTeamColors.inner.map((c) => c.toString(16))
-                );
-            }, 2000);
+            let teamId = player?.team.id;
+            if (!isNaN(teamId)) {
+                let origTeamColors = that.room.state.teamColors[teamId];
+                let interval = setInterval(() => {
+                    let newColor = parseInt(chroma.random().saturate(3).hex().substring(1), 16);
+                    that.room.setTeamColors(teamId, 0, 0, newColor);
+                }, 75);
+                setTimeout(() => {
+                    clearInterval(interval);
+                    that.room.setTeamColors(
+                        teamId,
+                        origTeamColors.angle * 1.40625,
+                        origTeamColors.text,
+                        ...origTeamColors.inner
+                    );
+                }, 2000);
+            }
         },
     };
 
