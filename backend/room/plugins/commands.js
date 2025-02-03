@@ -584,11 +584,9 @@ module.exports = function (API, customData = {}) {
                         // Los comandos con rol > 0 solo pueden ser ejecutados por los usuarios con dicho rol o
                         // por los admins de la sala
                         if (command) {
-                            let player = that.room.getPlayer(msg.byId);
                             if (
                                 (command.role > 0 &&
-                                    (that.isUserRoleAuthorized(player?.user?.role, command.role) ||
-                                        that.isAdmin(msg.byId))) ||
+                                    (that.isUserRoleAuthorized(msg.byId, command.role) || that.isAdmin(msg.byId))) ||
                                 command.role === 0
                             ) {
                                 command.exec(msg, args);
