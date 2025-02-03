@@ -83,7 +83,7 @@ module.exports = function (API) {
             );
             commands.registerCommand(
                 "!",
-                "spam",
+                "msgspam",
                 (msg, args) => {
                     if (args.length < 1) {
                         commands.printchat("Uso: !an Este es un anuncio", msg.byId);
@@ -98,7 +98,7 @@ module.exports = function (API) {
                     }
                 },
                 "USAR CON PRECAUCIÓN Y EN INTERVALOS DE TIEMPO ESPACIADOS. ' !spam mensaje '",
-                1,
+                2,
                 true
             );
         }
