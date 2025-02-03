@@ -200,6 +200,10 @@ module.exports = function (API, customData = {}) {
     };
     this.isUserRoleAuthorized = (playerId, requiredRole) => {
         let player = that.getPlayers().find((p) => p.id === playerId);
+
+        console.log("** debug auth por roles **");
+        console.log(player.user);
+        console.log("Rol requerido: ", requiredRole);
         return player?.user?.role >= requiredRole ? true : false;
     };
     this.registerCommand = function (prefix, name, callback, desc = "", role = 0, hidden = false) {
@@ -571,7 +575,8 @@ module.exports = function (API, customData = {}) {
                         var command = that.commandsList.find((c) => {
                             return cmdSign === c.prefix + c.name;
                         });
-                        // Los comandos con admin = true solo pueden ser ejecutados por los usuarios con rol permitido o por los admins de la sala
+                        // Los comandos con rol > 0 solo pueden ser ejecutados por los usuarios con dicho rol o
+                        // por los admins de la sala
                         if (command) {
                             let player = that.room.getPlayer(msg.byId);
                             if (
