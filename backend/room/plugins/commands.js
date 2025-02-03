@@ -199,12 +199,18 @@ module.exports = function (API, customData = {}) {
         maxLines > that.chatLog.length ? null : that.chatLog.splice(0, that.chatLog.length - maxLines);
     };
     this.isUserRoleAuthorized = (playerId, requiredRole) => {
-        let player = that.getPlayers().find((p) => p.id === playerId);
+        let player = room.getPlayer(playerId);
 
         console.log("** debug auth por roles **");
-        console.log(player.user);
-        console.log("Rol requerido: ", requiredRole);
-        return player?.user?.role >= requiredRole ? true : false;
+        if (player?.user) {
+            console.log(player.user);
+            console.log("Rol requerido: ", requiredRole);
+            return player.user.role >= requiredRole ? true : false;
+        } else {
+            console.log("Usuario no logueado | se requiere rol " + requiredRole);
+        }
+
+        return false;
     };
     this.registerCommand = function (prefix, name, callback, desc = "", role = 0, hidden = false) {
         that.commandsList.push({

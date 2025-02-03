@@ -192,6 +192,10 @@ module.exports = function (API) {
         return false;
     };
 
+    this.onPlayerJoin = (player) => {
+        player.isLoggedIn = false;
+    };
+
     this.initialize = function () {
         commands = that.room.plugins.find((p) => p.name === "lmbCommands");
         if (!commands) {
@@ -309,18 +313,6 @@ module.exports = function (API) {
                                 .catch((e) => console.log(e));
                         }
                     }
-                });
-                commands.onPlayerJoinQueue.push((msg) => {
-                    setTimeout(() => {
-                        try {
-                            let player = commands.getPlayers().find((p) => p.id === msg.V);
-                            if (player) {
-                                player.isLoggedIn = false;
-                            }
-                        } catch (e) {
-                            console.log(e);
-                        }
-                    }, 1000);
                 });
             } catch (err) {
                 console.log(err);
