@@ -13,5 +13,8 @@
         "node-haxball": "^2.0.0",
         "rollup": "^4.19.0",
         "sqlite3": "^5.1.7"
+    },
+    "pkg": {
+        "assets": "node_modules/**/*"
     }
 }

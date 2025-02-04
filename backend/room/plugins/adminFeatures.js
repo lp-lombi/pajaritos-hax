@@ -83,6 +83,29 @@ module.exports = function (API) {
             );
             commands.registerCommand(
                 "!",
+                "kick",
+                (msg, args) => {
+                    if (args.length < 1) {
+                        let str = commands.getPlayersIdsString();
+                        str += "\nREFERENCIA: un número ID más bajo indica que el usuario se unió antes. ";
+                        str += "Tenerlo en cuenta cuando hay nombres duplicados";
+                        str += "\n\nUso: ' !kick <id> mensaje de motivo '";
+                        commands.printchat(str, msg.byId);
+                    } else {
+                        if (!isNaN(args[0])) {
+                            let id = parseInt(args[0]);
+                            let reason = args.slice(1).join(" ");
+                            that.room.kickPlayer(id, reason, false);
+                        } else {
+                            commands.printchat("Uso incorrecto. ' !kick <id> mensaje de motivo '", msg.byId, "error");
+                        }
+                    }
+                },
+                "Kickea a un jugador. ' !kick <id> mensaje de motivo '",
+                1
+            );
+            commands.registerCommand(
+                "!",
                 "msgspam",
                 (msg, args) => {
                     if (args.length < 1) {

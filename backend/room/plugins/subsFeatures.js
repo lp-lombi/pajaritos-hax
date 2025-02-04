@@ -35,13 +35,11 @@ module.exports = function (API) {
         allowFlags: AllowFlags.CreateRoom,
     });
 
-    var that = this;
-
     /**
      * @type {import("./types").CommandsPlugin}
      */
     var commands;
-
+    var that = this;
     const chroma = require("chroma-js");
 
     this.anims = {

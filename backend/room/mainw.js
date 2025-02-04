@@ -12,6 +12,7 @@ const voteKick = require("./plugins/voteKick");
 const customDisc = require("./plugins/customDisc");
 const subsFeatures = require("./plugins/subsFeatures");
 const adminFeatures = require("./plugins/adminFeatures");
+const orbs = require("./plugins/res/orbs");
 
 var roomObj;
 
@@ -47,6 +48,7 @@ async function run(config, DEV = false) {
                 new customDisc(API),
                 new subsFeatures(API),
                 new adminFeatures(API),
+                new orbs(API),
             ],
             storage: {
                 player_name: config.botName,
@@ -54,6 +56,7 @@ async function run(config, DEV = false) {
             },
             onOpen: (room) => {
                 r = roomObj = room;
+                utils = API.Utils;
 
                 commandsPlugin = room.plugins.find((p) => p.name === "lmbCommands");
 
@@ -61,10 +64,9 @@ async function run(config, DEV = false) {
                 room.plugins.forEach((p) => {
                     console.log(" - " + p.name);
                 });
-                console.log("");
 
                 room.onAfterRoomLink = (roomLink) => {
-                    console.log("Link de la sala:", roomLink);
+                    console.log("\nLink de la sala:", roomLink);
                     room.lockTeams();
 
                     resolve(room);

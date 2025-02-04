@@ -36,6 +36,125 @@ module.exports = function (API, customData = {}) {
         allowFlags: AllowFlags.CreateRoom,
     });
 
+    /**
+     * @type {import('./types').CommandsPlugin}
+     */
+    var that = this;
+
+    /**
+     * @type {import('./types').Room}
+     */
+    var room;
+    var kickBanAllowed = false;
+
+    const COLORS = {
+        white: parseInt("D9D9D9", 16),
+        beige: parseInt("EAD9AA", 16),
+        pink: parseInt("EAB2AA", 16),
+        red: parseInt("EA5F60", 16),
+        green: parseInt("90F06A", 16),
+        gray: parseInt("CCCBCB", 16),
+        lime: parseInt("CCE9C1", 16),
+        lightOrange: parseInt("FFC977", 16),
+        orange: parseInt("FFB84C", 16),
+        redTeam: parseInt("FFD9D9", 16),
+        blueTeam: parseInt("DBD9FF", 16),
+        vip: parseInt("FFDCB3", 16),
+    };
+
+    const path = require("path");
+    const fs = require("fs");
+    const sqlite3 = require("sqlite3");
+    const chroma = require("chroma-js");
+
+    var db = null;
+    const dbPath = path.join(__dirname, "res/cmd.db");
+    function initDb() {
+        if (fs.existsSync(dbPath)) {
+            db = new sqlite3.Database(dbPath);
+        } else {
+            const createFromSchema = require(path.join(__dirname, "res/cmdschema.js"));
+            createFromSchema(dbPath)
+                .then((newDb) => {
+                    db = newDb;
+                    console.log("commands: Base de datos creada.");
+                })
+                .catch((err) => {
+                    throw err;
+                });
+        }
+    }
+
+    function sleep(ms) {
+        return new Promise((r) => setTimeout(r, ms));
+    }
+
+    async function handleKickBanPlayer(msg, force = false) {
+        try {
+            let p = that.getPlayers().find((p) => p.id === msg.id);
+            let allowed = new Promise((resolve, reject) => {
+                if (force) resolve(true);
+                if (p) {
+                    fetch(that.data.webApi.url + "/users/getuser", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "x-api-key": that.data.webApi.key,
+                        },
+                        body: JSON.stringify({
+                            username: p.name,
+                        }),
+                    })
+                        .then((res) => {
+                            if (res.ok) {
+                                res.json()
+                                    .then((data) => {
+                                        if (data && data.user && data.user.role >= 2 && msg.byId !== 0) {
+                                            let authPlugin = room.plugins.find((p) => p.name === "lmbAuth");
+                                            if (authPlugin) {
+                                                let isLogged = authPlugin
+                                                    .getLoggedPlayers()
+                                                    .find((lp) => lp.id === msg.id);
+                                                if (isLogged) {
+                                                    room.setPlayerAdmin(msg.byId, false);
+                                                    that.printchat("FLASHASTE UNA BANDA", msg.byId, "error");
+                                                    resolve(false);
+                                                }
+                                            }
+                                        }
+                                        resolve(true);
+                                    })
+                                    .catch((err) => {
+                                        // si falla, se usa el comportamiento normal de Haxball
+                                        console.log(err);
+                                        resolve(true);
+                                    });
+                            } else resolve(true);
+                        })
+                        .catch((err) => {
+                            console.log(err);
+                            resolve(true);
+                        });
+                }
+            });
+
+            if (!kickBanAllowed) {
+                // Este código es ejecutado solo una vez, a diferencia del de OperationType el cual
+                // se ejecuta al menos dos veces ya que se lo llama recursivamente
+                if (await allowed) {
+                    kickBanAllowed = true;
+
+                    that.onPlayerLeaveQueue.forEach((action) => action(msg.id));
+                    room.fakeKickPlayer(msg.id, msg.reason, msg.ban, msg.byId);
+
+                    kickBanAllowed = false;
+                }
+            }
+        } catch (e) {
+            console.log(e);
+        }
+    }
+
     this.Utils = Utils;
 
     this.commandsList = [];
@@ -47,6 +166,7 @@ module.exports = function (API, customData = {}) {
         },
     };
     this.chatLog = [];
+    // TODO: Eliminar las colas (debería haber solo una para onOperationReceived o bien sendInput)
     this.initQueue = [];
     this.onPlayerJoinQueue = [];
     this.onPlayerLeaveQueue = [];
@@ -175,6 +295,13 @@ module.exports = function (API, customData = {}) {
                 room.sendAnnouncement(msg, targetId, COLORS.lightOrange, "bold", 2);
         }
     };
+    this.getPlayersIdsString = () => {
+        let str = "";
+        that.getPlayers()
+            .slice(1)
+            .forEach((p) => (str += `[${p.id}] ${p.name}\n`));
+        return str;
+    };
     this.getDb = function () {
         return db;
     };
@@ -200,16 +327,9 @@ module.exports = function (API, customData = {}) {
     };
     this.isUserRoleAuthorized = (playerId, requiredRole) => {
         let player = room.getPlayer(playerId);
-
-        console.log("** debug auth por roles **");
         if (player?.user) {
-            console.log(player.user);
-            console.log("Rol requerido: ", requiredRole);
             return player.user.role >= requiredRole ? true : false;
-        } else {
-            console.log("Usuario no logueado | se requiere rol " + requiredRole);
         }
-
         return false;
     };
     this.registerCommand = function (prefix, name, callback, desc = "", role = 0, hidden = false) {
@@ -259,125 +379,6 @@ module.exports = function (API, customData = {}) {
         });
     };
 
-    /**
-     * @type {import('./types').CommandsPlugin}
-     */
-    var that = this;
-
-    /**
-     * @type {import('./types').Room}
-     */
-    var room;
-    var kickBanAllowed = false;
-
-    const COLORS = {
-        white: parseInt("D9D9D9", 16),
-        beige: parseInt("EAD9AA", 16),
-        pink: parseInt("EAB2AA", 16),
-        red: parseInt("EA5F60", 16),
-        green: parseInt("90F06A", 16),
-        gray: parseInt("CCCBCB", 16),
-        lime: parseInt("CCE9C1", 16),
-        lightOrange: parseInt("FFC977", 16),
-        orange: parseInt("FFB84C", 16),
-        redTeam: parseInt("FFD9D9", 16),
-        blueTeam: parseInt("DBD9FF", 16),
-        vip: parseInt("FFDCB3", 16),
-    };
-
-    const path = require("path");
-    const fs = require("fs");
-    const sqlite3 = require("sqlite3");
-    const chroma = require("chroma-js");
-
-    var db = null;
-    const dbPath = path.join(__dirname, "res/cmd.db");
-    function initDb() {
-        if (fs.existsSync(dbPath)) {
-            db = new sqlite3.Database(dbPath);
-        } else {
-            const createFromSchema = require(path.join(__dirname, "res/cmdschema.js"));
-            createFromSchema(dbPath)
-                .then((newDb) => {
-                    db = newDb;
-                    console.log("commands: Base de datos creada.");
-                })
-                .catch((err) => {
-                    throw err;
-                });
-        }
-    }
-
-    function sleep(ms) {
-        return new Promise((r) => setTimeout(r, ms));
-    }
-
-    async function handleKickBanPlayer(msg, force = false) {
-        try {
-            let p = that.getPlayers().find((p) => p.id === msg.id);
-            let allowed = new Promise((resolve, reject) => {
-                if (force) resolve(true);
-                if (p) {
-                    fetch(that.data.webApi.url + "/users/getuser", {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json",
-                            "x-api-key": that.data.webApi.key,
-                        },
-                        body: JSON.stringify({
-                            username: p.name,
-                        }),
-                    })
-                        .then((res) => {
-                            if (res.ok) {
-                                res.json()
-                                    .then((data) => {
-                                        if (data && data.user && data.user.role >= 2 && msg.byId !== 0) {
-                                            let authPlugin = room.plugins.find((p) => p.name === "lmbAuth");
-                                            if (authPlugin) {
-                                                let isLogged = authPlugin
-                                                    .getLoggedPlayers()
-                                                    .find((lp) => lp.id === msg.id);
-                                                if (isLogged) {
-                                                    room.setPlayerAdmin(msg.byId, false);
-                                                    that.printchat("FLASHASTE UNA BANDA", msg.byId, "error");
-                                                    resolve(false);
-                                                }
-                                            }
-                                        }
-                                        resolve(true);
-                                    })
-                                    .catch((err) => {
-                                        // si falla, se usa el comportamiento normal de Haxball
-                                        console.log(err);
-                                        resolve(true);
-                                    });
-                            } else resolve(true);
-                        })
-                        .catch((err) => {
-                            console.log(err);
-                            resolve(true);
-                        });
-                }
-            });
-
-            if (!kickBanAllowed) {
-                // Este código es ejecutado solo una vez, a diferencia del de OperationType el cual
-                // se ejecuta al menos dos veces ya que se lo llama recursivamente
-                if (await allowed) {
-                    kickBanAllowed = true;
-
-                    that.onPlayerLeaveQueue.forEach((action) => action(msg.id));
-                    room.fakeKickPlayer(msg.id, msg.reason, msg.ban, msg.byId);
-
-                    kickBanAllowed = false;
-                }
-            }
-        } catch (e) {
-            console.log(e);
-        }
-    }
-
     this.initialize = function () {
         if (customData.webApi) {
             that.data.webApi = customData.webApi;
@@ -417,7 +418,11 @@ module.exports = function (API, customData = {}) {
                         if (that.isUserRoleAuthorized(msg.byId, 1) || that.isAdmin(msg.byId)) {
                             let commandsString = "Lista de comandos para administradores: \n";
                             that.commandsList.forEach((c) => {
-                                if (!c.hidden && c.role > 0 && that.isUserRoleAuthorized(msg.byId, c.role)) {
+                                if (
+                                    !c.hidden &&
+                                    c.role > 0 &&
+                                    (that.isUserRoleAuthorized(msg.byId, c.role) || that.isAdmin(msg.byId))
+                                ) {
                                     let cmdSign = c.prefix + c.name;
                                     commandsString += cmdSign + "\n" + c.desc + "\n\n";
                                 }

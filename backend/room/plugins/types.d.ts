@@ -2,6 +2,8 @@ import MainReturnType from "../../node_modules/node-haxball/src/index";
 export const API = MainReturnType();
 import sqlite3 from "sqlite3";
 
+export type BooleanFunction = () => boolean;
+
 export class Room extends API["Room"] {}
 export class Plugin extends API["Plugin"] {}
 export class Player extends API["Player"] {}
@@ -16,6 +18,8 @@ export class CommandsPlugin extends API["Plugin"] {
         };
     };
     chatLog: string[];
+    onOperationReceivedQueue: BooleanFunction[];
+    initQueue: Function[];
     initQueue: Function[];
     onPlayerJoinQueue: Function[];
     onPlayerLeaveQueue: Function[];
@@ -51,6 +55,7 @@ export class CommandsPlugin extends API["Plugin"] {
             | null,
         byId: number
     ): void;
+    getPlayersIdsString(): string;
     getDb(): sqlite3.Database;
     getPlayers(): Player[];
     getColors(): { color: number };

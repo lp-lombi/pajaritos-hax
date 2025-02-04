@@ -63,7 +63,6 @@ module.exports = function (API) {
 
     this.active = true;
     this.goal = false;
-    this.newStadium = true;
     this.teamSize = 4;
     this.afkTimeMsecs = 15000;
     this.inactivePlayersIds = [];
@@ -196,6 +195,83 @@ module.exports = function (API) {
         }
     };
 
+    this.restartGame = () => {
+        that.room.stopGame();
+        sleep(250).then(() => {
+            that.room.startGame();
+        });
+    };
+
+    this.onGameStart = (byId, customData = null) => {
+        that.replaceablePlayers = commands.getPlayers();
+        // A la mitad del partido se determina los jugadores elegibles para salir
+        sleep(that.room.timeLimit * 60000 * 0.6).then(() => {
+            that.replaceablePlayers = [];
+            commands.getPlayers().forEach((p) => {
+                if (p.id !== 0 && (p.team.id === 1 || p.team.id === 2)) {
+                    that.replaceablePlayers.push(p);
+                }
+            });
+        });
+    };
+
+    this.onGameEnd = (winningTeamId) => {
+        if (!that.active) return;
+        let loserTeamId = winningTeamId === 1 ? 2 : 1;
+        let loserPlayersIds = [];
+        let spectPlayersIds = [];
+        sleep(1500).then(() => {
+            // Primero se mueve a los perdedores a espectadores
+            that.replaceablePlayers.forEach((p) => {
+                if (p.id !== 0) {
+                    if (p.team.id === loserTeamId) {
+                        loserPlayersIds.push(p.id);
+                    }
+                }
+            });
+            loserPlayersIds.forEach((playerId) => {
+                that.room.setPlayerTeam(playerId, 0);
+            });
+
+            // Recién luego se mueve a los especatdores al juego
+            commands.getPlayers().forEach((p) => {
+                if (p.id !== 0) {
+                    if (p.team.id === 0) {
+                        spectPlayersIds.push(p.id);
+                    }
+                }
+            });
+            for (let i = 0; i < that.teamSize; i++)
+                if (spectPlayersIds[i]) {
+                    let currentTeamSize = 0;
+                    commands.getPlayers().forEach((p) => {
+                        if (p.team.id === loserTeamId) currentTeamSize++;
+                    });
+
+                    if (currentTeamSize < that.teamSize) {
+                        that.room.setPlayerTeam(spectPlayersIds[i], loserTeamId);
+                    }
+                }
+            that.restartGame();
+        });
+    };
+
+    this.onTeamGoal = (teamId) => {
+        that.goal = true;
+        sleep(4000).then(() => {
+            that.goal = false;
+        });
+    };
+
+    this.onPlayerLeave = (playerObj) => {
+        if (that.room.players.length === 1) {
+            that.room.stopGame();
+            sleep(250).then(() => {
+                that.room.startGame();
+            });
+        }
+    };
+
     this.initialize = function () {
         commands = that.room.plugins.find((p) => p.name === "lmbCommands");
         if (!commands) {
@@ -252,76 +328,10 @@ module.exports = function (API) {
                 2
             );
 
-            commands.onGameStartQueue.push((byId, customData = null) => {
-                that.replaceablePlayers = commands.getPlayers();
-                // A la mitad del partido se determina los jugadores elegibles para salir
-                sleep(that.room.timeLimit * 60000 * 0.6).then(() => {
-                    that.replaceablePlayers = [];
-                    commands.getPlayers().forEach((p) => {
-                        if (p.id !== 0 && (p.team.id === 1 || p.team.id === 2)) {
-                            that.replaceablePlayers.push(p);
-                        }
-                    });
-                });
-            });
-            commands.onGameEndQueue.push((winningTeamId, customData) => {
-                if (!that.active) return;
-                let loserTeamId = winningTeamId === 1 ? 2 : 1;
-                let loserPlayersIds = [];
-                let spectPlayersIds = [];
-                sleep(1500).then(() => {
-                    // Primero se mueve a los perdedores a espectadores
-                    that.replaceablePlayers.forEach((p) => {
-                        if (p.id !== 0) {
-                            if (p.team.id === loserTeamId) {
-                                loserPlayersIds.push(p.id);
-                            }
-                        }
-                    });
-                    loserPlayersIds.forEach((playerId) => {
-                        that.room.setPlayerTeam(playerId, 0);
-                    });
-
-                    // Recién luego se mueve a los especatdores al juego
-                    commands.getPlayers().forEach((p) => {
-                        if (p.id !== 0) {
-                            if (p.team.id === 0) {
-                                spectPlayersIds.push(p.id);
-                            }
-                        }
-                    });
-                    for (let i = 0; i < that.teamSize; i++)
-                        if (spectPlayersIds[i]) {
-                            let currentTeamSize = 0;
-                            commands.getPlayers().forEach((p) => {
-                                if (p.team.id === loserTeamId) currentTeamSize++;
-                            });
-
-                            if (currentTeamSize < that.teamSize) {
-                                that.room.setPlayerTeam(spectPlayersIds[i], loserTeamId);
-                            }
-                        }
-                    that.room.stopGame();
-                    sleep(250).then(() => {
-                        that.room.startGame();
-                    });
-                });
-            });
             commands.sendInputQueue.push((msg) => {
                 if (that.inactivePlayersIds.includes(msg.byId)) {
                     that.inactivePlayersIds.splice(that.inactivePlayersIds.indexOf(msg.byId), 1);
                 }
-            });
-
-            that.room.onStadiumChange = (stadium, byId) => {
-                that.newStadium = true;
-            };
-
-            commands.onTeamGoalQueue.push((teamId, customData) => {
-                that.goal = true;
-                sleep(4000).then(() => {
-                    that.goal = false;
-                });
             });
         }
     };
