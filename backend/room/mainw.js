@@ -48,7 +48,7 @@ async function run(config, DEV = false) {
                 new customDisc(API),
                 new subsFeatures(API),
                 new adminFeatures(API),
-                new orbs(API),
+                // new orbs(API),
             ],
             storage: {
                 player_name: config.botName,

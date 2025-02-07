@@ -145,7 +145,6 @@ module.exports = function (API) {
                         commands.printchat("Orbes desactivados.", msg.byId);
                         Utils.runAfterGameTick(() => {
                             that.getOrbs().forEach((orb) => {
-                                var id = that.room.getDiscs().indexOf(orb);
                                 that.room.setDiscProperties(that.room.getDiscs().indexOf(orb), {
                                     x: -1000,
                                     y: Math.random() * 300,
