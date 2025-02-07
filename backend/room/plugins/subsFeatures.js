@@ -42,6 +42,22 @@ module.exports = function (API) {
     var that = this;
     const chroma = require("chroma-js");
 
+    /**
+     * @typedef {Object} PlayerModifier
+     * @property {number} playerId
+     * @property {Object} discProperties
+     */
+    /**
+     * @type {PlayerModifier[]}
+     */
+    this.playersModifiers = [];
+
+    this.getPlayerDiscId = function (playerId) {
+        let discs = that.room.getDiscs() ? that.room.getDiscs() : [];
+        let playerDisc = discs.find((d) => d.playerId === playerId);
+        return playerDisc ? discs.indexOf(playerDisc) : null;
+    };
+
     this.anims = {
         grow: (player) => {
             let discs = that.room.getDiscs() ? that.room.getDiscs() : [];
@@ -122,6 +138,18 @@ module.exports = function (API) {
                 }
             }
         }, 100);
+    };
+
+    this.onPositionsReset = this.onGameStart = function () {
+        that.playersModifiers.forEach((m) => {
+            Utils.runAfterGameTick(() => {
+                that.room.setDiscProperties(that.getPlayerDiscId(m.playerId), m.discProperties);
+            });
+        });
+    };
+
+    this.onPlayerLeave = function (pObj) {
+        that.playersModifiers = that.playersModifiers.filter((m) => m.playerId !== pObj.id);
     };
 
     this.initialize = function () {
@@ -211,6 +239,47 @@ module.exports = function (API) {
                     }
                 },
                 "⭐ [VIP] Cambia el mensaje de festejo ante goles."
+            );
+            commands.registerCommand(
+                "!",
+                "radio",
+                (msg, args) => {
+                    if (!authPlugin.isPlayerSubscribed(msg.byId)) {
+                        commands.printchat(
+                            "🙁 Comando exclusivo para VIPs. Entrá a nuestro discord para conocer más!",
+                            msg.byId,
+                            "error"
+                        );
+                    } else {
+                        var gamemodesPlugin = that.room.plugins.find((plugin) => plugin.name === "lmbGamemodes");
+                        if (gamemodesPlugin?.gamemode === gamemodesPlugin.Gamemodes.Freeroam) {
+                            if (args.length === 0) {
+                                commands.printchat("Uso: '!radio <número entre 5 y 30>'", msg.byId);
+                            } else if (!isNaN(args[0]) && args[0] >= 5 && args[0] <= 30) {
+                                let player = that.room.getPlayer(msg.byId);
+                                if (player) {
+                                    var discId = that.room.getDiscs()?.indexOf(player.disc);
+                                    if (discId !== -1) {
+                                        that.playersModifiers.push({
+                                            playerId: player.id,
+                                            discProperties: { radius: parseInt(args[0]) },
+                                        });
+                                        that.room.setDiscProperties(discId, { radius: parseInt(args[0]) });
+                                    }
+                                }
+                            } else {
+                                commands.printchat(
+                                    "El número debe ser un entero entre 5 y 30! ej: ' !radio 5 '",
+                                    msg.byId,
+                                    "error"
+                                );
+                            }
+                        } else {
+                            commands.printchat("🙁 Este comando solo funciona en Juegan Todos!", msg.byId);
+                        }
+                    }
+                },
+                "⭐ [VIP] En las salas Juegan Todos, permite cambiar el tamaño del disco."
             );
         }
     };

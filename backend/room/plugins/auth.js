@@ -260,60 +260,69 @@ module.exports = function (API) {
                             }
                         }
                     },
-                    "Registrarse. ' !register <contraseña> <repetir contraseña> '"
+                    "Registrarse. ' !register <contraseña> <repetir contraseña> '",
+                    0,
+                    true
                 );
-                commands.registerCommand("!", "login", (msg, args) => {
-                    if (args.length !== 1) {
-                        commands.printchat(
-                            "Uso: ' !login <contraseña> ' | Para registrarse: ' !register <contraseña> <repetir contraseña> '",
-                            msg.byId,
-                            "error"
-                        );
-                    } else {
-                        let player = commands.getPlayers().find((p) => p.id === msg.byId);
-                        if (player) {
-                            if (that.getLoggedPlayers().includes(player)) {
-                                commands.printchat("Ya estás logueado.", msg.byId, "error");
-                                return;
-                            }
+                commands.registerCommand(
+                    "!",
+                    "login",
+                    (msg, args) => {
+                        if (args.length !== 1) {
+                            commands.printchat(
+                                "Uso: ' !login <contraseña> ' | Para registrarse: ' !register <contraseña> <repetir contraseña> '",
+                                msg.byId,
+                                "error"
+                            );
+                        } else {
+                            let player = commands.getPlayers().find((p) => p.id === msg.byId);
+                            if (player) {
+                                if (that.getLoggedPlayers().includes(player)) {
+                                    commands.printchat("Ya estás logueado.", msg.byId, "error");
+                                    return;
+                                }
 
-                            fetch(commands.data.webApi.url + "/users/auth/login", {
-                                method: "POST",
-                                headers: {
-                                    "Content-Type": "application/json",
-                                    "x-api-key": commands.data.webApi.key,
-                                },
-                                body: JSON.stringify({
-                                    username: player.name,
-                                    password: args[0],
-                                }),
-                            })
-                                .then((res) => res.json())
-                                .then((data) => {
-                                    if (data.validated) {
-                                        console.log("Inicio de sesión: " + player.name);
-                                        if (player) {
-                                            loginPlayer(player, data);
-                                            commands.printchat("Sesión iniciada.", msg.byId);
-                                        }
-                                    } else {
-                                        if (data.reason === "password") {
-                                            commands.printchat("Contraseña incorrecta.", msg.byId, "error");
-                                        } else if (data.reason === "user") {
-                                            commands.printchat(
-                                                "Usuario no registrado. Usa ' !register <contraseña> <repetir contraseña> ' para registrarte.",
-                                                msg.byId,
-                                                "error"
-                                            );
-                                        } else if (data.reason === "error") {
-                                            console.log("Error al iniciar la sesión de ID " + msg.byId);
-                                        }
-                                    }
+                                fetch(commands.data.webApi.url + "/users/auth/login", {
+                                    method: "POST",
+                                    headers: {
+                                        "Content-Type": "application/json",
+                                        "x-api-key": commands.data.webApi.key,
+                                    },
+                                    body: JSON.stringify({
+                                        username: player.name,
+                                        password: args[0],
+                                    }),
                                 })
-                                .catch((e) => console.log(e));
+                                    .then((res) => res.json())
+                                    .then((data) => {
+                                        if (data.validated) {
+                                            console.log("Inicio de sesión: " + player.name);
+                                            if (player) {
+                                                loginPlayer(player, data);
+                                                commands.printchat("Sesión iniciada.", msg.byId);
+                                            }
+                                        } else {
+                                            if (data.reason === "password") {
+                                                commands.printchat("Contraseña incorrecta.", msg.byId, "error");
+                                            } else if (data.reason === "user") {
+                                                commands.printchat(
+                                                    "Usuario no registrado. Usa ' !register <contraseña> <repetir contraseña> ' para registrarte.",
+                                                    msg.byId,
+                                                    "error"
+                                                );
+                                            } else if (data.reason === "error") {
+                                                console.log("Error al iniciar la sesión de ID " + msg.byId);
+                                            }
+                                        }
+                                    })
+                                    .catch((e) => console.log(e));
+                            }
                         }
-                    }
-                });
+                    },
+                    "Iniciar la sesión. ' !login <contraseña> '",
+                    0,
+                    true
+                );
             } catch (err) {
                 console.log(err);
             }

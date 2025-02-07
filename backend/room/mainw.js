@@ -12,7 +12,8 @@ const voteKick = require("./plugins/voteKick");
 const customDisc = require("./plugins/customDisc");
 const subsFeatures = require("./plugins/subsFeatures");
 const adminFeatures = require("./plugins/adminFeatures");
-const orbs = require("./plugins/res/orbs");
+const orbs = require("./plugins/orbs");
+const gamemodes = require("./plugins/gamemodes");
 
 var roomObj;
 
@@ -49,6 +50,7 @@ async function run(config, DEV = false) {
                 new subsFeatures(API),
                 new adminFeatures(API),
                 // new orbs(API),
+                new gamemodes(API),
             ],
             storage: {
                 player_name: config.botName,
