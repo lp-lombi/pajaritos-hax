@@ -65,17 +65,23 @@ module.exports = function (API) {
                     } else if (!isNaN(args[0])) {
                         var gamemodeId = parseInt(args[0]);
                         if (gamemodeId === that.Gamemodes.X4) {
+                            commands.printchat("Cambiando el modo de juego a Futsal x4", msg.byId);
                             that.gamemode = that.Gamemodes.X4;
                             that.room.fakeSendPlayerChat("!autobot equipos 4", msg.byId);
                             that.room.fakeSendPlayerChat("!comba preset 2", msg.byId);
+                            that.room.fakeSendPlayerChat("!autobot afk 15 move", msg.byId);
                         } else if (gamemodeId === that.Gamemodes.X5) {
+                            commands.printchat("Cambiando el modo de juego a Futsal x5", msg.byId);
                             that.gamemode = that.Gamemodes.X5;
                             that.room.fakeSendPlayerChat("!autobot equipos 5", msg.byId);
                             that.room.fakeSendPlayerChat("!comba preset 3", msg.byId);
+                            that.room.fakeSendPlayerChat("!autobot afk 15 move", msg.byId);
                         } else if (gamemodeId === that.Gamemodes.Freeroam) {
+                            commands.printchat("Cambiando el modo de juego a Juegan Todos", msg.byId);
                             that.gamemode = that.Gamemodes.Freeroam;
                             that.room.fakeSendPlayerChat("!autobot equipos 15", msg.byId);
                             that.room.fakeSendPlayerChat("!comba preset 4", msg.byId);
+                            that.room.fakeSendPlayerChat("!autobot afk 25 kick", msg.byId);
                         }
                     } else {
                         commands.printchat("El argumento debe ser un número.", msg.byId);

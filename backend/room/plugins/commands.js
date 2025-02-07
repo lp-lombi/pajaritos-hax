@@ -89,7 +89,9 @@ module.exports = function (API, customData = {}) {
         return new Promise((r) => setTimeout(r, ms));
     }
 
-    async function handleKickBanPlayer(msg, force = false) {
+    // deshabilitado por el momento
+
+    /*     async function handleKickBanPlayer(msg, force = false) {
         try {
             let p = that.getPlayers().find((p) => p.id === msg.id);
             let allowed = new Promise((resolve, reject) => {
@@ -153,7 +155,7 @@ module.exports = function (API, customData = {}) {
         } catch (e) {
             console.log(e);
         }
-    }
+    } */
 
     this.Utils = Utils;
 
@@ -169,7 +171,6 @@ module.exports = function (API, customData = {}) {
     // TODO: Eliminar las colas (debería haber solo una para onOperationReceived o bien sendInput)
     this.initQueue = [];
     this.onPlayerJoinQueue = [];
-    this.onPlayerLeaveQueue = [];
     this.onGameStartQueue = [];
     this.onGameEndQueue = [];
     this.onTeamGoalQueue = [];
@@ -496,11 +497,7 @@ module.exports = function (API, customData = {}) {
                 role: 0,
                 hidden: false,
                 exec: (msg, args) => {
-                    if (!kickBanAllowed) {
-                        kickBanAllowed = true;
-                        room.fakeKickPlayer(msg.byId, "nv");
-                        kickBanAllowed = false;
-                    }
+                    room.kickPlayer(msg.byId, "nv");
                 },
             },
             {
@@ -616,9 +613,6 @@ module.exports = function (API, customData = {}) {
                     if (!msg.targetId || msg.targetId === 0) {
                         that.log(msg.msg, msg.color, msg.style);
                     }
-                } else if (type === OperationType.KickBanPlayer) {
-                    handleKickBanPlayer(msg);
-                    return kickBanAllowed;
                 } else if (type === OperationType.JoinRoom) {
                     that.onPlayerJoinQueue.forEach((action) => action(msg));
                 } else if (type === OperationType.SendInput) {

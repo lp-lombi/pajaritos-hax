@@ -49,7 +49,8 @@ module.exports = function (API) {
     this.targetPlayerId = null;
 
     this.getOrbs = function () {
-        return that.room.getDiscs().filter((disc) => disc.radius == 4.0001);
+        let discs = that.room.getDiscs()?.filter((disc) => disc.radius == 4.0001);
+        return discs ? discs : [];
     };
 
     /**
@@ -57,9 +58,9 @@ module.exports = function (API) {
      */
     this.onStadiumChange = function (stadium) {
         if (that.isPluginActive) {
-            let orb1 = r.createDisc({ pos: [-1000, 300], radius: 4.0001, cGroup: 0, color: parseInt("AA33AA", 16) });
-            let orb2 = r.createDisc({ pos: [-1000, 0], radius: 4.0001, cGroup: 0, color: parseInt("56EE04", 16) });
-            let orb3 = r.createDisc({ pos: [-1000, -300], radius: 4.0001, cGroup: 0, color: parseInt("04EEEA", 16) });
+            let orb1 = r.createDisc({ pos: [-1000, -1000], radius: 4.0001, cGroup: 0, color: parseInt("AA33AA", 16) });
+            let orb2 = r.createDisc({ pos: [0, -1000], radius: 4.0001, cGroup: 0, color: parseInt("56EE04", 16) });
+            let orb3 = r.createDisc({ pos: [1000, -1000], radius: 4.0001, cGroup: 0, color: parseInt("04EEEA", 16) });
             stadium.discs.push(orb1);
             stadium.discs.push(orb2);
             stadium.discs.push(orb3);
@@ -145,15 +146,19 @@ module.exports = function (API) {
                         commands.printchat("Orbes desactivados.", msg.byId);
                         Utils.runAfterGameTick(() => {
                             that.getOrbs().forEach((orb) => {
+                                let randomXPos = Math.random() * 1000;
+                                let sign = Math.random() < 0.5 ? -1 : 1;
+                                console.log(randomXPos);
                                 that.room.setDiscProperties(that.room.getDiscs().indexOf(orb), {
-                                    x: -1000,
-                                    y: Math.random() * 300,
+                                    x: randomXPos * sign,
+                                    y: -1000,
                                     xspeed: 0,
                                     yspeed: 0,
                                     xgravity: 0,
                                     ygravity: 0,
                                 });
                             });
+                            that.targetPlayerId = null;
                         });
                     } else if (args[0] === "on") {
                         that.isPluginActive = true;

@@ -64,20 +64,25 @@ module.exports = function (API) {
     this.active = true;
     this.goal = false;
     this.teamSize = 4;
-    this.afkTimeMsecs = 15000;
+
+    this.currentAfkTicks = 0;
+    this.requiredAfkTicks = 900;
+    this.afkAction = "move";
+
     this.inactivePlayersIds = [];
     this.replaceablePlayers = [];
 
     this.checkAfk = function () {
-        this.inactivePlayersIds = [];
-        commands.getPlayers().forEach((p) => {
-            if (p.team.id !== 0) {
-                p.id > 0 ? this.inactivePlayersIds.push(p.id) : null;
-            }
-        });
-        sleep(that.afkTimeMsecs).then(() => {
-            if (that.room) {
-                if (that.room.gameState && that.active) {
+        if (that.currentAfkTicks === 0) {
+            this.inactivePlayersIds = [];
+            commands.getPlayers().forEach((p) => {
+                if (p.team.id !== 0) {
+                    p.id > 0 ? this.inactivePlayersIds.push(p.id) : null;
+                }
+            });
+        } else if (that.currentAfkTicks >= that.requiredAfkTicks) {
+            if (that.room?.gameState && that.active) {
+                if (that.afkAction === "move") {
                     let teams = getTeams();
                     if (teams.spects.length > 0) {
                         for (let i = 0; i < teams.spects.length; i++) {
@@ -86,10 +91,16 @@ module.exports = function (API) {
                             }
                         }
                     }
+                } else if (that.afkAction === "kick") {
+                    that.inactivePlayersIds?.forEach((id) => {
+                        that.room.kickPlayer(id, `AFK ${that.requiredAfkTicks / 60} segundos`);
+                    });
                 }
-                this.checkAfk();
             }
-        });
+            that.currentAfkTicks = 0;
+            return;
+        }
+        that.currentAfkTicks++;
     };
 
     this.getGoalLines = function (s) {
@@ -122,6 +133,7 @@ module.exports = function (API) {
 
         this.onGameTick = () => {
             try {
+                that.checkAfk();
                 if (that.room && goals) {
                     if (that.room.gameState && that.active) {
                         let modifyObj = null;
@@ -263,7 +275,7 @@ module.exports = function (API) {
         });
     };
 
-    this.onPlayerLeave = (playerObj) => {
+    this.onPlayerLeave = () => {
         if (that.room.players.length === 1) {
             that.room.stopGame();
             sleep(250).then(() => {
@@ -311,14 +323,25 @@ module.exports = function (API) {
                             case "afk":
                                 if (args[1]) {
                                     if (!isNaN(parseInt(args[1]))) {
-                                        that.afkTimeMsecs = parseInt(args[1]) * 1000;
+                                        that.requiredAfkTicks = parseInt(args[1]) * 60;
+                                        if (args[2]?.toLowerCase() === "move" || args[2]?.toLowerCase() === "kick") {
+                                            that.afkAction = args[2].toLowerCase();
+                                        }
                                         commands.printchat(
-                                            "El tiempo de inactividad considerado AFK cambió a " +
+                                            "El tiempo para AFK cambió a " +
                                                 args[1] +
-                                                " segundos.",
+                                                " segundos | la acción de afk es: " +
+                                                that.afkAction,
                                             msg.byId
                                         );
                                     }
+                                } else {
+                                    commands.printchat(
+                                        `Tiempo AFK: ${that.requiredAfkTicks / 60}\nAcción AFK: ${
+                                            that.afkAction
+                                        }\n\n !afk <tiempo> <acción: kick o move>`,
+                                        msg.byId
+                                    );
                                 }
                                 break;
                         }
