@@ -179,7 +179,8 @@ module.exports = function (API, customData = {}) {
                                 } else {
                                     tColor = COLORS.vip;
                                 }
-                                loggedEmoji = "⭐ ";
+                                let customEmoji = p.user?.subscription?.emoji;
+                                loggedEmoji = customEmoji ? customEmoji : "⭐ ";
                             }
                         }
                     }

@@ -119,11 +119,12 @@ module.exports = function (API) {
 
     this.onPlayerJoin = (playerObj) => {
         that.subsPlayersIds.push(playerObj.id);
-        Utils.runAfterGameTick(() => {
+
+        setTimeout(() => {
             if (that.isSaludoActive) {
                 commands.printchat(that.saludo, playerObj.id, "announcement");
             }
-        });
+        }, 100);
     };
 
     this.initialize = function () {
@@ -132,7 +133,7 @@ module.exports = function (API) {
             console.log("El plugin de anuncios requiere del plugin de comandos.");
         } else {
             that.saludo = `\n╔═══════════════════════════════════════════════════════╗
-║   PAJARITOS HAX   ║ !discord !vip !stats !login !help !pm !bb ║
+║   PAJARITOS HAX   ║ !discord !vip !stats !login !help !pm !bb  ║
 ╚═══════════════════════════════════════════════════════╝\n\n𝗕𝗜𝗘𝗡𝗩𝗘𝗡𝗜𝗗𝗢 𝗔 𝗟𝗔 𝗖𝗢𝗠𝗨𝗡𝗜𝗗𝗔𝗗 𝗗𝗘 𝗟𝗔 𝗖𝗢𝗠𝗕𝗔\n\n\n${commands.data.discord}`;
             that.fetchAnnouncements();
 
