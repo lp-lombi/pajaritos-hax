@@ -131,9 +131,9 @@ module.exports = function (API) {
         if (!commands) {
             console.log("El plugin de anuncios requiere del plugin de comandos.");
         } else {
-            that.saludo = `╔═══════════════════════════════════════════════════════╗
-║   PAJARITOS HAX   ║ !pm !hist !stats !login !discord !help !bb ║
-╚═══════════════════════════════════════════════════════╝\n\n\n\n\n\n${commands.data.discord}`;
+            that.saludo = `\n╔═══════════════════════════════════════════════════════╗
+║   PAJARITOS HAX   ║ !discord !vip !stats !login !help !pm !bb ║
+╚═══════════════════════════════════════════════════════╝\n\n𝗕𝗜𝗘𝗡𝗩𝗘𝗡𝗜𝗗𝗢 𝗔 𝗟𝗔 𝗖𝗢𝗠𝗨𝗡𝗜𝗗𝗔𝗗 𝗗𝗘 𝗟𝗔 𝗖𝗢𝗠𝗕𝗔\n\n\n${commands.data.discord}`;
             that.fetchAnnouncements();
 
             commands.initQueue.push(that.announcementLoop);
@@ -146,8 +146,8 @@ module.exports = function (API) {
                     commands.printchat("Avisos desactivados", msg.byId);
                 },
                 "Desactiva los anuncios",
-                0,
-                true
+                true,
+                0
             );
             commands.registerCommand(
                 "!",
@@ -220,6 +220,7 @@ module.exports = function (API) {
                     }
                 },
                 "Ajustes de los anuncios. !anuncios on / off | !anuncios ciclo <minutos> | !anuncios nuevo <texto del nuevo anuncio> | !anuncios borrar | !anuncios fetch",
+                false,
                 2
             );
         }

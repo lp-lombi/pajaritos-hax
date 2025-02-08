@@ -331,6 +331,7 @@ module.exports = function (API) {
                     }
                 },
                 "Configuración de la comba. ' !comba f <valor> ' cambia la fuerza | ' !comba c <valor> cambia la comba ' | ' !comba preset <valor> ' cambia el preset.",
+                false,
                 2
             );
         }

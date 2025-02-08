@@ -161,125 +161,119 @@ module.exports = function (API) {
         } else {
             commands.registerCommand(
                 "!",
+                "vip",
+                (msg, args) => {
+                    that.room.fakeSendPlayerChat("!help vip", msg.byId);
+                },
+                "Alias para el comando !help vip",
+                true
+            );
+            commands.registerCommand(
+                "!",
                 "festejo",
                 (msg, args) => {
-                    if (!authPlugin.isPlayerSubscribed(msg.byId)) {
+                    if (args.length === 0) {
                         commands.printchat(
-                            "🙁 Comando exclusivo para VIPs. Entrá a nuestro discord para conocer más!",
-                            msg.byId,
-                            "error"
+                            "[0] - Ninguno\n[1] - Agrandarse\n[2] - Encogerse\n[3] - Arcoíris\n\nUso: !festejo <id>",
+                            msg.byId
                         );
                     } else {
-                        if (args.length === 0) {
-                            commands.printchat(
-                                "[0] - Ninguno\n[1] - Agrandarse\n[2] - Encogerse\n[3] - Arcoíris\n\nUso: !festejo <id>",
-                                msg.byId
-                            );
-                        } else {
-                            let player = that.room.getPlayer(msg.byId);
-                            if (player) {
-                                if (args[0] === "0") {
-                                    player.user.subscription.scoreAnimId = 0;
-                                } else if (args[0] === "1") {
-                                    player.user.subscription.scoreAnimId = 1;
-                                    commands.printchat("Tu nuevo festejo de gol es Agrandarse!", msg.byId);
-                                } else if (args[0] === "2") {
-                                    player.user.subscription.scoreAnimId = 2;
-                                    commands.printchat("Tu nuevo festejo de gol es Encogerse!", msg.byId);
-                                } else if (args[0] === "3") {
-                                    player.user.subscription.scoreAnimId = 3;
-                                    commands.printchat("Tu nuevo festejo de gol es Arcoíris!", msg.byId);
-                                } else {
-                                    commands.printchat("El festejo elegido no existe 😕", msg.byId);
-                                    return;
-                                }
-
-                                authPlugin.updatePlayerSubscriptionData(player.id, {
-                                    scoreAnimId: player.user.subscription.scoreAnimId,
-                                });
+                        let player = that.room.getPlayer(msg.byId);
+                        if (player) {
+                            if (args[0] === "0") {
+                                player.user.subscription.scoreAnimId = 0;
+                            } else if (args[0] === "1") {
+                                player.user.subscription.scoreAnimId = 1;
+                                commands.printchat("Tu nuevo festejo de gol es Agrandarse!", msg.byId);
+                            } else if (args[0] === "2") {
+                                player.user.subscription.scoreAnimId = 2;
+                                commands.printchat("Tu nuevo festejo de gol es Encogerse!", msg.byId);
+                            } else if (args[0] === "3") {
+                                player.user.subscription.scoreAnimId = 3;
+                                commands.printchat("Tu nuevo festejo de gol es Arcoíris!", msg.byId);
+                            } else {
+                                commands.printchat("El festejo elegido no existe 😕", msg.byId);
+                                return;
                             }
+
+                            authPlugin.updatePlayerSubscriptionData(player.id, {
+                                scoreAnimId: player.user.subscription.scoreAnimId,
+                            });
                         }
                     }
                 },
-                "⭐ [VIP] Cambia la animación del festejo ante goles."
+                "⭐ [VIP] Cambia la animación del festejo ante goles.",
+                false,
+                0,
+                1
             );
             commands.registerCommand(
                 "!",
                 "mensajegol",
                 (msg, args) => {
-                    if (!authPlugin.isPlayerSubscribed(msg.byId)) {
+                    if (args.length === 0) {
                         commands.printchat(
-                            "🙁 Comando exclusivo para VIPs. Entrá a nuestro discord para conocer más!",
-                            msg.byId,
-                            "error"
+                            "Uso: '!mensajegol Este es mi mensaje!', o '!mensajegol 0' para desactivarlo.",
+                            msg.byId
                         );
                     } else {
-                        if (args.length === 0) {
-                            commands.printchat(
-                                "Uso: '!mensajegol Este es mi mensaje!', o '!mensajegol 0' para desactivarlo.",
-                                msg.byId
-                            );
-                        } else {
-                            let player = that.room.getPlayer(msg.byId);
-                            if (player) {
-                                if (args[0] === "0") {
-                                    authPlugin.updatePlayerSubscriptionData(player.id, {
-                                        scoreMessage: null,
-                                    });
-                                    player.scoreMessage = null;
-                                } else {
-                                    const message = args.join(" ");
-                                    authPlugin.updatePlayerSubscriptionData(player.id, {
-                                        scoreMessage: message,
-                                    });
-                                    player.user.subscription.scoreMessage = message;
-                                }
+                        let player = that.room.getPlayer(msg.byId);
+                        if (player) {
+                            if (args[0] === "0") {
+                                authPlugin.updatePlayerSubscriptionData(player.id, {
+                                    scoreMessage: null,
+                                });
+                                player.scoreMessage = null;
+                            } else {
+                                const message = args.join(" ");
+                                authPlugin.updatePlayerSubscriptionData(player.id, {
+                                    scoreMessage: message,
+                                });
+                                player.user.subscription.scoreMessage = message;
                             }
                         }
                     }
                 },
-                "⭐ [VIP] Cambia el mensaje de festejo ante goles."
+                "⭐ [VIP] Cambia el mensaje de festejo ante goles.",
+                false,
+                0,
+                1
             );
             commands.registerCommand(
                 "!",
                 "radio",
                 (msg, args) => {
-                    if (!authPlugin.isPlayerSubscribed(msg.byId)) {
-                        commands.printchat(
-                            "🙁 Comando exclusivo para VIPs. Entrá a nuestro discord para conocer más!",
-                            msg.byId,
-                            "error"
-                        );
-                    } else {
-                        var gamemodesPlugin = that.room.plugins.find((plugin) => plugin.name === "lmbGamemodes");
-                        if (gamemodesPlugin?.gamemode === gamemodesPlugin.Gamemodes.Freeroam) {
-                            if (args.length === 0) {
-                                commands.printchat("Uso: '!radio <número entre 5 y 30>'", msg.byId);
-                            } else if (!isNaN(args[0]) && args[0] >= 5 && args[0] <= 30) {
-                                let player = that.room.getPlayer(msg.byId);
-                                if (player) {
-                                    var discId = that.room.getDiscs()?.indexOf(player.disc);
-                                    if (discId !== -1) {
-                                        that.playersModifiers.push({
-                                            playerId: player.id,
-                                            discProperties: { radius: parseInt(args[0]) },
-                                        });
-                                        that.room.setDiscProperties(discId, { radius: parseInt(args[0]) });
-                                    }
+                    var gamemodesPlugin = that.room.plugins.find((plugin) => plugin.name === "lmbGamemodes");
+                    if (gamemodesPlugin?.gamemode === gamemodesPlugin.Gamemodes.Freeroam) {
+                        if (args.length === 0) {
+                            commands.printchat("Uso: '!radio <número entre 5 y 30>'", msg.byId);
+                        } else if (!isNaN(args[0]) && args[0] >= 5 && args[0] <= 30) {
+                            let player = that.room.getPlayer(msg.byId);
+                            if (player) {
+                                var discId = that.room.getDiscs()?.indexOf(player.disc);
+                                if (discId !== -1) {
+                                    that.playersModifiers.push({
+                                        playerId: player.id,
+                                        discProperties: { radius: parseInt(args[0]) },
+                                    });
+                                    that.room.setDiscProperties(discId, { radius: parseInt(args[0]) });
                                 }
-                            } else {
-                                commands.printchat(
-                                    "El número debe ser un entero entre 5 y 30! ej: ' !radio 5 '",
-                                    msg.byId,
-                                    "error"
-                                );
                             }
                         } else {
-                            commands.printchat("🙁 Este comando solo funciona en Juegan Todos!", msg.byId);
+                            commands.printchat(
+                                "El número debe ser un entero entre 5 y 30! ej: ' !radio 5 '",
+                                msg.byId,
+                                "error"
+                            );
                         }
+                    } else {
+                        commands.printchat("🙁 Este comando solo funciona en Juegan Todos!", msg.byId);
                     }
                 },
-                "⭐ [VIP] En las salas Juegan Todos, permite cambiar el tamaño del disco."
+                "⭐ [VIP] En las salas Juegan Todos, permite cambiar el tamaño del disco.",
+                false,
+                0,
+                1
             );
         }
     };

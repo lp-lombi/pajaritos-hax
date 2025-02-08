@@ -65,6 +65,7 @@ module.exports = function (API) {
                     }
                 },
                 "Envía una advertencia a un jugador con un mensaje. '!warn @user esta es tu primera advertencia'",
+                false,
                 1
             );
             commands.registerCommand(
@@ -79,6 +80,7 @@ module.exports = function (API) {
                     }
                 },
                 "Envía un anuncio a todos los jugadores con un mensaje. '!an Este es un anuncio'",
+                false,
                 1
             );
             commands.registerCommand(
@@ -102,6 +104,7 @@ module.exports = function (API) {
                     }
                 },
                 "Kickea a un jugador. ' !kick <id> mensaje de motivo '",
+                false,
                 1
             );
             commands.registerCommand(
@@ -121,8 +124,8 @@ module.exports = function (API) {
                     }
                 },
                 "USAR CON PRECAUCIÓN Y EN INTERVALOS DE TIEMPO ESPACIADOS. ' !spam mensaje '",
-                2,
-                true
+                true,
+                2
             );
         }
     };

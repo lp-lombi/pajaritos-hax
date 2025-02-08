@@ -139,6 +139,7 @@ module.exports = function (API) {
                     }
                 },
                 `"Cambiar camisetas | para asignar: " !casaca <equipo> <nombre> " | para listar todas: " !casaca " | para agregar: " !casaca add <nombre> <cfg> "`,
+                false,
                 1
             );
         }

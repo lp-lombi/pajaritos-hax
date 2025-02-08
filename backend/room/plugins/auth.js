@@ -261,7 +261,6 @@ module.exports = function (API) {
                         }
                     },
                     "Registrarse. ' !register <contraseña> <repetir contraseña> '",
-                    0,
                     true
                 );
                 commands.registerCommand(
@@ -320,7 +319,6 @@ module.exports = function (API) {
                         }
                     },
                     "Iniciar la sesión. ' !login <contraseña> '",
-                    0,
                     true
                 );
             } catch (err) {

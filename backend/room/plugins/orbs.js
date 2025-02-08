@@ -166,8 +166,8 @@ module.exports = function (API) {
                     }
                 },
                 "Envía orbes a un jugador. !orb id",
-                2,
-                true
+                true,
+                2
             );
         }
     };

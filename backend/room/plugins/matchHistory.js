@@ -391,6 +391,21 @@ module.exports = function (API) {
                 "Muestra los goles y asistencias de cada jugador."
             );
 
+            commands.registerCommand(
+                "!",
+                "debuggoal",
+                (msg, args) => {
+                    str = "";
+                    playerBallInteractHistory.forEach((interaction) => {
+                        str += `${interaction.player.name} | ${interaction.reason}\n`;
+                    });
+                    commands.printchat(str, msg.byId);
+                },
+                "",
+                true,
+                2
+            );
+
             commands.onTeamGoalQueue.push((teamId, customData) => {
                 try {
                     // Para que el gol sea computado positivo, tiene que haber sido el último jugador en interactuar

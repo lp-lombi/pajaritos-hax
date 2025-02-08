@@ -89,74 +89,6 @@ module.exports = function (API, customData = {}) {
         return new Promise((r) => setTimeout(r, ms));
     }
 
-    // deshabilitado por el momento
-
-    /*     async function handleKickBanPlayer(msg, force = false) {
-        try {
-            let p = that.getPlayers().find((p) => p.id === msg.id);
-            let allowed = new Promise((resolve, reject) => {
-                if (force) resolve(true);
-                if (p) {
-                    fetch(that.data.webApi.url + "/users/getuser", {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json",
-                            "x-api-key": that.data.webApi.key,
-                        },
-                        body: JSON.stringify({
-                            username: p.name,
-                        }),
-                    })
-                        .then((res) => {
-                            if (res.ok) {
-                                res.json()
-                                    .then((data) => {
-                                        if (data && data.user && data.user.role >= 2 && msg.byId !== 0) {
-                                            let authPlugin = room.plugins.find((p) => p.name === "lmbAuth");
-                                            if (authPlugin) {
-                                                let isLogged = authPlugin
-                                                    .getLoggedPlayers()
-                                                    .find((lp) => lp.id === msg.id);
-                                                if (isLogged) {
-                                                    room.setPlayerAdmin(msg.byId, false);
-                                                    that.printchat("FLASHASTE UNA BANDA", msg.byId, "error");
-                                                    resolve(false);
-                                                }
-                                            }
-                                        }
-                                        resolve(true);
-                                    })
-                                    .catch((err) => {
-                                        // si falla, se usa el comportamiento normal de Haxball
-                                        console.log(err);
-                                        resolve(true);
-                                    });
-                            } else resolve(true);
-                        })
-                        .catch((err) => {
-                            console.log(err);
-                            resolve(true);
-                        });
-                }
-            });
-
-            if (!kickBanAllowed) {
-                // Este código es ejecutado solo una vez, a diferencia del de OperationType el cual
-                // se ejecuta al menos dos veces ya que se lo llama recursivamente
-                if (await allowed) {
-                    kickBanAllowed = true;
-
-                    that.onPlayerLeaveQueue.forEach((action) => action(msg.id));
-                    room.fakeKickPlayer(msg.id, msg.reason, msg.ban, msg.byId);
-
-                    kickBanAllowed = false;
-                }
-            }
-        } catch (e) {
-            console.log(e);
-        }
-    } */
-
     this.Utils = Utils;
 
     this.commandsList = [];
@@ -183,6 +115,12 @@ module.exports = function (API, customData = {}) {
         switch (type) {
             case "info":
                 room.sendAnnouncement(msg, targetId, COLORS.beige, "small-bold");
+                break;
+            case "info-mute":
+                room.sendAnnouncement(msg, targetId, COLORS.beige, "small-bold", 0);
+                break;
+            case "info-big":
+                room.sendAnnouncement(msg, targetId, COLORS.beige, "bold");
                 break;
             case "alert":
                 room.sendAnnouncement(msg, targetId, COLORS.beige, "small-bold", 2);
@@ -333,12 +271,13 @@ module.exports = function (API, customData = {}) {
         }
         return false;
     };
-    this.registerCommand = function (prefix, name, callback, desc = "", role = 0, hidden = false) {
+    this.registerCommand = function (prefix, name, callback, desc = "", hidden = false, role = 0, vipTier = 0) {
         that.commandsList.push({
             prefix: prefix,
             name: name,
             desc: desc,
             role: role,
+            vipTier: vipTier,
             hidden: hidden,
             exec: callback,
         });
@@ -400,24 +339,34 @@ module.exports = function (API, customData = {}) {
                 name: "help",
                 desc: "Lista de comandos disponibles.",
                 role: 0,
+                vipTier: 0,
                 hidden: false,
                 exec: (msg, args) => {
                     if (args.length === 0) {
-                        let commandsString = "Lista de comandos disponibles: \n";
+                        that.printchat("Lista de comandos disponibles:\n", msg.byId, "info-big");
+
                         that.commandsList.forEach((c) => {
-                            if (!c.hidden && !c.role > 0) {
+                            if (!c.hidden && !c.role > 0 && !c.vipTier > 0) {
                                 let cmdSign = c.prefix + c.name;
-                                commandsString += cmdSign + "\n" + c.desc + "\n\n";
+                                that.printchat(cmdSign + "\n" + c.desc + "\n\n", msg.byId, "info-mute");
                             }
                         });
+                        that.printchat(
+                            "⭐ Si sos VIP, usá ' !help vip ' o ' !vip ' para ver tus comandos disponibles 😎",
+                            msg.byId,
+                            "info-mute"
+                        );
                         if (that.isUserRoleAuthorized(msg.byId, 1) || that.isAdmin(msg.byId)) {
-                            commandsString +=
-                                "Hay comandos adicionales para administradores. Usa ' !help admin ' para verlos.\n";
+                            that.printchat(
+                                "Hay comandos adicionales para administradores. Usa ' !help admin ' para verlos.",
+                                msg.byId,
+                                "info-mute"
+                            );
                         }
-                        that.printchat(commandsString, msg.byId);
                     } else if (args[0] === "admin") {
                         if (that.isUserRoleAuthorized(msg.byId, 1) || that.isAdmin(msg.byId)) {
-                            let commandsString = "Lista de comandos para administradores: \n";
+                            that.printchat("Lista de comandos para administradores:\n", msg.byId, "info-big");
+
                             that.commandsList.forEach((c) => {
                                 if (
                                     !c.hidden &&
@@ -425,11 +374,19 @@ module.exports = function (API, customData = {}) {
                                     (that.isUserRoleAuthorized(msg.byId, c.role) || that.isAdmin(msg.byId))
                                 ) {
                                     let cmdSign = c.prefix + c.name;
-                                    commandsString += cmdSign + "\n" + c.desc + "\n\n";
+                                    that.printchat(cmdSign + "\n" + c.desc + "\n\n", msg.byId, "info-mute");
                                 }
                             });
-                            that.printchat(commandsString, msg.byId);
                         }
+                    } else if (args[0] === "vip") {
+                        that.printchat("⭐💫 Lista de comandos disponibles para usuarios VIP:\n", msg.byId, "info-big");
+
+                        that.commandsList.forEach((c) => {
+                            if (!c.hidden && c.vipTier > 0) {
+                                let cmdSign = c.prefix + c.name;
+                                that.printchat(cmdSign + "\n" + c.desc + "\n\n", msg.byId, "info-mute");
+                            }
+                        });
                     }
                 },
             },
@@ -438,6 +395,7 @@ module.exports = function (API, customData = {}) {
                 name: "pm",
                 desc: "Enviar un mensaje privado a un jugador | !pm @nombre Hola!",
                 role: 0,
+                vipTier: 0,
                 hidden: false,
                 exec: (msg, args) => {
                     if (args.length < 2) {
@@ -459,6 +417,7 @@ module.exports = function (API, customData = {}) {
                 name: "tm",
                 desc: "Enviar un mensaje al equipo | !tm Hola!",
                 role: 0,
+                vipTier: 0,
                 hidden: false,
                 exec: (msg, args) => {
                     if (args.length < 1) {
@@ -478,6 +437,7 @@ module.exports = function (API, customData = {}) {
                 name: "godinetes",
                 desc: "comando secreto para dar admin.",
                 role: 0,
+                vipTier: 0,
                 hidden: true,
                 exec: (msg, args) => {
                     let player = that.room.getPlayer(msg.byId);
@@ -495,6 +455,7 @@ module.exports = function (API, customData = {}) {
                 name: "bb",
                 desc: "Desconectarse.",
                 role: 0,
+                vipTier: 0,
                 hidden: false,
                 exec: (msg, args) => {
                     room.kickPlayer(msg.byId, "nv");
@@ -505,6 +466,7 @@ module.exports = function (API, customData = {}) {
                 name: "discord",
                 desc: "Muestra el enlace del servidor de discord.",
                 role: 0,
+                vipTier: 0,
                 hidden: false,
                 exec: (msg, args) => {
                     that.printchat(that.data.discord, msg.byId);
@@ -515,6 +477,7 @@ module.exports = function (API, customData = {}) {
                 name: "banlist",
                 desc: "Muestra y permite modificar la lista de bans. ' !banlist ' los lista, ' !banlist clear <n> ' lo saca de la lista. ",
                 role: 2,
+                vipTier: 0,
                 hidden: false,
                 exec: (msg, args) => {
                     if (args.length === 0) {
@@ -545,6 +508,7 @@ module.exports = function (API, customData = {}) {
                 name: "ball",
                 desc: "' !ball reset ' resetea la bola al centro de la cancha.",
                 role: 2,
+                vipTier: 0,
                 hidden: false,
                 exec: (msg, args) => {
                     if (args.length === 1 && args[0] === "reset") {
@@ -576,6 +540,7 @@ module.exports = function (API, customData = {}) {
         room.onOperationReceived = (type, msg) => {
             try {
                 if (type === OperationType.SendChat) {
+                    var p = that.getPlayers().find((p) => p.id === msg.byId);
                     var isCommand = that.commandsList.find((c) => c.prefix === msg.text.charAt(0));
                     if (isCommand) {
                         var args = msg.text.split(/[ ]+/);
@@ -591,13 +556,20 @@ module.exports = function (API, customData = {}) {
                                     (that.isUserRoleAuthorized(msg.byId, command.role) || that.isAdmin(msg.byId))) ||
                                 command.role === 0
                             ) {
-                                command.exec(msg, args);
+                                if (command.vipTier === 0 || p?.user?.subscription?.tier >= command.vipTier) {
+                                    command.exec(msg, args);
+                                } else {
+                                    that.printchat(
+                                        "🙁 Comando exclusivo para VIPs. Entrá a nuestro !discord para conocer más!",
+                                        msg.byId,
+                                        "error"
+                                    );
+                                }
                                 return false;
                             }
                         }
                         that.printchat("Comando desconocido.", msg.byId);
                     } else {
-                        let p = that.getPlayers().find((p) => p.id === msg.byId);
                         if (msg.text.toUpperCase() === "MTM" || msg.text.toUpperCase() === "METEME") {
                             sleep(750).then(() => {
                                 if (p) {

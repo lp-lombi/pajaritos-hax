@@ -47,6 +47,7 @@ module.exports = function (API) {
         X4: 1,
         X5: 2,
         Freeroam: 3,
+        EnanosVsGordos: 4,
     };
 
     this.initialize = function () {
@@ -88,8 +89,8 @@ module.exports = function (API) {
                     }
                 },
                 "Cambia el modo de juego. !gamemode id",
-                2,
-                false
+                false,
+                2
             );
         }
     };

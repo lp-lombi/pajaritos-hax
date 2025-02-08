@@ -131,10 +131,39 @@ module.exports = function (API) {
             goals = that.getGoalLines(s);
         };
 
+        this.decelerateFactor = 0.8;
         this.onGameTick = () => {
             try {
                 that.checkAfk();
-                if (that.room && goals) {
+
+                if (that.active && that.room?.gameState && goals) {
+                    let modifyObj = null;
+                    let ball = that.room.getDisc(0);
+                    if (ball?.pos.x + threshold < goals.left.top.x) {
+                        modifyObj = {
+                            x: goals.left.top.x + 10,
+                            y: ball.pos.y,
+                        };
+                        if (ball.speed.x < -1) {
+                            modifyObj.xspeed = -ball.speed.x * that.decelerateFactor;
+                        }
+                    } else if (ball && ball.pos.x - threshold > goals.right.top.x) {
+                        modifyObj = {
+                            x: goals.right.top.x - 10,
+                            y: ball.pos.y,
+                        };
+                        if (ball.speed.x > 1) {
+                            modifyObj.xspeed = -ball.speed.x * that.decelerateFactor;
+                        }
+                    }
+
+                    if (modifyObj && !that.goal) {
+                        console.log("Reposicionando disco");
+                        that.room.setDiscProperties(0, modifyObj);
+                    }
+                }
+
+                /*if (that.room && goals) {
                     if (that.room.gameState && that.active) {
                         let modifyObj = null;
 
@@ -170,7 +199,7 @@ module.exports = function (API) {
                             }, 100);
                         }
                     }
-                }
+                } */
             } catch (e) {
                 console.log(e);
             }
@@ -348,6 +377,7 @@ module.exports = function (API) {
                     }
                 },
                 "Ajustes del autobot de la sala. ' !autobot on/off ' | !autobot equipos <tamaño>",
+                false,
                 2
             );
 

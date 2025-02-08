@@ -40,6 +40,8 @@ export class CommandsPlugin extends API["Plugin"] {
         targetId: number | null,
         type:
             | "info"
+            | "info-mute"
+            | "info-big"
             | "alert"
             | "error"
             | "announcement"
@@ -77,8 +79,9 @@ export class CommandsPlugin extends API["Plugin"] {
         name: string,
         callback: (msg: Object, args: string[]) => any | void,
         desc: string,
+        hidden: boolean,
         role: 0 | 1 | 2,
-        hidden: boolean
+        vipTier: number
     ): void;
 }
 
@@ -86,7 +89,8 @@ export class CommandsPlugin extends API["Plugin"] {
 export type Command = {
     prefix: string;
     desc: string;
-    admin: boolean;
+    role: number;
+    vipTier: number;
     hidden: boolean;
     exec: (msg: Object, args: string[]) => any | void;
 };

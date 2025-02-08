@@ -98,6 +98,7 @@ module.exports = function (API) {
                     }
                 },
                 "Modifica los discos.",
+                false,
                 2
             );
         }
