@@ -277,6 +277,19 @@ module.exports = function (API) {
             }
         }
         /**
+         * @param {MatchHistory} history
+         */
+        savePlayersStats(history) {
+            this.room.players?.forEach((player) => {
+                if (player.team.id === 0) return;
+                const goals = history.getEvents(MatchHistoryEventType.Goal, player.id).filter((e) => e.forTeamId === e.playerTeamId).length;
+                const ownGoals = history.getEvents(MatchHistoryEventType.Goal, player.id).filter((e) => e.forTeamId !== e.playerTeamId).length;
+                const assists = history.getEvents(MatchHistoryEventType.Assist, player.id).length;
+                const wins = history.winnerTeam === player.team.id ? 1 : 0;
+                this.auth.sumUserStats(player.name, goals - ownGoals, assists, wins, 1);
+            });
+        }
+        /**
          * @param {PlayerStats} playerStats
          * @param {number} targetId
          */
@@ -301,18 +314,6 @@ module.exports = function (API) {
                 null,
                 "info-mute"
             );
-        }
-        /**
-         * @param {MatchHistory} history
-         */
-        savePlayersStats(history) {
-            this.room.players?.forEach((player) => {
-                if (player.team.id === 0) return;
-                const goals = history.getEvents(MatchHistoryEventType.Goal, player.id).length;
-                const assists = history.getEvents(MatchHistoryEventType.Assist, player.id).length;
-                const wins = history.winnerTeam === player.team.id ? 1 : 0;
-                this.auth.sumUserStats(player.name, goals, assists, wins, 1);
-            });
         }
 
         onTeamGoal(teamId) {

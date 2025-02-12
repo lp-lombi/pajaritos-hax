@@ -125,21 +125,21 @@ module.exports = function (API) {
 
     this.onTeamGoal = function (teamId) {
         setTimeout(() => {
-            let player = that.room.players.find((p) => p.id === matchHistory.currentMatchHistory.getLastScorerId());
-            if (player && player.user?.subscription) {
-                switch (player.user.subscription.scoreAnimId) {
+            let scorerPlayer = that.room.players.find((p) => p.id === matchHistory.currentMatchHistory.getLastScorerId());
+            if (scorerPlayer?.team?.id === teamId && scorerPlayer.user?.subscription) {
+                switch (scorerPlayer.user.subscription.scoreAnimId) {
                     case 1:
-                        that.anims.grow(player);
+                        that.anims.grow(scorerPlayer);
                         break;
                     case 2:
-                        that.anims.shrink(player);
+                        that.anims.shrink(scorerPlayer);
                         break;
                     case 3:
-                        that.anims.rainbow(player);
+                        that.anims.rainbow(scorerPlayer);
                         break;
                 }
-                if (player.user.subscription.scoreMessage) {
-                    commands.printchat(player.user.subscription.scoreMessage, null, "vip-message");
+                if (scorerPlayer.user.subscription.scoreMessage) {
+                    commands.printchat(scorerPlayer.user.subscription.scoreMessage, null, "vip-message");
                 }
             }
         }, 100);
