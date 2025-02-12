@@ -14,6 +14,7 @@ const subsFeatures = require("./plugins/subsFeatures");
 const adminFeatures = require("./plugins/adminFeatures");
 const orbs = require("./plugins/orbs");
 const gamemodes = require("./plugins/gamemodes");
+const matchHistoryV2 = require("./plugins/matchHistoryV2");
 
 var roomObj;
 
@@ -41,7 +42,7 @@ async function run(config, DEV = false) {
                 new commands(API, { webApi: config.webApi }),
                 new comba(API),
                 new kits(API),
-                new matchHistory(API),
+                //new matchHistory(API),
                 new auth(API),
                 new autobot(API),
                 new announcements(API),
@@ -51,6 +52,7 @@ async function run(config, DEV = false) {
                 new adminFeatures(API),
                 new orbs(API),
                 new gamemodes(API),
+                matchHistoryV2(API),
             ],
             storage: {
                 player_name: config.botName,

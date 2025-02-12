@@ -238,7 +238,7 @@ module.exports = function (API) {
 
     this.restartGame = () => {
         that.room.stopGame();
-        sleep(250).then(() => {
+        sleep(300).then(() => {
             that.room.startGame();
         });
     };
@@ -261,7 +261,7 @@ module.exports = function (API) {
         let loserTeamId = winningTeamId === 1 ? 2 : 1;
         let loserPlayersIds = [];
         let spectPlayersIds = [];
-        sleep(1500).then(() => {
+        sleep(2500).then(() => {
             // Primero se mueve a los perdedores a espectadores
             that.replaceablePlayers.forEach((p) => {
                 if (p.id !== 0) {
@@ -326,11 +326,7 @@ module.exports = function (API) {
                 "autobot",
                 (msg, args) => {
                     if (args.length === 0) {
-                        commands.printchat(
-                            "Uso: ' !autobot on/off ' | !autobot equipos <tamaño> | !autobot afk <segundosAfk> ",
-                            msg.byId,
-                            "error"
-                        );
+                        commands.printchat("Uso: ' !autobot on/off ' | !autobot equipos <tamaño> | !autobot afk <segundosAfk> ", msg.byId, "error");
                     } else {
                         switch (args[0]) {
                             case "on":
@@ -357,10 +353,7 @@ module.exports = function (API) {
                                             that.afkAction = args[2].toLowerCase();
                                         }
                                         commands.printchat(
-                                            "El tiempo para AFK cambió a " +
-                                                args[1] +
-                                                " segundos | la acción de afk es: " +
-                                                that.afkAction,
+                                            "El tiempo para AFK cambió a " + args[1] + " segundos | la acción de afk es: " + that.afkAction,
                                             msg.byId
                                         );
                                     }

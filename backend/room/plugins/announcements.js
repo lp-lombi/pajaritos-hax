@@ -124,7 +124,7 @@ module.exports = function (API) {
             if (that.isSaludoActive) {
                 commands.printchat(that.saludo, playerObj.id, "announcement");
             }
-        }, 100);
+        }, 500);
     };
 
     this.initialize = function () {

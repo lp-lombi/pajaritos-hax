@@ -52,7 +52,7 @@ module.exports = function (API) {
         goals: [],
         assists: [],
         disconnectedPlayers: [],
-    }; // TODO recién al finalizar el partido se guardan los stats
+    };
 
     function printHistory(playerId) {
         var str = "";
@@ -89,28 +89,20 @@ module.exports = function (API) {
         commands.printchat("Historial:\n" + str, playerId);
     }
 
-    function addPlayerBallInteraction(player, reason) {
-        let obj = {
-            reason: reason,
-            player: player,
-        };
+    function registerPlayerBallInteraction(player, reason) {
+        const newEntry = { reason, player, teamId: player.team.id };
         if (playerBallInteractHistory.length === 0) {
-            playerBallInteractHistory.push(obj);
-        } else if (playerBallInteractHistory.length > 0) {
-            let last = playerBallInteractHistory[playerBallInteractHistory.length - 1];
-            if (reason === "touch") {
-                if (last.player.id === player.id && last.reason === "touch") {
-                    return;
-                } else {
-                    playerBallInteractHistory.push(obj);
-                }
-            } else {
-                playerBallInteractHistory.push(obj);
-            }
+            playerBallInteractHistory.push(newEntry);
+        } else if (reason === "touch" && lastPlayerWasTouching(player)) {
+            return;
+        } else {
+            playerBallInteractHistory.push(newEntry);
         }
-        if (playerBallInteractHistory.length > 5) {
-            playerBallInteractHistory.splice(0, 1);
-        }
+    }
+
+    function lastPlayerWasTouching(player) {
+        const last = playerBallInteractHistory[playerBallInteractHistory.length - 1];
+        return last && last.reason === "touch" && last.player.id === player.id;
     }
 
     function clearHistory() {
@@ -119,7 +111,7 @@ module.exports = function (API) {
 
     function printPlayersSessionStats(targetId) {
         if (that.getPlayersSessionStats().length === 0) {
-            that.room.sendAnnouncement("No hay registros.", targetId, commands.getColors().orange, "bold", 2);
+            commands.printchat("No hay registros.", targetId, "info-big-mute");
         } else {
             let playersStats = that
                 .getPlayersSessionStats()
@@ -128,14 +120,16 @@ module.exports = function (API) {
                     return b.score - a.score;
                 });
             let reversedPlayersStats = playersStats.slice().reverse();
+
             reversedPlayersStats.forEach((p) => {
                 title = `${playersStats.indexOf(p) + 1}. ${p.player.name}\n`;
                 body = `${p.score} goles - ${p.assists} asistencias\n `;
 
-                that.room.sendAnnouncement(title, targetId, commands.getColors().lightOrange, "bold", 0);
-                that.room.sendAnnouncement(body, targetId, commands.getColors().lightOrange, "small-bold", 0);
+                commands.printchat(title, targetId, "info-big-mute");
+                commands.printchat(body, targetId, "info-mute");
             });
-            that.room.sendAnnouncement("", targetId, commands.getColors().lightOrange, "small-bold", 2);
+
+            commands.printchat("", targetId, "alert");
         }
     }
 
@@ -227,16 +221,18 @@ module.exports = function (API) {
     }
 
     this.getPlayersSessionStats = function () {
-        let stats = [];
-        commands.getPlayers().forEach((p) => {
-            if (p.sessionStats && (p.sessionStats.score > 0 || p.sessionStats.assists > 0))
-                stats.push({
-                    player: p,
-                    score: p.sessionStats.score,
-                    assists: p.sessionStats.assists,
-                });
-        });
-        return stats;
+        return commands
+            .getPlayers()
+            .filter((p) => p.sessionStats && (p.sessionStats.score > 0 || p.sessionStats.assists > 0))
+            .map((p) => ({
+                player: p,
+                score: p.sessionStats.score,
+                assists: p.sessionStats.assists,
+            }));
+    };
+
+    this.getPlayerBallInteractHistory = () => {
+        return playerBallInteractHistory;
     };
 
     this.onGameStart = () => {
@@ -299,6 +295,12 @@ module.exports = function (API) {
         stats.forEach((s) => {
             auth.sumUserStats(s.username, s.score, s.assists, s.wins, s.matches);
         });
+
+        const printMatchStats = () => {
+            const possessionRed = playerBallInteractHistory.filter((pi) => pi.teamId === 1).length;
+            const possessionBlue = playerBallInteractHistory.filter((pi) => pi.teamId === 2).length;
+        };
+        printMatchStats();
     };
 
     this.onPlayerTeamChange = (playerId, teamId, byId) => {
@@ -325,7 +327,7 @@ module.exports = function (API) {
 
     this.onPlayerBallKick = (playerId) => {
         lastPlayerKickedBall = lastPlayerInteractedBall = commands.getPlayers().find((p) => p.id === playerId);
-        addPlayerBallInteraction(
+        registerPlayerBallInteraction(
             commands.getPlayers().find((p) => p.id === playerId),
             "kick"
         );
@@ -347,7 +349,7 @@ module.exports = function (API) {
                 playerCollided = true;
                 player = commands.getPlayers().find((p) => p.id === discPlayerId1 || p.id === discPlayerId2);
                 lastPlayerTouchedBall = lastPlayerInteractedBall = player;
-                addPlayerBallInteraction(player, "touch");
+                registerPlayerBallInteraction(player, "touch");
             }
         }
     };

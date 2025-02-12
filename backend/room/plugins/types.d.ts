@@ -47,6 +47,7 @@ export class CommandsPlugin extends API["Plugin"] {
             | "announcement"
             | "announcement-big"
             | "announcement-mute"
+            | "announcement-big-mute"
             | "hint"
             | "chat"
             | "pm"

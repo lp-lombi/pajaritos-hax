@@ -107,12 +107,7 @@ module.exports = function (API) {
                 }, 75);
                 setTimeout(() => {
                     clearInterval(interval);
-                    that.room.setTeamColors(
-                        teamId,
-                        origTeamColors.angle * 1.40625,
-                        origTeamColors.text,
-                        ...origTeamColors.inner
-                    );
+                    that.room.setTeamColors(teamId, origTeamColors.angle * 1.40625, origTeamColors.text, ...origTeamColors.inner);
                 }, 2000);
             }
         },
@@ -130,7 +125,7 @@ module.exports = function (API) {
 
     this.onTeamGoal = function (teamId) {
         setTimeout(() => {
-            let player = matchHistory.scorer;
+            let player = that.room.players.find((p) => p.id === matchHistory.currentMatchHistory.getLastScorerId());
             if (player && player.user?.subscription) {
                 switch (player.user.subscription.scoreAnimId) {
                     case 1:
@@ -183,10 +178,7 @@ module.exports = function (API) {
                 "festejo",
                 (msg, args) => {
                     if (args.length === 0) {
-                        commands.printchat(
-                            "[0] - Ninguno\n[1] - Agrandarse\n[2] - Encogerse\n[3] - Arcoíris\n\nUso: !festejo <id>",
-                            msg.byId
-                        );
+                        commands.printchat("[0] - Ninguno\n[1] - Agrandarse\n[2] - Encogerse\n[3] - Arcoíris\n\nUso: !festejo <id>", msg.byId);
                     } else {
                         let player = that.room.getPlayer(msg.byId);
                         if (player) {
@@ -212,7 +204,7 @@ module.exports = function (API) {
                         }
                     }
                 },
-                "⭐ [VIP] Cambia la animación del festejo ante goles.",
+                "Cambia la animación del festejo ante goles.",
                 false,
                 0,
                 1
@@ -222,10 +214,7 @@ module.exports = function (API) {
                 "mensajegol",
                 (msg, args) => {
                     if (args.length === 0) {
-                        commands.printchat(
-                            "Uso: '!mensajegol Este es mi mensaje!', o '!mensajegol 0' para desactivarlo.",
-                            msg.byId
-                        );
+                        commands.printchat("Uso: '!mensajegol Este es mi mensaje!', o '!mensajegol 0' para desactivarlo.", msg.byId);
                     } else {
                         let player = that.room.getPlayer(msg.byId);
                         if (player) {
@@ -244,7 +233,7 @@ module.exports = function (API) {
                         }
                     }
                 },
-                "⭐ [VIP] Cambia el mensaje de festejo ante goles.",
+                "Cambia el mensaje de festejo ante goles.",
                 false,
                 0,
                 1
@@ -264,7 +253,7 @@ module.exports = function (API) {
                         }
                     }
                 },
-                "⭐ [VIP] Cambia el emoji de verificación de login por el que gustes.",
+                "Cambia el emoji de verificación de login por el que gustes.",
                 false,
                 0,
                 1
@@ -290,17 +279,13 @@ module.exports = function (API) {
                                 }
                             }
                         } else {
-                            commands.printchat(
-                                "El número debe ser un entero entre 5 y 30! ej: ' !radio 5 '",
-                                msg.byId,
-                                "error"
-                            );
+                            commands.printchat("El número debe ser un entero entre 5 y 30! ej: ' !radio 5 '", msg.byId, "error");
                         }
                     } else {
                         commands.printchat("🙁 Este comando solo funciona en Juegan Todos!", msg.byId);
                     }
                 },
-                "⭐ [VIP] En las salas Juegan Todos, permite cambiar el tamaño del disco.",
+                "En las salas Juegan Todos, permite cambiar el tamaño del disco.",
                 false,
                 0,
                 1

@@ -122,6 +122,9 @@ module.exports = function (API, customData = {}) {
             case "info-big":
                 room.sendAnnouncement(msg, targetId, COLORS.beige, "bold");
                 break;
+            case "info-big-mute":
+                room.sendAnnouncement(msg, targetId, COLORS.beige, "bold", 0);
+                break;
             case "alert":
                 room.sendAnnouncement(msg, targetId, COLORS.beige, "small-bold", 2);
                 break;
@@ -133,6 +136,9 @@ module.exports = function (API, customData = {}) {
                 break;
             case "announcement-big":
                 room.sendAnnouncement(msg, targetId, COLORS.green, "bold");
+                break;
+            case "announcement-big-mute":
+                room.sendAnnouncement(msg, targetId, COLORS.green, "bold", 0);
                 break;
             case "announcement-mute":
                 room.sendAnnouncement(msg, targetId, COLORS.green, "small-bold", 0);
@@ -202,18 +208,8 @@ module.exports = function (API, customData = {}) {
                 let toU = that.getPlayers().find((p) => p.id === targetId);
                 if (fromA && toU) {
                     room.sendAnnouncement(`⚠️ [ADVERTENCIA DE ${fromA.name}] ${msg} ⚠️`, toU.id, COLORS.red, "bold", 2);
-                    room.sendAnnouncement(
-                        `⚠️ [ADVERTENCIA DE ${fromA.name} A ${toU.name}] ${msg} ⚠️`,
-                        byId,
-                        COLORS.red,
-                        "bold"
-                    );
-                    room.sendAnnouncement(
-                        `El jugador " ${toU.name} " fue advertido por un administrador`,
-                        null,
-                        COLORS.orange,
-                        "bold"
-                    );
+                    room.sendAnnouncement(`⚠️ [ADVERTENCIA DE ${fromA.name} A ${toU.name}] ${msg} ⚠️`, byId, COLORS.red, "bold");
+                    room.sendAnnouncement(`El jugador " ${toU.name} " fue advertido por un administrador`, null, COLORS.orange, "bold");
                 }
                 break;
             case "tm":
@@ -352,28 +348,16 @@ module.exports = function (API, customData = {}) {
                                 that.printchat(cmdSign + "\n" + c.desc + "\n\n", msg.byId, "info-mute");
                             }
                         });
-                        that.printchat(
-                            "⭐ Si sos VIP, usá ' !help vip ' o ' !vip ' para ver tus comandos disponibles 😎",
-                            msg.byId,
-                            "info-mute"
-                        );
+                        that.printchat("⭐ Si sos VIP, usá ' !help vip ' o ' !vip ' para ver tus comandos disponibles 😎", msg.byId, "info-mute");
                         if (that.isUserRoleAuthorized(msg.byId, 1) || that.isAdmin(msg.byId)) {
-                            that.printchat(
-                                "Hay comandos adicionales para administradores. Usa ' !help admin ' para verlos.",
-                                msg.byId,
-                                "info-mute"
-                            );
+                            that.printchat("Hay comandos adicionales para administradores. Usa ' !help admin ' para verlos.", msg.byId, "info-mute");
                         }
                     } else if (args[0] === "admin") {
                         if (that.isUserRoleAuthorized(msg.byId, 1) || that.isAdmin(msg.byId)) {
                             that.printchat("Lista de comandos para administradores:\n", msg.byId, "info-big");
 
                             that.commandsList.forEach((c) => {
-                                if (
-                                    !c.hidden &&
-                                    c.role > 0 &&
-                                    (that.isUserRoleAuthorized(msg.byId, c.role) || that.isAdmin(msg.byId))
-                                ) {
+                                if (!c.hidden && c.role > 0 && (that.isUserRoleAuthorized(msg.byId, c.role) || that.isAdmin(msg.byId))) {
                                     let cmdSign = c.prefix + c.name;
                                     that.printchat(cmdSign + "\n" + c.desc + "\n\n", msg.byId, "info-mute");
                                 }
@@ -385,7 +369,7 @@ module.exports = function (API, customData = {}) {
                         that.commandsList.forEach((c) => {
                             if (!c.hidden && c.vipTier > 0) {
                                 let cmdSign = c.prefix + c.name;
-                                that.printchat(cmdSign + "\n" + c.desc + "\n\n", msg.byId, "info-mute");
+                                that.printchat(cmdSign + "\n⭐ [VIP] " + c.desc + "\n\n", msg.byId, "info-mute");
                             }
                         });
                     }
@@ -484,8 +468,7 @@ module.exports = function (API, customData = {}) {
                     if (args.length === 0) {
                         let banString = "";
                         for (let i = 0; i < room.banList.length; i++) {
-                            banString +=
-                                "[" + (i + 1) + "] " + room.banList[i].name + " | " + room.banList[i].ips[0] + "\n ";
+                            banString += "[" + (i + 1) + "] " + room.banList[i].name + " | " + room.banList[i].ips[0] + "\n ";
                         }
                         banString = room.banList.length === 0 ? "No hay bans." : banString;
 
@@ -553,18 +536,13 @@ module.exports = function (API, customData = {}) {
                         // por los admins de la sala
                         if (command) {
                             if (
-                                (command.role > 0 &&
-                                    (that.isUserRoleAuthorized(msg.byId, command.role) || that.isAdmin(msg.byId))) ||
+                                (command.role > 0 && (that.isUserRoleAuthorized(msg.byId, command.role) || that.isAdmin(msg.byId))) ||
                                 command.role === 0
                             ) {
                                 if (command.vipTier === 0 || p?.user?.subscription?.tier >= command.vipTier) {
                                     command.exec(msg, args);
                                 } else {
-                                    that.printchat(
-                                        "🙁 Comando exclusivo para VIPs. Entrá a nuestro !discord para conocer más!",
-                                        msg.byId,
-                                        "error"
-                                    );
+                                    that.printchat("🙁 Comando exclusivo para VIPs. Entrá a nuestro !discord para conocer más!", msg.byId, "error");
                                 }
                                 return false;
                             }
