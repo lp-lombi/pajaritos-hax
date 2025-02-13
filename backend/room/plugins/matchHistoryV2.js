@@ -281,7 +281,7 @@ module.exports = function (API) {
          */
         savePlayersStats(history) {
             this.room.players?.forEach((player) => {
-                if (player.team.id === 0) return;
+                if (player.team.id === 0 || !player.user) return;
                 const goals = history.getEvents(MatchHistoryEventType.Goal, player.id).filter((e) => e.forTeamId === e.playerTeamId).length;
                 const ownGoals = history.getEvents(MatchHistoryEventType.Goal, player.id).filter((e) => e.forTeamId !== e.playerTeamId).length;
                 const assists = history.getEvents(MatchHistoryEventType.Assist, player.id).length;

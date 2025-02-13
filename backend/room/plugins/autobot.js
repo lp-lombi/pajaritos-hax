@@ -261,7 +261,7 @@ module.exports = function (API) {
         let loserTeamId = winningTeamId === 1 ? 2 : 1;
         let loserPlayersIds = [];
         let spectPlayersIds = [];
-        sleep(2500).then(() => {
+        sleep(3000).then(() => {
             // Primero se mueve a los perdedores a espectadores
             that.replaceablePlayers.forEach((p) => {
                 if (p.id !== 0) {
