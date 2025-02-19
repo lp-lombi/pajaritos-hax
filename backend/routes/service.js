@@ -2,7 +2,7 @@ const express = require("express");
 const service = express.Router();
 
 service.get("/bans/perma/all", function (req, res) {
-    fetch(global.webApi.url + "/bans/all", {
+    fetch(global.webApi.url + "/bans?isPermanent=true", {
         method: "GET",
         headers: { "x-api-key": global.webApi.key },
     })

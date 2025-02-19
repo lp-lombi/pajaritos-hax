@@ -44,9 +44,7 @@ fs.readFile("config.json", (err, data) => {
                 }),
                 (err) => {
                     if (!err) {
-                        console.log(
-                            "No se encontró archivo config.json, creando config.json, por favor editarlo"
-                        );
+                        console.log("No se encontró archivo config.json, creando config.json, por favor editarlo");
                         process.exit(0);
                     } else {
                         console.log(err);
@@ -98,9 +96,7 @@ function start(ttl = 10) {
                 if (ttl > 0) {
                     port++;
                     start(ttl - 1);
-                    console.log(
-                        `El puerto ${port} está en uso, utilizando el siguiente`
-                    );
+                    console.log(`El puerto ${port} está en uso, utilizando el siguiente`);
                 } else {
                     console.error("Máximo de intentos alcanzados.");
                     process.exit(1);

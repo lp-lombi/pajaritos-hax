@@ -2,9 +2,11 @@ const express = require("express");
 const fs = require("fs");
 const room = express.Router();
 
-var roomCreator = require("../room/mainw");
+var roomCreator = require("../room/main");
 
 var stadiumsPath = "./room/stadiums/";
+
+const CommandsPlugin = require("../room/plugins/commands")().CommandsPlugin.prototype;
 
 const DEBUG = false;
 
@@ -248,9 +250,12 @@ room.post("/kick/permaban", global.verifyToken, function (req, res) {
                 return;
             }
 
+            /**
+             * @type {CommandsPlugin}
+             */
             let commands = global.room.plugins.find((p) => p.name === "lmbCommands");
             if (commands) {
-                commands.permaBan(name, ip, auth);
+                commands.registerBan(0, null, name, ip, auth, true);
                 res.send("Player banned permanently");
                 return;
             }

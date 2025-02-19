@@ -178,10 +178,7 @@ module.exports = function (API) {
 
                 Utils.runAfterGameTick(() => {
                     let newGravity = ball.gravity.y * that.combaGravityDecelerationFactor;
-                    let velocityBasedGravity = that.calcVelocityBasedGravity(
-                        that.calcVelocity(ball.speed.x, ball.speed.y),
-                        ball
-                    );
+                    let velocityBasedGravity = that.calcVelocityBasedGravity(that.calcVelocity(ball.speed.x, ball.speed.y), ball);
 
                     // siempre debe tender a descender la gravedad
                     if (Math.abs(newGravity) > Math.abs(velocityBasedGravity)) {
@@ -198,9 +195,7 @@ module.exports = function (API) {
                             .mix(
                                 that.chromaBallColor,
                                 that.chromaCombaColor,
-                                Math.abs(
-                                    that.isAnyPlayerInHoldingBall ? that.castStrengthMultiplier * 0.08 : newGravity
-                                ) / 0.08
+                                Math.abs(that.isAnyPlayerInHoldingBall ? that.castStrengthMultiplier * 0.08 : newGravity) / 0.08
                             )
                             .hex()
                             .substring(1),
@@ -286,10 +281,7 @@ module.exports = function (API) {
                                     that.combaStrengthMultiplier = 1.25;
                                     that.combaGravityMultiplier = 0.7;
                                     commands.printchat(
-                                        "Fuerza: " +
-                                            that.combaStrengthMultiplier +
-                                            " | Comba: " +
-                                            that.combaGravityMultiplier,
+                                        "Fuerza: " + that.combaStrengthMultiplier + " | Comba: " + that.combaGravityMultiplier,
                                         msg.byId
                                     );
                                     break;
@@ -297,10 +289,7 @@ module.exports = function (API) {
                                     that.combaStrengthMultiplier = 1.75;
                                     that.combaGravityMultiplier = 0.7;
                                     commands.printchat(
-                                        "Fuerza: " +
-                                            that.combaStrengthMultiplier +
-                                            " | Comba: " +
-                                            that.combaGravityMultiplier,
+                                        "Fuerza: " + that.combaStrengthMultiplier + " | Comba: " + that.combaGravityMultiplier,
                                         msg.byId
                                     );
                                     break;
@@ -308,10 +297,7 @@ module.exports = function (API) {
                                     that.combaStrengthMultiplier = 2;
                                     that.combaGravityMultiplier = 0.7;
                                     commands.printchat(
-                                        "Fuerza: " +
-                                            that.combaStrengthMultiplier +
-                                            " | Comba: " +
-                                            that.combaGravityMultiplier,
+                                        "Fuerza: " + that.combaStrengthMultiplier + " | Comba: " + that.combaGravityMultiplier,
                                         msg.byId
                                     );
                                     break;
@@ -319,10 +305,7 @@ module.exports = function (API) {
                                     that.combaStrengthMultiplier = 2.5;
                                     that.combaGravityMultiplier = 0.7;
                                     commands.printchat(
-                                        "Fuerza: " +
-                                            that.combaStrengthMultiplier +
-                                            " | Comba: " +
-                                            that.combaGravityMultiplier,
+                                        "Fuerza: " + that.combaStrengthMultiplier + " | Comba: " + that.combaGravityMultiplier,
                                         msg.byId
                                     );
                                     break;

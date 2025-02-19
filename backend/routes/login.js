@@ -3,6 +3,7 @@ const login = express.Router();
 const jwt = require("jsonwebtoken");
 
 login.post("/", function (req, res) {
+    console.log(global.webApi);
     fetch(global.webApi.url + "/users/auth/login", {
         method: "POST",
         headers: {

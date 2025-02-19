@@ -1,3 +1,5 @@
+const CommandsPlugin = require("./commands")().CommandsPlugin.prototype;
+
 /**
  * @param {import("./types").API} API
  */
@@ -38,7 +40,7 @@ module.exports = function (API) {
     var that = this;
 
     /**
-     * @type {import("./types").CommandsPlugin}
+     * @type {CommandsPlugin}
      */
     var commands;
 
