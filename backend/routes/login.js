@@ -21,7 +21,7 @@ login.post("/", function (req, res) {
                         const token = jwt.sign(data, global.secretKey, {
                             expiresIn: "2h",
                         });
-                        res.json({ token });
+                        res.json({ token, userData: data });
                     } else {
                         res.send(data);
                     }

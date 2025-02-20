@@ -34,11 +34,7 @@ export const Bans = () => {
                                 </div>
                                 <div className="bottom">
                                     <div className="col50">
-                                        <div>
-                                            {ban.value.ips[0] ? (
-                                                <span key={ban.value.ips[0]}>{ban.value.ips[0]} </span>
-                                            ) : null}
-                                        </div>
+                                        <div>{ban.value.ips[0] ? <span key={ban.value.ips[0]}>{ban.value.ips[0]} </span> : null}</div>
                                     </div>
                                     <div className="col50">
                                         <button onClick={() => unbanPlayer(ban.value.pId)}>Desbanear</button>
@@ -48,11 +44,7 @@ export const Bans = () => {
                                                     "Banear permanentemente",
                                                     "Se baneará permanentemente la IP del jugador " + ban.value.pName,
                                                     () => {
-                                                        permaBanPlayer(
-                                                            ban.value.pName,
-                                                            ban.value.ips[0],
-                                                            ban.value.auth
-                                                        );
+                                                        permaBanPlayer(ban.value.pName, ban.value.ips[0], ban.value.auth);
                                                     }
                                                 )
                                             }

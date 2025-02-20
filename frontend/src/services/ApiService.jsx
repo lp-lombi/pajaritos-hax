@@ -27,14 +27,13 @@ export const ApiService = ({ children }) => {
                 res.json().then((data) => {
                     if (data.token) {
                         localStorage.setItem("token", data.token);
+                        localStorage.setItem("userData", JSON.stringify(data.userData));
                         setApiToken(data.token);
                     } else {
                         localStorage.setItem("token", "");
+                        localStorage.setItem("userData", "");
                         setApiToken("");
-                        popupAlert(
-                            "No se pudo validar",
-                            "Usuario o contraseña incorrectos."
-                        );
+                        popupAlert("No se pudo validar", "Usuario o contraseña incorrectos.");
                     }
                 });
             } else {
@@ -90,10 +89,7 @@ export const ApiService = ({ children }) => {
                         closePopup();
                     } else if (data.status === "token") {
                         if (attempts < 12) {
-                            setTimeout(
-                                () => fetchRoomStatus(attempts + 1),
-                                200
-                            );
+                            setTimeout(() => fetchRoomStatus(attempts + 1), 200);
                         } else {
                             setRoomStatus("token");
                             stopRoom();
@@ -265,7 +261,9 @@ export const ApiService = ({ children }) => {
     };
 
     const kickPlayer = (id, reason = "", ban = false) => {
-        fetch(`/room/kick?id=${id}&reason=${reason}&ban=${ban}`, {
+        const byUserId = JSON.parse(localStorage.getItem("userData"))?.id || null;
+
+        fetch(`/room/kick?id=${id}&reason=${reason}&ban=${ban}&byUserId=${byUserId}`, {
             method: "POST",
             headers: {
                 token: apiToken,
@@ -281,6 +279,8 @@ export const ApiService = ({ children }) => {
 
     // debería de unir permabans a servicios
     const permaBanPlayer = (name, ip, auth) => {
+        const byUserId = JSON.parse(localStorage.getItem("userData"))?.id || null;
+
         fetch(`/room/kick/permaban`, {
             method: "POST",
             headers: {
@@ -288,6 +288,7 @@ export const ApiService = ({ children }) => {
                 token: apiToken,
             },
             body: JSON.stringify({
+                byUserId,
                 name,
                 ip,
                 auth,
@@ -371,9 +372,7 @@ export const ApiService = ({ children }) => {
             if (res.status === 401 || res.status === 403) {
                 localStorage.setItem("token", "");
                 setApiToken("");
-                console.log(
-                    "Token previo posiblemente expirado: \n" + res.statusText
-                );
+                console.log("Token previo posiblemente expirado: \n" + res.statusText);
             }
         });
     }, []);

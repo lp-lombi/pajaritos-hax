@@ -219,16 +219,35 @@ room.post("/kick", global.verifyToken, function (req, res) {
         res.send("Host not open");
     } else {
         try {
-            let playerId = isNaN(req.query.id) ? null : parseInt(req.query.id);
-            let reason = req.query.reason;
-            let ban = req.query.ban === "true";
-
+            const playerId = isNaN(req.query.id) ? null : parseInt(req.query.id);
             if (!playerId) {
                 res.send("Invalid player id");
                 return;
             }
 
-            global.room.kickPlayer(playerId, reason, ban, 0);
+            const player = global.room.getPlayer(playerId);
+            const byUserId = isNaN(req.query.byUserId) ? null : parseInt(req.query.byUserId);
+            const reason = req.query.reason;
+            const isBanned = req.query.ban === "true";
+
+            global.room.kickPlayer(playerId, reason, isBanned, 0);
+
+            if (isBanned) {
+                const ban = this.room.banList.at(-1);
+                const ip = ban.value.ips[0];
+                const auth = ban.value.auth;
+
+                if (ban.value.pId === playerId) {
+                    /**
+                     * @type {CommandsPlugin}
+                     */
+                    const commands = global.room.plugins.find((p) => p.name === "lmbCommands");
+                    commands?.registerBan(byUserId, player.user?.id || null, player.name, ip, auth, false);
+                    res.send("Player banned");
+                    return;
+                }
+            }
+
             res.send("Player kick request processed");
         } catch (e) {
             console.log(e);
@@ -241,9 +260,7 @@ room.post("/kick/permaban", global.verifyToken, function (req, res) {
         res.send("Host not open");
     } else {
         try {
-            let name = req.body.name;
-            let ip = req.body.ip;
-            let auth = req.body.auth;
+            const { byUserId, name, ip, auth } = req.body;
 
             if (!name) {
                 res.send("Name required");
@@ -253,9 +270,9 @@ room.post("/kick/permaban", global.verifyToken, function (req, res) {
             /**
              * @type {CommandsPlugin}
              */
-            let commands = global.room.plugins.find((p) => p.name === "lmbCommands");
+            const commands = global.room.plugins.find((p) => p.name === "lmbCommands");
             if (commands) {
-                commands.registerBan(0, null, name, ip, auth, true);
+                commands.registerBan(byUserId, null, name, ip, auth, true);
                 res.send("Player banned permanently");
                 return;
             }

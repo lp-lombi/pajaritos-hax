@@ -288,14 +288,18 @@ module.exports = function (API, customData = {}) {
         }
 
         onPlayerLeave(player, reason, isBanned, byId, customData) {
-            const playerUserId = player.user?.id || null;
-            const adminUserId = this.room.getPlayer(byId)?.user?.id;
+            // Por el momento, se registrarán los bans hechos desde el juego y se delegará
+            // la tarea de registrar los bans hechos desde el panel
+            if (byId !== 0) {
+                const playerUserId = player.user?.id || null;
+                const adminUserId = this.room.getPlayer(byId)?.user?.id || null;
 
-            if (adminUserId && isBanned) {
-                const ban = this.room.banList.at(-1);
+                if (isBanned) {
+                    const ban = this.room.banList.at(-1);
 
-                if (ban.value.pId === player.id) {
-                    this.registerBan(adminUserId, playerUserId, player.name, ban.value.ips[0], ban.value.auth, false);
+                    if (ban.value.pId === player.id) {
+                        this.registerBan(adminUserId, playerUserId, player.name, ban.value.ips[0], ban.value.auth, false);
+                    }
                 }
             }
         }
