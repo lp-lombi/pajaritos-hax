@@ -25,6 +25,8 @@ module.exports = function (API, customData = {}) {
             redTeam: parseInt("FFD9D9", 16),
             blueTeam: parseInt("DBD9FF", 16),
             vip: parseInt("FFDCB3", 16),
+            redStats: parseInt("FF9999", 16),
+            blueStats: parseInt("9999FF", 16),
         };
 
         constructor(customData) {
@@ -66,7 +68,7 @@ module.exports = function (API, customData = {}) {
          * Escribe algo en el chat con estilos predeterminados
          * @param msg Texto del mensaje
          * @param targetId Id del destinatario o null para todos
-         * @param {"info" | "info-mute" | "info-big" | "alert" | "error" | "announcement" | "announcement-big" | "announcement-mute" | "announcement-big-mute" | "hint" | "chat" | "pm" | "tm" | "stat" | "vip-message" | "warn" | null} type Estilo del mensaje
+         * @param {"info" | "info-mute" | "info-big" | "alert" | "error" | "announcement" | "announcement-big" | "announcement-mute" | "announcement-big-mute" | "hint" | "chat" | "pm" | "tm" | "stat" | "vip-message" | "red-stats" | "blue-stats" | "warn" | null} type Estilo del mensaje
          * @param byId Si el mensaje fue emitido por alguien
          */
         printchat(msg, targetId = null, type = "info", byId = null) {
@@ -187,6 +189,13 @@ module.exports = function (API, customData = {}) {
                     break;
                 case "vip-message":
                     this.room.sendAnnouncement(msg, targetId, this.Colors.lightOrange, "bold", 2);
+                    break;
+                case "red-stats":
+                    this.room.sendAnnouncement(msg, targetId, this.Colors.redStats, "small-bold", 0);
+                    break;
+                case "blue-stats":
+                    this.room.sendAnnouncement(msg, targetId, this.Colors.blueStats, "small-bold", 0);
+                    break;
             }
         }
         log(text, color, style) {

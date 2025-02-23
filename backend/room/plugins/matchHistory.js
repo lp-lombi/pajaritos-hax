@@ -2,6 +2,8 @@
  * @typedef {{discId1: number, discPlayerId1: number, discId2: number, discPlayerId2: number}} DiscCollisions - Datos de la colisión de dos discos.
  */
 
+const CommandsPlugin = require("./commands")().CommandsPlugin.prototype;
+
 /**
  * @param {import('./types').API} API
  */
@@ -306,8 +308,10 @@ module.exports = function (API) {
             const redAccumGoals = this.goalHistory.events.filter((event) => event.forTeamId === 1).length;
             const blueAccumGoals = this.goalHistory.events.filter((event) => event.forTeamId === 2).length;
 
-            this.commands.printchat(`█████████ Final del partido █████████`, null, "announcement-big");
-            this.commands.printchat(`█ Posesión Red: ${redPossessionPercent}%\n█ Posesión Blue: ${bluePossessionPercent}%`, null, "info-mute");
+            this.commands.printchat(`█⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀Final del partido `, null, "announcement-big");
+
+            this.commands.printchat("▌".repeat(redPossessionPercent / 3) + ` - ${redPossessionPercent}% posesión Red`, null, "red-stats");
+            this.commands.printchat("▌".repeat(bluePossessionPercent / 3) + ` - ${bluePossessionPercent}% posesión Blue`, null, "blue-stats");
             this.commands.printchat(
                 `\n█ El Red lleva ganados ${this.redWins} partidos y acumulados ${redAccumGoals} goles\n█ El Blue lleva ganados ${this.blueWins} partidos y acumulados ${blueAccumGoals} goles`,
                 null,
@@ -348,7 +352,7 @@ module.exports = function (API) {
         }
         initialize() {
             /**
-             * @type {import('./types').CommandsPlugin}
+             * @type {CommandsPlugin}
              */
             this.commands = this.room.plugins.find((p) => p.name === "lmbCommands");
             this.auth = this.room.plugins.find((p) => p.name === "lmbAuth");

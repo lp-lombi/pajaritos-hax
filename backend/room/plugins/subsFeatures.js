@@ -91,10 +91,10 @@ module.exports = (API) => {
             return playerDisc ? discs.indexOf(playerDisc) : null;
         }
         isEmoji(char) {
-            return regexEmoji.test(char);
+            return this.regexEmoji.test(char);
         }
         getFirstEmoji(str) {
-            const match = str.match(regexEmoji);
+            const match = str.match(this.regexEmoji);
             return match ? match[0] : null;
         }
         applyModifiers() {
