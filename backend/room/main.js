@@ -1,14 +1,11 @@
 const API = require("node-haxball")();
 
 // PLUGINS
-const commands = require("./plugins/commands");
 const comba = require("./plugins/comba");
 const kits = require("./plugins/kits");
 const autobot = require("./plugins/autobot");
-const announcements = require("./plugins/announcements");
 const voteKick = require("./plugins/voteKick");
 const customDisc = require("./plugins/customDisc");
-const subsFeatures = require("./plugins/subsFeatures");
 const adminFeatures = require("./plugins/adminFeatures");
 const orbs = require("./plugins/orbs");
 const gamemodes = require("./plugins/gamemodes");
@@ -42,7 +39,7 @@ async function run(config, DEV = false) {
                 require("./plugins/matchHistory")(API).instance,
                 require("./plugins/auth")(API).instance,
                 new autobot(API),
-                new announcements(API),
+                require("./plugins/announcements")(API).instance,
                 new voteKick(API),
                 new customDisc(API),
                 require("./plugins/subsFeatures")(API).instance,
